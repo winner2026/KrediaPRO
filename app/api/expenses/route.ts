@@ -24,3 +24,14 @@ export async function POST(req: Request) {
     );
   }
 }
+
+export async function GET() {
+  try {
+    const rows = await db.select().from(expenses).orderBy(expenses.created_at);
+
+    return NextResponse.json(rows);
+  } catch (err) {
+    console.error(err);
+    return NextResponse.json({ error: "Server error" }, { status: 500 });
+  }
+}

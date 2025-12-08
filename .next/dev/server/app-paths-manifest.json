@@ -1,3 +1,5 @@
 {
+  "/api/expenses/route": "app-edge-has-no-entrypoint",
+  "/landing/page": "app/landing/page.js",
   "/page": "app/page.js"
 }
