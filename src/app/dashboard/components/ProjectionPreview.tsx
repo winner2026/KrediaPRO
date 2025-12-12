@@ -1,4 +1,4 @@
-import { CalculateProjectionOutput } from '@/core/use-cases/calculateProjection'
+import { CalculateProjectionOutput } from '@/core/usecases/calculateProjection'
 
 interface ProjectionPreviewProps {
   data: CalculateProjectionOutput

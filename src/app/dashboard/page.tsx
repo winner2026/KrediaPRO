@@ -1,25 +1,27 @@
-﻿import { redirect } from "next/navigation";
+import { cookies } from "next/headers";
+import { redirect } from "next/navigation";
 
-interface DashboardPageProps {
-  searchParams?: { cardId?: string | string[] };
-}
+import { NeonCardRepository } from "@/infrastructure/repositories/NeonCardRepository";
+import { CalculateDashboard } from "@/core/usecases/CalculateDashboard";
+import { GenerateAlerts } from "@/core/usecases/GenerateAlerts";
+import DashboardView from "./DashboardView";
 
-export default function DashboardPage({ searchParams }: DashboardPageProps) {
-  const cardIdParam = searchParams?.cardId;
-  const cardId = typeof cardIdParam === "string" ? cardIdParam : undefined;
+export default async function DashboardPage() {
+  const cookieStore = await cookies();
+  const session = cookieStore.get("session");
 
-  const uuidRegex =
-    /^[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}$/;
+  if (!session) redirect("/auth/login");
 
-  if (!cardId || !uuidRegex.test(cardId)) {
+  const repo = new NeonCardRepository();
+  const usecase = new CalculateDashboard(repo);
+  const alertsUC = new GenerateAlerts(repo);
+
+  const data = await usecase.execute(session.value);
+  const alerts = await alertsUC.execute(session.value);
+
+  if (!data) {
     redirect("/onboarding");
   }
 
-  return (
-    <div>
-      <h1>Dashboard</h1>
-      <pre>{JSON.stringify({ cardId }, null, 2)}</pre>
-    </div>
-  );
+  return <DashboardView data={data} alerts={alerts} />;
 }
-

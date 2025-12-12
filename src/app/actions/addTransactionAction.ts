@@ -16,12 +16,12 @@
  * - Repositorios acceden a la BD
  */
 
-import { addTransaction } from '@/core/use-cases/addTransaction'
-import { PostgresTransactionRepository } from '@/infrastructure/repositories/PostgresTransactionRepository'
+import { addTransaction } from '@/core/usecases/addTransaction'
+import { NeonTransactionRepository } from '@/infrastructure/repositories/NeonTransactionRepository'
 import { PostgresMSIPlanRepository } from '@/infrastructure/repositories/PostgresMSIPlanRepository'
 
 // Instanciar repositorios
-const transactionRepo = new PostgresTransactionRepository()
+const transactionRepo = new NeonTransactionRepository()
 const msiPlanRepo = new PostgresMSIPlanRepository()
 
 /**
@@ -46,7 +46,7 @@ export async function addTransactionAction(input: AddTransactionInput) {
   const { transaction, msiPlan, message } = addTransaction(input)
 
   // 2. Persistir transacción en DB
-  await transactionRepo.create(transaction)
+  await transactionRepo.addPayment(transaction)
 
   // 3. Persistir MSI plan (si existe)
   if (msiPlan) {
