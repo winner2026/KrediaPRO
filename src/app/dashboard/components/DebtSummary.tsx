@@ -1,4 +1,4 @@
-import { CalculateCurrentDebtOutput } from '@/core/use-cases/calculateCurrentDebt'
+import { CalculateCurrentDebtOutput } from '@/core/usecases/calculateCurrentDebt'
 import { formatCurrency } from '@/utils/formatters'
 
 interface DebtSummaryProps {

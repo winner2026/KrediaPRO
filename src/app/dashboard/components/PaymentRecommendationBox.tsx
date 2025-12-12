@@ -1,4 +1,4 @@
-import { CalculatePaymentRecommendationOutput } from '@/core/use-cases/calculatePaymentRecommendation'
+import { CalculatePaymentRecommendationOutput } from '@/core/usecases/calculatePaymentRecommendation'
 
 interface PaymentRecommendationBoxProps {
   data: CalculatePaymentRecommendationOutput

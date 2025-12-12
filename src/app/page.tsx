@@ -1,8 +1,13 @@
-export default function Home() {
-  return (
-    <main>
-      <h1>Kredia MVP</h1>
-      <p>Gestión inteligente de tarjetas de crédito</p>
-    </main>
-  )
+import { cookies } from "next/headers";
+import { redirect } from "next/navigation";
+
+export default async function Home() {
+  const cookieStore = await cookies();
+  const token = cookieStore.get("session")?.value;
+
+  if (!token) {
+    redirect("/auth/register");
+  }
+
+  redirect("/dashboard");
 }
