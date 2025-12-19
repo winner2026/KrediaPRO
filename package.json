@@ -11,10 +11,13 @@
     "dotenv": "^16.4.1",
     "drizzle-orm": "^0.45.0",
     "lightweight-charts": "^5.0.9",
-    "next": "latest",
+    "lucide-react": "^0.562.0",
+    "next": "16.1.0",
+    "openai": "^6.14.0",
     "pg": "^8.16.3",
-    "react": "latest",
-    "react-dom": "latest"
+    "react": "19.2.3",
+    "react-dom": "19.2.3",
+    "resend": "^6.6.0"
   },
   "devDependencies": {
     "@tailwindcss/postcss": "^4.1.17",
