@@ -25,10 +25,15 @@ export function buildAuthorityScore(
 }
 
 export function buildDiagnosis(score: number): string {
-  if (score >= 80) return "Tu voz transmite alta autoridad y seguridad.";
-  if (score >= 60)
-    return "Tu voz transmite autoridad media, pero genera dudas en contextos de liderazgo.";
-  return "Tu voz transmite baja autoridad y reduce el impacto de tus ideas.";
+  if (score >= 80) {
+    return "Tu voz transmite autoridad y seguridad. Cuando hablas, es fácil confiar en lo que dices.";
+  }
+
+  if (score >= 60) {
+    return "Tu voz transmite autoridad media, pero genera dudas en momentos clave. El mensaje se entiende, pero no siempre se siente firme.";
+  }
+
+  return "Tu voz transmite baja autoridad y debilita el impacto de tus ideas. Lo que dices pierde fuerza antes de llegar.";
 }
 
 export function buildStrengths(metrics: VoiceMetrics): string[] {
@@ -41,7 +46,15 @@ export function buildStrengths(metrics: VoiceMetrics): string[] {
   }
 
   if (clarity >= 0.7) {
-    strengths.push("La claridad de tu articulación facilita que te entiendan.");
+    strengths.push("Se te entiende con claridad al hablar.");
+  }
+
+  if (metrics.energyStability >= 0.6) {
+    strengths.push("No atropellas las palabras al expresarte.");
+  }
+
+  if (metrics.avgPauseDuration >= 0.35 && metrics.avgPauseDuration <= 0.65) {
+    strengths.push("Mantienes un flujo vocal consistente.");
   }
 
   return strengths.slice(0, 2);
@@ -54,12 +67,20 @@ export function buildWeaknesses(metrics: VoiceMetrics): string[] {
 
   if (pauses > 0.7) {
     weaknesses.push(
-      "Haces pausas demasiado largas antes de cerrar ideas, lo que debilita el mensaje."
+      "Haces pausas largas antes de cerrar ideas, lo que debilita el mensaje."
     );
   }
 
   if (energy < 0.5) {
-    weaknesses.push("La variación de energía es baja, suenas plano.");
+    weaknesses.push("Tu energía vocal es baja y suenas plano.");
+  }
+
+  if (metrics.wordsPerMinute > 170) {
+    weaknesses.push("El cierre de tus frases no transmite decisión.");
+  }
+
+  if (metrics.energyStability < 0.4) {
+    weaknesses.push("Tu voz pierde firmeza en momentos clave.");
   }
 
   return weaknesses.slice(0, 2);
