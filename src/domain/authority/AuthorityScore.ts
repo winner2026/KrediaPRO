@@ -10,4 +10,5 @@ export interface AuthorityScore {
   strengths: string[];
   weaknesses: string[];
   priorityAdjustment: PriorityAdjustment;
+  score: number;
 }

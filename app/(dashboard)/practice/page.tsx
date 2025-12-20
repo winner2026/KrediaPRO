@@ -12,14 +12,28 @@ interface AnalysisResult {
       strengths: string[];
       weaknesses: string[];
       priorityAdjustment: string;
+      score: number;
     };
+    transcription: string;
+    metrics: {
+      wordsPerMinute: number;
+      avgPauseDuration: number;
+      pauseCount: number;
+      pitchVariation: number;
+      energyStability: number;
+    };
+    durationBytes: number;
+    diagnosis: string;
+    strengths: string[];
+    weaknesses: string[];
+    decision: string;
+    payoff: string;
     feedback: {
       levelLabel: string;
       adds: string;
       subtracts: string;
       today: string;
     };
-    transcription: string;
   };
 }
 
@@ -107,8 +121,11 @@ export default function PracticePage() {
         setResult(data);
 
         // Establecer el enfoque para la próxima práctica basado en la debilidad
-        if (data.data?.authorityScore?.weaknesses?.[0]) {
-          setCurrentFocus(data.data.authorityScore.weaknesses[0]);
+        const newFocus =
+          data.data?.weaknesses?.[0] ??
+          data.data?.authorityScore?.weaknesses?.[0];
+        if (newFocus) {
+          setCurrentFocus(newFocus);
         }
 
         setRecordingState("result");
@@ -151,11 +168,7 @@ export default function PracticePage() {
           )}
 
           {recordingState === "result" && result && (
-            <ResultState
-              result={result}
-              onRestart={onReRecord}
-              practiceCount={practiceCount}
-            />
+            <ResultState result={result} onRestart={onReRecord} />
           )}
         </div>
       </section>
@@ -314,68 +327,83 @@ function AnalyzingState() {
 function ResultState({
   result,
   onRestart,
-  practiceCount
 }: {
   result: AnalysisResult;
   onRestart: () => void;
-  practiceCount: number;
 }) {
   if (!result.data) {
     return <div>Error: No hay datos disponibles</div>;
   }
 
-  const { authorityScore, feedback } = result.data;
+  const { diagnosis, strengths, weaknesses, decision, payoff } = result.data;
+
+  const renderList = (
+    items: string[],
+    emptyLabel: string,
+    icon: string,
+    iconColor: string
+  ) => {
+    if (items.length === 0) {
+      return <p className="text-sm text-gray-400">{emptyLabel}</p>;
+    }
+
+    return (
+      <ul className="space-y-2">
+        {items.map((entry) => (
+          <li key={entry} className="flex items-start gap-2 text-white text-sm">
+            <span className={iconColor} aria-hidden>
+              {icon}
+            </span>
+            <span>{entry}</span>
+          </li>
+        ))}
+      </ul>
+    );
+  };
 
   return (
-    <div className="space-y-8 animate-slide-up">
-      <div className="text-center space-y-3">
-        <h2 className="text-2xl font-semibold text-white">
-          Así se percibe tu autoridad al hablar
-        </h2>
-      </div>
+    <div className="space-y-6 animate-slide-up">
+      <p className="text-2xl font-semibold text-white">{diagnosis}</p>
 
-      <div className="space-y-4">
-        {/* Nivel de autoridad */}
-        <div className="bg-dark-700/30 border border-dark-600 rounded-xl p-5">
-          <p className="text-gray-400 text-sm mb-2">Nivel</p>
-          <p className="text-white text-xl font-semibold">
-            {feedback.levelLabel}
-          </p>
-        </div>
+      <section className="space-y-3">
+        <p className="text-xs uppercase tracking-[0.2em] text-gray-500">
+          Lo que suma
+        </p>
+        {renderList(
+          strengths,
+          "En tu grabación actual aún no detectamos puntos fuertes.",
+          "✔",
+          "text-emerald-400"
+        )}
+      </section>
 
-        {/* Lo que suma o Lo que mejoró */}
-        <div className="bg-dark-700/30 border border-dark-600 rounded-xl p-5">
-          <p className="text-gray-400 text-sm mb-2">
-            {practiceCount > 0 ? "Lo que mejoró" : "Lo que suma"}
-          </p>
-          <p className="text-white text-lg">
-            {feedback.adds}
-          </p>
-        </div>
+      <section className="space-y-3">
+        <p className="text-xs uppercase tracking-[0.2em] text-gray-500">
+          Lo que resta
+        </p>
+        {renderList(
+          weaknesses,
+          "El ritmo y energía están equilibrados en esta toma.",
+          "⚠",
+          "text-yellow-400"
+        )}
+      </section>
 
-        {/* Lo que resta */}
-        <div className="bg-dark-700/30 border border-dark-600 rounded-xl p-5">
-          <p className="text-gray-400 text-sm mb-2">Lo que resta</p>
-          <p className="text-white text-lg">
-            {feedback.subtracts}
-          </p>
-        </div>
+      <section className="rounded-xl border border-yellow-500/40 bg-yellow-500/10 p-5 space-y-2">
+        <p className="text-xs uppercase tracking-[0.2em] text-yellow-200">
+          Decisión
+        </p>
+        <p className="text-white text-base">{decision}</p>
+      </section>
 
-        {/* Hoy */}
-        <div className="bg-white/5 border border-white/10 rounded-xl p-6">
-          <p className="text-gray-400 text-sm mb-3">Hoy</p>
-          <p className="text-white text-lg leading-relaxed">
-            {feedback.today}
-          </p>
-        </div>
-      </div>
+      <p className="text-sm text-gray-400">{payoff}</p>
 
       <button
         type="button"
         onClick={onRestart}
         className="btn-primary w-full py-4 text-lg"
       >
-        Practicar de nuevo
+        Volver a grabar para ganar autoridad
       </button>
     </div>
   );
