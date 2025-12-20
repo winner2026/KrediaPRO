@@ -1,6 +1,8 @@
-import { query } from "../db/client";
+import { db } from "../db/client";
 import { TransactionRepository } from "@/core/repositories/TransactionRepository";
 import { Transaction } from "@/core/entities/Transaction";
+
+const query = (text: string, params?: any[]) => db.query(text, params);
 
 export class NeonTransactionRepository implements TransactionRepository {
   async create(tx: Transaction): Promise<void> {
