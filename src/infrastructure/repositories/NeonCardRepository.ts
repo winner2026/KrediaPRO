@@ -1,6 +1,8 @@
 import { CardRepository } from "@/core/repositories/CardRepository";
 import { CardEntity } from "@/core/entities/CreditCard";
-import { query } from "../db/client";
+import { db } from "../db/client";
+
+const query = (text: string, params?: any[]) => db.query(text, params);
 
 export class NeonCardRepository implements CardRepository {
   async findByUser(userId: string): Promise<CardEntity | null> {

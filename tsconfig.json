@@ -1,6 +1,13 @@
 {
   "compilerOptions": {
-    "target": "ESNext",
+    "baseUrl": ".",
+    "paths": {
+      "@/*": [
+        "src/*"
+      ]
+    },
+    "ignoreDeprecations": "6.0",
+    "target": "ES2017",
     "lib": [
       "dom",
       "dom.iterable",
@@ -8,36 +15,29 @@
     ],
     "allowJs": true,
     "skipLibCheck": true,
-    "strict": true,
+    "strict": false,
     "noEmit": true,
-    "module": "ESNext",
-    "moduleResolution": "Bundler",
+    "incremental": true,
+    "module": "esnext",
+    "esModuleInterop": true,
+    "moduleResolution": "bundler",
     "resolveJsonModule": true,
     "isolatedModules": true,
-    "esModuleInterop": true,
-    /* 🔥 CRÍTICO PARA QUE VERCEL RESUELVA `@/db/schema` */
-    "baseUrl": ".",
-    "paths": {
-      "@/*": [
-        "src/*"
-      ]
-    },
-    "incremental": true,
-    "forceConsistentCasingInFileNames": true,
     "jsx": "react-jsx",
+    "forceConsistentCasingInFileNames": true,
     "plugins": [
       {
         "name": "next"
       }
-    ],
-    "ignoreDeprecations": "6.0"
+    ]
   },
   "include": [
     "next-env.d.ts",
-    "**/*.ts",
-    "**/*.tsx",
     ".next/types/**/*.ts",
-    ".next/dev/types/**/*.ts"
+    ".next/dev/types/**/*.ts",
+    "**/*.mts",
+    "**/*.ts",
+    "**/*.tsx"
   ],
   "exclude": [
     "node_modules"

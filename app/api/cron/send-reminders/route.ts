@@ -2,10 +2,9 @@ import { neon } from "@neondatabase/serverless";
 import { Resend } from "resend";
 import { NextResponse } from "next/server";
 
-const sql = neon(process.env.DATABASE_URL!);
-const resend = new Resend(process.env.RESEND_API_KEY);
-
 export async function GET() {
+  const sql = neon(process.env.DATABASE_URL!);
+  const resend = new Resend(process.env.RESEND_API_KEY);
   const today = new Date();
   const targetDay = today.getDate() + 5;
 

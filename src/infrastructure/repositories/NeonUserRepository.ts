@@ -1,6 +1,8 @@
 import { UserRepository } from "@/core/repositories/UserRepository";
 import { UserEntity } from "@/core/entities/User";
-import { query } from "../db/client";
+import { db } from "../db/client";
+
+const query = (text: string, params?: any[]) => db.query(text, params);
 
 export class NeonUserRepository implements UserRepository {
   async findByEmail(email: string): Promise<UserEntity | null> {
