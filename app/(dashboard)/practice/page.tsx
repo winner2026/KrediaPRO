@@ -363,33 +363,37 @@ function ResultState({
 
   return (
     <div className="space-y-6 animate-slide-up">
-      <p className="text-2xl font-semibold text-white">{diagnosis}</p>
+      <h2 className="text-3xl font-semibold text-white leading-relaxed">
+        {diagnosis}
+      </h2>
 
-      <section className="space-y-3">
-        <p className="text-xs uppercase tracking-[0.2em] text-gray-500">
-          Lo que suma
-        </p>
-        {renderList(
-          strengths,
-          "En tu grabación actual aún no detectamos puntos fuertes.",
-          "✔",
-          "text-emerald-400"
-        )}
-      </section>
+      <div className="grid gap-4 md:grid-cols-2">
+        <section className="space-y-3">
+          <p className="text-xs uppercase tracking-[0.2em] text-gray-500">
+            Lo que suma
+          </p>
+          {renderList(
+            strengths,
+            "En tu grabación actual aún no detectamos puntos fuertes.",
+            "✔",
+            "text-emerald-400"
+          )}
+        </section>
 
-      <section className="space-y-3">
-        <p className="text-xs uppercase tracking-[0.2em] text-gray-500">
-          Lo que resta
-        </p>
-        {renderList(
-          weaknesses,
-          "El ritmo y energía están equilibrados en esta toma.",
-          "⚠",
-          "text-yellow-400"
-        )}
-      </section>
+        <section className="space-y-3">
+          <p className="text-xs uppercase tracking-[0.2em] text-gray-500">
+            Lo que resta
+          </p>
+          {renderList(
+            weaknesses,
+            "El ritmo y energía están equilibrados en esta toma.",
+            "⚠",
+            "text-yellow-400"
+          )}
+        </section>
+      </div>
 
-      <section className="rounded-xl border border-yellow-500/40 bg-yellow-500/10 p-5 space-y-2">
+      <section className="rounded-2xl border border-yellow-500/40 bg-yellow-500/10 p-6 space-y-3">
         <p className="text-xs uppercase tracking-[0.2em] text-yellow-200">
           Decisión
         </p>
@@ -398,13 +402,15 @@ function ResultState({
 
       <p className="text-sm text-gray-400">{payoff}</p>
 
-      <button
-        type="button"
-        onClick={onRestart}
-        className="btn-primary w-full py-4 text-lg"
-      >
-        Volver a grabar para ganar autoridad
-      </button>
+      <div className="flex justify-center">
+        <button
+          type="button"
+          onClick={onRestart}
+          className="btn-primary w-full max-w-xs py-4 text-lg mt-4 mb-4"
+        >
+          Volver a grabar para ganar autoridad
+        </button>
+      </div>
     </div>
   );
 }
