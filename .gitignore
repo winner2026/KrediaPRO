@@ -1,13 +1,5 @@
-<<<<<<< HEAD
-.next/
-node_modules/
-
-.vercel
-.env*.local
-=======
 # env
 .env
-.env.local
 
 # next
 .next/
@@ -18,4 +10,4 @@ node_modules/
 
 # misc
 .DS_Store
->>>>>>> d0b911a (Initial commit – KREDIA core app)
+.vercel
