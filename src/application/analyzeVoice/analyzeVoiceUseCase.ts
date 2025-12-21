@@ -1,9 +1,7 @@
-import { VoiceMetrics } from '../../domain/voice/VoiceMetrics';
-import { extractMetrics } from '../../services/audio/extractMetrics';
+import { VoiceMetrics, extractMetrics } from '../../domain/voice/VoiceMetrics';
 import { transcribeAudio, TranscriptionSegment } from '../../infrastructure/openai/transcription';
 import { generateDynamicFeedback, DynamicFeedbackOutput } from '../../infrastructure/openai/feedback';
-import { AuthorityScore } from '../../domain/authority/AuthorityScore';
-import { buildAuthorityScore } from '../../domain/authority/buildAuthorityScore';
+import { AuthorityScore, buildAuthorityScore } from '../../domain/authority/AuthorityScore';
 
 export type AnalyzeVoiceInput = {
   audioBuffer: Buffer;

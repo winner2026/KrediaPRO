@@ -148,7 +148,15 @@ export default function PracticePage() {
       if (!response.ok) {
         const errorData = await response.json().catch(() => ({ error: "Error desconocido" }));
         console.error("API Error:", errorData);
-        throw new Error(errorData.error || "Error en el análisis");
+
+        // 🚫 MANEJO ESPECIAL: Free limit reached
+        if (response.status === 403 && errorData.error === "FREE_LIMIT_REACHED") {
+          console.log("🔒 Free limit reached, redirecting to /upgrade");
+          router.push("/upgrade");
+          return;
+        }
+
+        throw new Error(errorData.message || errorData.error || "Error en el análisis");
       }
 
       const result = await response.json();

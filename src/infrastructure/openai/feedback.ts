@@ -14,6 +14,12 @@ export type DynamicFeedbackOutput = {
   payoff: string;
 };
 
+// 💰 CONTROL DE COSTOS MVP
+// GPT-4o-mini: ~$0.15 / 1M input tokens, ~$0.60 / 1M output tokens
+// Con este prompt corto: ~500 tokens input + ~200 tokens output = ~$0.0002 por análisis
+// Total por usuario Free: Whisper ($0.006) + GPT-4o-mini ($0.0002) = ~$0.0062
+// Con 100 usuarios Free: ~$0.62 en costos de IA
+
 const SYSTEM_PROMPT = `Eres un analista experto en comunicación oral, autoridad vocal y percepción de liderazgo.
 
 Tu tarea es evaluar cómo se percibe una voz al hablar en contextos reales
@@ -80,6 +86,8 @@ export async function generateDynamicFeedback(
   const controller = new AbortController();
   const timeout = setTimeout(() => controller.abort(), 15000); // 15 segundos
 
+  console.log('[FEEDBACK] Generating dynamic feedback with GPT-4o-mini...');
+
   try {
     const response = await openai.chat.completions.create(
       {
@@ -96,11 +104,15 @@ export async function generateDynamicFeedback(
         ],
         response_format: { type: "json_object" },
         temperature: 0.7,
+        max_tokens: 400, // 🛡️ Limitar output para control de costos
       },
       {
         signal: controller.signal,
       }
     );
+
+    console.log('[FEEDBACK] ✓ Tokens used:', response.usage?.total_tokens || 'unknown');
+    console.log('[FEEDBACK] ✓ Cost estimate: $', ((response.usage?.total_tokens || 0) / 1000000 * 0.20).toFixed(6));
 
     const content = response.choices[0]?.message?.content ?? "{}";
     const parsed = JSON.parse(content) as DynamicFeedbackOutput;

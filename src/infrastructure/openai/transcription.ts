@@ -14,6 +14,11 @@ export type TranscriptionResult = {
   duration: number;
 };
 
+// 💰 CONTROL DE COSTOS MVP
+// Whisper cobra ~$0.006 por minuto
+// Límite: 60 segundos = ~$0.006 por análisis Free
+const MAX_AUDIO_DURATION_SECONDS = 60;
+
 export async function transcribeAudio(audio: Buffer): Promise<TranscriptionResult> {
   const openai = new OpenAI({
     apiKey: process.env.OPENAI_API_KEY,
@@ -47,13 +52,21 @@ export async function transcribeAudio(audio: Buffer): Promise<TranscriptionResul
     throw new Error('Whisper no detectó ningún contenido de audio. El audio podría ser solo silencio o ruido.');
   }
 
+  const duration = (transcription as any).duration || 0;
+
+  // 🛡️ VALIDACIÓN DE DURACIÓN (control de costos)
+  if (duration > MAX_AUDIO_DURATION_SECONDS) {
+    console.error('[WHISPER] ❌ Audio demasiado largo:', duration, 'segundos (máximo:', MAX_AUDIO_DURATION_SECONDS, ')');
+    throw new Error(`El audio es demasiado largo (${Math.round(duration)}s). Máximo permitido: ${MAX_AUDIO_DURATION_SECONDS}s.`);
+  }
+
   console.log('[WHISPER] ✓ Transcription successful:', transcription.text.substring(0, 100) + '...');
-  console.log('[WHISPER] ✓ Duration:', (transcription as any).duration, 'seconds');
+  console.log('[WHISPER] ✓ Duration:', duration, 'seconds');
   console.log('[WHISPER] ✓ Segments count:', ((transcription as any).segments || []).length);
 
   return {
     text: transcription.text.trim(),
     segments: (transcription as any).segments || [],
-    duration: (transcription as any).duration || 0
+    duration
   };
 }

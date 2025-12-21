@@ -1,9 +1,15 @@
 export const runtime = "nodejs";
 
 import { NextRequest, NextResponse } from 'next/server';
+import { getUserPlan } from '@/lib/usage/getUserPlan';
+import { checkFreeUsage } from '@/lib/usage/checkFreeUsage';
+import { incrementUsage } from '@/lib/usage/incrementUsage';
 
 // MODO MOCK: Para probar el flujo sin OpenAI
 const USE_MOCK = !process.env.OPENAI_API_KEY;
+
+// ⏱️ LÍMITE DE DURACIÓN (control de costos MVP)
+const MAX_AUDIO_SIZE_BYTES = 5 * 1024 * 1024; // 5MB máximo
 
 export async function POST(req: NextRequest) {
   try {
@@ -38,6 +44,38 @@ export async function POST(req: NextRequest) {
         { error: 'Audio vacío' },
         { status: 400 }
       );
+    }
+
+    // 🛡️ CONTROL DE TAMAÑO (evitar costos excesivos)
+    if (audioFile.size > MAX_AUDIO_SIZE_BYTES) {
+      console.log('[ANALYSIS] ❌ Audio file too large:', audioFile.size);
+      return NextResponse.json(
+        { error: 'El audio es demasiado grande. Máximo 5MB.' },
+        { status: 400 }
+      );
+    }
+
+    // 🔒 CONTROL DE USO FREE - CRÍTICO
+    // Aquí es donde se bloquea el abuso, NUNCA en la UI
+    const plan = await getUserPlan(userId);
+    console.log('[ANALYSIS] User plan:', plan);
+
+    if (plan === "FREE") {
+      const usageCheck = await checkFreeUsage(userId);
+      console.log('[ANALYSIS] Free usage check:', usageCheck);
+
+      if (!usageCheck.allowed) {
+        console.log('[ANALYSIS] 🚫 FREE LIMIT REACHED for user:', userId);
+        return NextResponse.json(
+          {
+            error: 'FREE_LIMIT_REACHED',
+            message: 'Ya realizaste tu análisis gratuito. Actualiza a Premium para continuar.',
+            currentUsage: usageCheck.currentUsage,
+            maxAllowed: usageCheck.maxAllowed,
+          },
+          { status: 403 }
+        );
+      }
     }
 
     // Si no hay API key de OpenAI, usar respuesta mock
@@ -89,6 +127,10 @@ export async function POST(req: NextRequest) {
     // Guardar sesión en DB
     const sessionId = await saveVoiceAnalysis(userId, result);
     console.log('[ANALYSIS] ✓ Session saved:', sessionId);
+
+    // 📊 INCREMENTAR USO (después de análisis exitoso)
+    await incrementUsage(userId, plan);
+    console.log('[ANALYSIS] ✓ Usage incremented for user:', userId);
 
     console.log('[ANALYSIS] ✓ Analysis complete!');
     return NextResponse.json({
