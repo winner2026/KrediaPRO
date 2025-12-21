@@ -12,17 +12,11 @@ export default function ListenPage() {
           KREDIA
         </div>
 
-        <p className="text-3xl font-semibold">Hola.</p>
-
         <div className="space-y-1 text-center">
           <p className="text-[clamp(1rem,2vw,1.4rem)] font-bold leading-tight text-white">
             Sabrás cómo se percibe tu voz cuando hablas.
           </p>
         </div>
-
-        <p className="text-lg font-semibold text-zinc-100 leading-relaxed">
-          Vamos a medir tu presencia comunicativa.
-        </p>
 
         <p className="text-sm text-zinc-300 leading-relaxed">
           Graba un fragmento corto, como en una reunión o al explicar una idea importante.
