@@ -30,7 +30,7 @@ export default function ListenPage() {
           onClick={() => router.push("/practice")}
           className="w-full rounded-2xl bg-white py-4 text-sm font-semibold uppercase tracking-[0.3em] text-zinc-900 transition hover:scale-[1.01]"
         >
-          Analizar mi voz
+          Graba tu voz
         </button>
 
         <p className="text-xs uppercase tracking-[0.5em] text-zinc-500">
