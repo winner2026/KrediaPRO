@@ -14,6 +14,7 @@ export default function PracticePage() {
   const [audioUrl, setAudioUrl] = useState<string | null>(null);
   const [isAnalyzing, setIsAnalyzing] = useState(false);
   const [userId, setUserId] = useState<string | null>(null);
+  const [recordingStartTime, setRecordingStartTime] = useState<number | null>(null);
 
   // Generar o recuperar userId anónimo al montar
   useEffect(() => {
@@ -24,9 +25,22 @@ export default function PracticePage() {
   const startRecording = async () => {
     try {
       const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
-      const mediaRecorder = new MediaRecorder(stream);
+
+      // Intentar forzar formato webm (mejor compatibilidad con Whisper)
+      let options = { mimeType: "audio/webm" };
+      if (!MediaRecorder.isTypeSupported(options.mimeType)) {
+        console.warn("audio/webm no soportado, intentando alternativa...");
+        options = { mimeType: "audio/mp4" };
+        if (!MediaRecorder.isTypeSupported(options.mimeType)) {
+          console.warn("audio/mp4 no soportado, usando default");
+          options = {} as any;
+        }
+      }
+
+      const mediaRecorder = new MediaRecorder(stream, options);
       mediaRecorderRef.current = mediaRecorder;
       audioChunksRef.current = [];
+      setRecordingStartTime(Date.now());
 
       mediaRecorder.ondataavailable = (event) => {
         if (event.data.size > 0) {
@@ -36,6 +50,27 @@ export default function PracticePage() {
 
       mediaRecorder.onstop = () => {
         const blob = new Blob(audioChunksRef.current, { type: "audio/webm" });
+
+        // Validar duración mínima
+        const recordingDuration = recordingStartTime ? (Date.now() - recordingStartTime) / 1000 : 0;
+
+        console.log("🎙️ Grabación completada:");
+        console.log("- Duración:", recordingDuration.toFixed(1), "segundos");
+        console.log("- Tamaño:", blob.size, "bytes");
+        console.log("- Tipo:", blob.type);
+
+        if (recordingDuration < 3) {
+          alert("La grabación es muy corta. Habla al menos 3 segundos para poder analizar tu voz.");
+          stream.getTracks().forEach(track => track.stop());
+          return;
+        }
+
+        if (blob.size === 0) {
+          alert("Error: El audio está vacío. Intenta grabar de nuevo.");
+          stream.getTracks().forEach(track => track.stop());
+          return;
+        }
+
         setAudioBlob(blob);
         setAudioUrl(URL.createObjectURL(blob));
         stream.getTracks().forEach(track => track.stop());
@@ -52,11 +87,13 @@ export default function PracticePage() {
   const stopRecording = () => {
     mediaRecorderRef.current?.stop();
     setIsRecording(false);
+    setRecordingStartTime(null);
   };
 
   const reRecord = () => {
     setAudioBlob(null);
     setAudioUrl(null);
+    setRecordingStartTime(null);
     audioChunksRef.current = [];
   };
 
@@ -71,23 +108,34 @@ export default function PracticePage() {
       return;
     }
 
-    // VERIFICACIÓN: Log del blob antes de enviar
-    console.log("Audio blob:", audioBlob, "Size:", audioBlob.size, "bytes");
-    console.log("User ID:", userId);
-
+    // ✅ VALIDACIÓN CRÍTICA 1: Verificar tamaño
     if (audioBlob.size === 0) {
       alert("El audio está vacío. Por favor, graba de nuevo.");
+      console.error("❌ Audio blob vacío detectado antes de enviar");
       return;
     }
+
+    // ✅ VALIDACIÓN CRÍTICA 2: Verificar tipo
+    if (!audioBlob.type || audioBlob.type === "") {
+      console.warn("⚠️ Audio sin mimeType, forzando audio/webm");
+    }
+
+    // VERIFICACIÓN: Log detallado antes de enviar
+    console.log("📤 Enviando audio al servidor:");
+    console.log("  - Tamaño:", audioBlob.size, "bytes");
+    console.log("  - Tipo:", audioBlob.type);
+    console.log("  - User ID:", userId);
 
     setIsAnalyzing(true);
 
     try {
       const formData = new FormData();
-      formData.append("audio", audioBlob, "voice.webm");
+      // Forzar nombre con extensión correcta
+      const fileName = audioBlob.type.includes("mp4") ? "voice.mp4" : "voice.webm";
+      formData.append("audio", audioBlob, fileName);
       formData.append("userId", userId);
 
-      console.log("Enviando audio al servidor...");
+      console.log("🚀 Llamando a /api/analysis...");
 
       const response = await fetch("/api/analysis", {
         method: "POST",
