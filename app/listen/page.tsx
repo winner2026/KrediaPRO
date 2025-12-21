@@ -16,6 +16,8 @@ export default function ListenPage() {
           <p className="text-[clamp(1rem,2vw,1.4rem)] font-bold leading-tight text-white">
             Sabrás cómo se percibe tu voz cuando hablas.
           </p>
+          <p className="text-base text-zinc-400">Sin juicios.</p>
+          <p className="text-base text-zinc-400">Sin correcciones.</p>
         </div>
 
         <p className="text-sm text-zinc-300 leading-relaxed">
