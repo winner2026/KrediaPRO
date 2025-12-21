@@ -82,6 +82,11 @@ export async function POST(req: NextRequest) {
     if (USE_MOCK) {
       console.log('[ANALYSIS] ⚠️  Usando respuesta MOCK (no hay OPENAI_API_KEY)');
 
+      // 📊 CRÍTICO: Incrementar uso ANTES de devolver respuesta MOCK
+      // Sin esto, el usuario puede hacer análisis infinitos en modo MOCK
+      await incrementUsage(userId, plan);
+      console.log('[ANALYSIS] ✓ Usage incremented for user (MOCK mode):', userId);
+
       return NextResponse.json({
         success: true,
         data: {
