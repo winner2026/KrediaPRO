@@ -14,12 +14,12 @@ export default function UpgradePage() {
       <div className="card p-8 md:p-12 max-w-2xl w-full space-y-8">
         {/* Título */}
         <h1 className="text-3xl md:text-4xl font-bold text-white text-center">
-          Ya realizaste tu análisis gratuito
+          Ya usaste tu análisis gratuito
         </h1>
 
         {/* Explicación simple */}
         <p className="text-gray-300 text-center text-lg">
-          Para seguir mejorando tu voz y autoridad, desbloquea Premium.
+          Si quieres seguir mejorando tu voz, desbloquea más análisis.
         </p>
 
         {/* Beneficios Premium */}
@@ -53,7 +53,7 @@ export default function UpgradePage() {
           onClick={() => alert('Integración de pago próximamente')}
           className="w-full py-6 rounded-xl bg-gray-300 text-dark-950 font-bold text-xl hover:bg-gray-200 transition-all duration-200 hover:scale-[1.02] active:scale-[0.98]"
         >
-          Desbloquear Premium
+          Desbloquear más análisis
         </button>
 
         {/* Link secundario */}
