@@ -14,7 +14,7 @@ export default function ListenPage() {
 
         <p className="text-3xl font-semibold">Hola.</p>
 
-        <div className="space-y-1 text-left">
+        <div className="space-y-1 text-center">
           <p className="text-[clamp(1rem,2vw,1.4rem)] font-bold leading-tight text-white">
             Vamos a escuchar tu voz
           </p>
