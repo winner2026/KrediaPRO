@@ -8,23 +8,20 @@ export default function ListenPage() {
   return (
     <div className="flex min-h-screen flex-col items-center justify-center bg-[#050505] px-6 text-white">
       <div className="w-full max-w-2xl space-y-6 rounded-3xl border border-white/10 bg-white/5 p-8 text-center shadow-2xl">
-        <div className="text-xs font-semibold uppercase tracking-[0.5em] text-zinc-300">
+        <div className="text-3xl md:text-4xl font-semibold uppercase tracking-[0.5em] text-zinc-300">
           KREDIA
         </div>
 
         <p className="text-3xl font-semibold">Hola.</p>
 
         <div className="space-y-1 text-left">
-          <p className="text-[clamp(3rem,6vw,4rem)] font-bold leading-tight text-white">
+          <p className="text-[clamp(1rem,2vw,1.4rem)] font-bold leading-tight text-white">
             Vamos a escuchar tu voz
           </p>
           <p className="text-2xl font-semibold leading-tight text-zinc-100">
             con atención.
           </p>
         </div>
-
-        <p className="text-base text-zinc-400">Sin juicios.</p>
-        <p className="text-base text-zinc-400">Sin correcciones.</p>
 
         <p className="text-lg font-semibold text-zinc-100 leading-relaxed">
           Solo vamos a decirte <br />
