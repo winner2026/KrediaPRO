@@ -24,9 +24,7 @@ export default function ListenPage() {
         </div>
 
         <p className="text-lg font-semibold text-zinc-100 leading-relaxed">
-          Solo vamos a decirte <br />
-          cómo se percibe <br />
-          cuando hablas.
+          Vamos a medir tu presencia comunicativa.
         </p>
 
         <p className="text-sm text-zinc-300 leading-relaxed">
