@@ -23,7 +23,7 @@ export async function POST(req: NextRequest) {
     const audioFile = formData.get('audio') as File | null;
     const userId = formData.get('userId') as string | null;
 
-    console.log('[ANALYSIS] Received request');
+    console.log('[ANALYSIS] 📥 Request received [v2024-12-21-2350]');
 
     if (!audioFile) {
       console.log('[ANALYSIS] ❌ No audio file received');
