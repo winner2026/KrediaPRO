@@ -113,8 +113,26 @@ export async function POST(req: NextRequest) {
 
       // 📊 CRÍTICO: Incrementar uso ANTES de devolver respuesta MOCK
       // Sin esto, el usuario puede hacer análisis infinitos en modo MOCK
-      await incrementUsage(fingerprint, plan);
-      console.log('[ANALYSIS] ✓ Usage incremented for fingerprint (MOCK mode):', fingerprint);
+      console.log('[ANALYSIS] ========================================');
+      console.log('[ANALYSIS] 🔄 MOCK MODE: INCREMENT USAGE');
+      console.log('[ANALYSIS] Fingerprint:', fingerprint);
+      console.log('[ANALYSIS] Plan type:', plan);
+      console.log('[ANALYSIS] Timestamp:', new Date().toISOString());
+      console.log('[ANALYSIS] ========================================');
+
+      try {
+        await incrementUsage(fingerprint, plan);
+        console.log('[ANALYSIS] ========================================');
+        console.log('[ANALYSIS] ✅ MOCK MODE: Usage incremented successfully');
+        console.log('[ANALYSIS] Fingerprint:', fingerprint);
+        console.log('[ANALYSIS] ========================================');
+      } catch (mockIncrementError) {
+        console.error('[ANALYSIS] ========================================');
+        console.error('[ANALYSIS] ❌ MOCK MODE: Failed to increment usage');
+        console.error('[ANALYSIS] Error:', mockIncrementError);
+        console.error('[ANALYSIS] ========================================');
+        throw mockIncrementError;
+      }
 
       return NextResponse.json({
         success: true,
@@ -158,13 +176,40 @@ export async function POST(req: NextRequest) {
       userId: undefined,
     });
 
-    // Guardar sesión en DB
-    const sessionId = await saveVoiceAnalysis(fingerprint, result);
-    console.log('[ANALYSIS] ✓ Session saved:', sessionId);
+    // 📊 CRÍTICO: INCREMENTAR USO INMEDIATAMENTE después del análisis exitoso
+    // ANTES de saveVoiceAnalysis, para que se incremente incluso si falla el guardado
+    console.log('[ANALYSIS] ========================================');
+    console.log('[ANALYSIS] 🔄 CRITICAL SECTION: INCREMENT USAGE');
+    console.log('[ANALYSIS] About to increment usage for fingerprint:', fingerprint);
+    console.log('[ANALYSIS] Plan type:', plan);
+    console.log('[ANALYSIS] Timestamp:', new Date().toISOString());
+    console.log('[ANALYSIS] ========================================');
 
-    // 📊 INCREMENTAR USO (después de análisis exitoso)
-    await incrementUsage(fingerprint, plan);
-    console.log('[ANALYSIS] ✓ Usage incremented for fingerprint:', fingerprint);
+    try {
+      await incrementUsage(fingerprint, plan);
+      console.log('[ANALYSIS] ========================================');
+      console.log('[ANALYSIS] ✅ SUCCESS: Usage incremented');
+      console.log('[ANALYSIS] Fingerprint:', fingerprint);
+      console.log('[ANALYSIS] ========================================');
+    } catch (incrementError) {
+      console.error('[ANALYSIS] ========================================');
+      console.error('[ANALYSIS] ❌ CRITICAL ERROR: Failed to increment usage');
+      console.error('[ANALYSIS] Error:', incrementError);
+      console.error('[ANALYSIS] Error message:', incrementError instanceof Error ? incrementError.message : String(incrementError));
+      console.error('[ANALYSIS] Error stack:', incrementError instanceof Error ? incrementError.stack : 'No stack');
+      console.error('[ANALYSIS] ========================================');
+      // Este error SÍ debe propagarse porque es crítico para el límite
+      throw incrementError;
+    }
+
+    // Guardar sesión en DB (opcional, si falla no afecta el límite)
+    try {
+      const sessionId = await saveVoiceAnalysis(fingerprint, result);
+      console.log('[ANALYSIS] ✓ Session saved:', sessionId);
+    } catch (saveError) {
+      console.error('[ANALYSIS] ⚠️ Failed to save session (non-critical):', saveError);
+      // No lanzar error, el análisis ya se hizo y el uso ya se incrementó
+    }
 
     console.log('[ANALYSIS] ✓ Analysis complete!');
     return NextResponse.json({
