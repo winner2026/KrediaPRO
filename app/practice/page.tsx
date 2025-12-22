@@ -26,25 +26,27 @@ export default function PracticePage() {
 
   // Detectar modo incógnito y generar userId
   useEffect(() => {
-    const checkIncognito = async () => {
-      const { isIncognitoMode } = await import("@/lib/detectIncognito");
-      const incognito = await isIncognitoMode();
+    const checkAccess = async () => {
+      const { shouldBlockAccess } = await import("@/lib/detectIncognito");
+      const shouldBlock = await shouldBlockAccess();
 
-      console.log('[PRACTICE] Incognito check result:', incognito);
+      console.log('[PRACTICE] Access check result - shouldBlock:', shouldBlock);
 
-      if (incognito) {
+      if (shouldBlock) {
+        console.log('[PRACTICE] ❌ BLOQUEANDO acceso - modo incógnito o localStorage no persistente');
         setShowIncognitoWarning(true);
         setIsCheckingIncognito(false);
         return;
       }
 
-      // Si no es incógnito, generar userId
+      // Si no debe bloquear, generar userId
+      console.log('[PRACTICE] ✅ Permitiendo acceso');
       const id = getOrCreateAnonymousUserId();
       setUserId(id);
       setIsCheckingIncognito(false);
     };
 
-    checkIncognito();
+    checkAccess();
   }, []);
 
   const startRecording = async () => {

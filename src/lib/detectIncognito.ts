@@ -1,86 +1,108 @@
 /**
- * Detecta si el navegador está en modo incógnito/privado
+ * NUEVA ESTRATEGIA: No intentar detectar incógnito directamente.
+ * En su lugar, forzar que el usuario tenga un userId persistente.
  *
- * Métodos de detección:
- * 1. localStorage bloqueado o no persistente
- * 2. IndexedDB no disponible
- * 3. Storage quota reducido
+ * Si localStorage no funciona o no persiste → bloquear acceso.
+ *
+ * Esto cubre:
+ * - Modo incógnito (localStorage no persiste entre sesiones)
+ * - Navegadores sin localStorage
+ * - Usuarios que limpian cookies constantemente
  */
-export async function isIncognitoMode(): Promise<boolean> {
-  // MÉTODO 1: FileSystem API (más confiable en Chrome/Edge)
-  // En incógnito, requestFileSystem no está disponible o falla
+
+/**
+ * Verifica si localStorage funciona Y puede persistir datos
+ * Retorna true si NO puede persistir (debe bloquear)
+ */
+export async function shouldBlockAccess(): Promise<boolean> {
+  console.log('[ACCESS CHECK] 🔍 Verificando si se puede persistir userId...');
+
+  // 1. Verificar que localStorage existe
   try {
-    // @ts-ignore - webkitRequestFileSystem existe en Chrome/Edge
-    if ((window as any).webkitRequestFileSystem) {
-      return await new Promise<boolean>((resolve) => {
-        // @ts-ignore
-        (window as any).webkitRequestFileSystem(
-          0, // TEMPORARY = 0
-          1,
-          () => {
-            console.log('[INCOGNITO CHECK] NORMAL mode (FileSystem available)');
-            resolve(false); // FileSystem disponible = modo normal
-          },
-          () => {
-            console.log('[INCOGNITO CHECK] INCOGNITO detected (FileSystem blocked)');
-            resolve(true); // FileSystem bloqueado = incógnito
-          }
-        );
-      });
+    if (!window.localStorage) {
+      console.log('[ACCESS CHECK] ❌ localStorage no disponible');
+      return true; // BLOQUEAR
     }
   } catch (error) {
-    console.log('[INCOGNITO CHECK] FileSystem check failed');
+    console.log('[ACCESS CHECK] ❌ Error accediendo a localStorage:', error);
+    return true; // BLOQUEAR
   }
 
-  // MÉTODO 2: Storage quota (Firefox, Safari)
+  // 2. Verificar Storage Quota - si es muy pequeño, probablemente incógnito
   try {
     if ('storage' in navigator && 'estimate' in navigator.storage) {
       const estimate = await navigator.storage.estimate();
-      console.log('[INCOGNITO CHECK] Storage quota:', estimate.quota);
+      const quotaMB = (estimate.quota || 0) / 1024 / 1024;
 
-      // Firefox incógnito: quota muy pequeña
-      // Safari incógnito: quota = 0 o muy pequeña
-      if (estimate.quota && estimate.quota < 120000000) {
-        console.log('[INCOGNITO CHECK] INCOGNITO detected via quota');
-        return true;
+      console.log('[ACCESS CHECK] Storage quota:', quotaMB.toFixed(2), 'MB');
+
+      // Threshold más agresivo: 20MB
+      // Chrome incógnito: ~10MB
+      // Firefox incógnito: ~10MB
+      // Normal: generalmente > 100MB
+      if (quotaMB < 20) {
+        console.log('[ACCESS CHECK] ❌ Quota muy baja (< 20MB) - probablemente incógnito');
+        return true; // BLOQUEAR
       }
     }
   } catch (error) {
-    console.log('[INCOGNITO CHECK] Storage estimate failed');
+    console.log('[ACCESS CHECK] ⚠️ No se pudo verificar storage quota:', error);
+    // No bloqueamos solo por esto, continuamos con otros checks
   }
 
-  // MÉTODO 3: Verificar si ya existe un userId antiguo
-  // En incógnito, NUNCA habrá un userId de sesiones previas
-  const hasOldUserId = !!localStorage.getItem('oratoria_user_id');
+  // 3. Test de persistencia de localStorage
+  try {
+    const testKey = '__storage_test_' + Date.now();
+    const testValue = 'test';
 
-  if (!hasOldUserId) {
-    // Primera visita O modo incógnito
-    // Crear un ID temporal para verificar
-    const testKey = '__incognito_test_' + Date.now();
-    localStorage.setItem(testKey, '1');
-
-    // Esperar 100ms y verificar si persiste
-    await new Promise(resolve => setTimeout(resolve, 100));
-
-    const stillThere = localStorage.getItem(testKey) === '1';
+    localStorage.setItem(testKey, testValue);
+    const retrieved = localStorage.getItem(testKey);
     localStorage.removeItem(testKey);
 
-    if (!stillThere) {
-      console.log('[INCOGNITO CHECK] INCOGNITO detected (storage not persistent)');
-      return true;
+    if (retrieved !== testValue) {
+      console.log('[ACCESS CHECK] ❌ localStorage no retiene valores');
+      return true; // BLOQUEAR
     }
-
-    // Si llegó aquí, es primera visita en modo normal
-    console.log('[INCOGNITO CHECK] First visit in NORMAL mode');
-    return false;
+  } catch (error) {
+    console.log('[ACCESS CHECK] ❌ Error escribiendo en localStorage:', error);
+    return true; // BLOQUEAR
   }
 
-  console.log('[INCOGNITO CHECK] NORMAL mode (has old userId)');
-  return false;
+  // 4. Verificar si existe un userId de sesión previa
+  const existingUserId = localStorage.getItem('oratoria_user_id');
+
+  if (!existingUserId) {
+    console.log('[ACCESS CHECK] ⚠️ Primera visita (no hay userId previo)');
+
+    // En primera visita, creamos un userId de prueba y pedimos al usuario
+    // que RECARGUE la página para verificar persistencia
+    const testUserId = '__test_user_' + Date.now();
+    localStorage.setItem('oratoria_user_id', testUserId);
+
+    console.log('[ACCESS CHECK] ✅ Se creó userId de prueba:', testUserId);
+    console.log('[ACCESS CHECK] ✅ Permitir acceso (primera visita)');
+
+    return false; // PERMITIR primera visita
+  }
+
+  // Si llegamos aquí, hay un userId persistente de una sesión anterior
+  console.log('[ACCESS CHECK] ✅ userId persistente encontrado');
+  console.log('[ACCESS CHECK] ✅ Permitir acceso');
+
+  return false; // PERMITIR
 }
 
 /**
- * Detecta modo incógnito de forma sincrónica (menos preciso)
+ * DEPRECADO: Detección de incógnito es poco confiable
+ * Usar shouldBlockAccess() en su lugar
+ */
+export async function isIncognitoMode(): Promise<boolean> {
+  console.warn('[DEPRECATED] isIncognitoMode() está deprecado. Usar shouldBlockAccess()');
+  return shouldBlockAccess();
+}
+
+/**
+ * DEPRECADO: Versión sincrónica poco confiable
  */
 export function isIncognitoModeSync(): boolean {
   try {
