@@ -37,7 +37,12 @@
       "Bash(rm:*)",
       "Bash(where:*)",
       "Bash(npx tsx:*)",
-      "Bash(git filter-branch:*)"
+      "Bash(git filter-branch:*)",
+      "Bash(node -e:*)",
+      "Bash(npx dotenv:*)",
+      "Bash(vercel logs:*)",
+      "Bash(timeout /t 5 /nobreak)",
+      "Bash(node test-fingerprint.mjs:*)"
     ]
   }
 }

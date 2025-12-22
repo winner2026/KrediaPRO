@@ -31,6 +31,7 @@ type AnalysisResult = {
 export default function ResultsPage() {
   const router = useRouter();
   const [result, setResult] = useState<AnalysisResult | null>(null);
+  const [showLimitModal, setShowLimitModal] = useState(false);
 
   useEffect(() => {
     const savedResult = localStorage.getItem("voiceAnalysisResult");
@@ -45,6 +46,49 @@ export default function ResultsPage() {
     // 📊 EVENTO: analysis_viewed
     logEvent("analysis_viewed");
   }, [router]);
+
+  // Verificar si el usuario ya usó su análisis gratuito
+  const handleRetakeClick = async () => {
+    // 📊 EVENTO: cta_retake_clicked
+    logEvent("cta_retake_clicked");
+
+    try {
+      // Obtener userId
+      const { getAnonymousUserId } = await import("@/lib/anonymousUser");
+      const userId = getAnonymousUserId();
+
+      if (!userId) {
+        // Si no hay userId, permitir ir a practice
+        localStorage.removeItem("voiceAnalysisResult");
+        router.push("/practice");
+        return;
+      }
+
+      // Verificar uso actual
+      const response = await fetch("/api/usage/check", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ userId }),
+      });
+
+      const data = await response.json();
+
+      if (data.limitReached) {
+        // Mostrar modal indicando que ya terminó su prueba
+        setShowLimitModal(true);
+        logEvent("free_limit_reached");
+      } else {
+        // Permitir ir a practice
+        localStorage.removeItem("voiceAnalysisResult");
+        router.push("/practice");
+      }
+    } catch (error) {
+      console.error("Error checking usage:", error);
+      // En caso de error, permitir continuar
+      localStorage.removeItem("voiceAnalysisResult");
+      router.push("/practice");
+    }
+  };
 
   // Track section visibility with IntersectionObserver
   const diagnosisRef = useIntersectionObserver<HTMLDivElement>({
@@ -152,12 +196,7 @@ export default function ResultsPage() {
         {/* CTAs */}
         <div className="flex flex-col gap-3">
           <button
-            onClick={() => {
-              // 📊 EVENTO: cta_retake_clicked
-              logEvent("cta_retake_clicked");
-              localStorage.removeItem("voiceAnalysisResult");
-              router.push("/practice");
-            }}
+            onClick={handleRetakeClick}
             className="w-full py-4 rounded-xl bg-gray-300 text-dark-950 font-bold hover:bg-gray-200 transition-all duration-200 hover:scale-[1.02] active:scale-[0.98]"
           >
             Volver a grabar
@@ -176,6 +215,38 @@ export default function ResultsPage() {
           Simple · Directo · Paz Mental
         </p>
       </div>
+
+      {/* Modal - Límite alcanzado */}
+      {showLimitModal && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/80 p-6">
+          <div className="bg-gray-900 rounded-2xl p-8 max-w-md w-full space-y-6 border border-white/10">
+            <div className="space-y-3 text-center">
+              <h2 className="text-2xl font-bold text-white">
+                Ya terminaste tu prueba gratuita
+              </h2>
+              <p className="text-gray-300 leading-relaxed">
+                Si quieres seguir mejorando tu voz, desbloquea más análisis.
+              </p>
+            </div>
+
+            <div className="flex flex-col gap-3">
+              <button
+                onClick={() => router.push("/upgrade")}
+                className="w-full py-4 rounded-xl bg-white text-gray-900 font-bold hover:bg-gray-200 transition-all duration-200 hover:scale-[1.02] active:scale-[0.98]"
+              >
+                Desbloquear más análisis
+              </button>
+
+              <button
+                onClick={() => setShowLimitModal(false)}
+                className="w-full py-3 text-gray-400 hover:text-white transition-colors"
+              >
+                Cerrar
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </main>
   );
 }

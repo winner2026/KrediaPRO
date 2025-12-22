@@ -20,6 +20,7 @@ export default function PracticePage() {
   const [isAnalyzing, setIsAnalyzing] = useState(false);
   const [userId, setUserId] = useState<string | null>(null);
   const [recordingStartTime, setRecordingStartTime] = useState<number | null>(null);
+  const [showLimitModal, setShowLimitModal] = useState(false);
 
   // Generar o recuperar userId anónimo al montar
   useEffect(() => {
@@ -181,10 +182,10 @@ export default function PracticePage() {
 
         // 🚫 MANEJO ESPECIAL: Free limit reached
         if (response.status === 403 && errorData.error === "FREE_LIMIT_REACHED") {
-          console.log("🔒 Free limit reached, redirecting to /upgrade");
+          console.log("🔒 Free limit reached, showing modal");
           // 📊 EVENTO: free_limit_reached
           logEvent("free_limit_reached");
-          router.push("/upgrade");
+          setShowLimitModal(true);
           return;
         }
 
@@ -297,6 +298,38 @@ export default function PracticePage() {
           Simple · Directo · Paz Mental
         </p>
       </div>
+
+      {/* Modal - Límite alcanzado */}
+      {showLimitModal && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/80 p-6">
+          <div className="bg-gray-900 rounded-2xl p-8 max-w-md w-full space-y-6 border border-white/10">
+            <div className="space-y-3 text-center">
+              <h2 className="text-2xl font-bold text-white">
+                Ya terminaste tu prueba gratuita
+              </h2>
+              <p className="text-gray-300 leading-relaxed">
+                Esta prueba era única. Para seguir entrenando tu voz, desbloquea el plan completo.
+              </p>
+            </div>
+
+            <div className="flex flex-col gap-3">
+              <button
+                onClick={() => router.push("/upgrade")}
+                className="w-full py-4 rounded-xl bg-white text-gray-900 font-bold hover:bg-gray-200 transition-all duration-200 hover:scale-[1.02] active:scale-[0.98]"
+              >
+                Desbloquear Premium
+              </button>
+
+              <button
+                onClick={() => router.push("/")}
+                className="w-full py-3 text-gray-400 hover:text-white transition-colors"
+              >
+                Volver al inicio
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </main>
   );
 }
