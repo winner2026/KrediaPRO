@@ -61,9 +61,9 @@ export async function analyzeVoiceUseCase({
     transcriptionResult.segments
   );
 
-  // 4. Calcular score de autoridad basado en métricas reales
+  // 4. Calcular score de autoridad basado en métricas reales (con contexto de duración)
   console.log('[ANALYZE] Calculating authority score...');
-  const authorityScore = buildAuthorityScore(metrics);
+  const authorityScore = buildAuthorityScore(metrics, transcriptionResult.duration);
 
   // 5. Generar feedback dinámico con GPT-4o-mini
   console.log('[ANALYZE] Generating dynamic feedback with GPT-4o-mini...');
