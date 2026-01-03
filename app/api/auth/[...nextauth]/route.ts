@@ -1,12 +1,14 @@
 import NextAuth from "next-auth";
 import GoogleProvider from "next-auth/providers/google";
 
-// Simplified handler - credentials auth removed for build compatibility
+export const dynamic = 'force-dynamic';
+
 const handler = NextAuth({
+  secret: process.env.NEXTAUTH_SECRET,
   providers: [
     GoogleProvider({
-      clientId: process.env.GOOGLE_CLIENT_ID || "",
-      clientSecret: process.env.GOOGLE_CLIENT_SECRET || "",
+      clientId: process.env.GOOGLE_CLIENT_ID ?? "",
+      clientSecret: process.env.GOOGLE_CLIENT_SECRET ?? "",
     }),
   ],
   pages: {
@@ -14,17 +16,22 @@ const handler = NextAuth({
   },
   callbacks: {
     async signIn({ user, account, profile }) {
-      if (account?.provider === "google") {
-        try {
-          // Dynamic import to avoid build-time issues
-          const { db } = await import("@/infrastructure/db/client");
-          
-          const googleProfile = profile as any;
-          const userId = user.id || googleProfile?.sub;
-          const userEmail = googleProfile?.email || user.email;
-          const userName = googleProfile?.name || user.name;
-          const userImage = googleProfile?.picture || user.image;
+      // Skip DB operations if we don't have the necessary data
+      if (!user || !account || account.provider !== "google") {
+        return true;
+      }
 
+      try {
+        // Dynamic import to avoid build-time initialization
+        const { db } = await import("@/infrastructure/db/client");
+        
+        const googleProfile = profile as { sub?: string; email?: string; name?: string; picture?: string } | undefined;
+        const userId = user.id || googleProfile?.sub || "";
+        const userEmail = googleProfile?.email || user.email || "";
+        const userName = googleProfile?.name || user.name || "";
+        const userImage = googleProfile?.picture || user.image || "";
+
+        if (userId && userEmail) {
           await db.query(`
             INSERT INTO users (id, email, name, image, last_login)
             VALUES ($1, $2, $3, $4, NOW())
@@ -34,17 +41,15 @@ const handler = NextAuth({
               image = EXCLUDED.image,
               last_login = NOW();
           `, [userId, userEmail, userName, userImage]);
-          
-          return true;
-        } catch (error) {
-           console.error("Error saving user to DB:", error);
-           return true; 
         }
+      } catch (error) {
+        console.error("Error in signIn callback:", error);
+        // Don't block login on DB errors
       }
+      
       return true;
     },
   },
 });
 
-export const dynamic = 'force-dynamic';
 export { handler as GET, handler as POST };
