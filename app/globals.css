@@ -3,10 +3,7 @@
 @tailwind utilities;
 
 @layer base {
-  body {
-    @apply bg-gradient-to-br from-dark-950 via-dark-900 to-dark-800 text-white antialiased;
-    font-family: 'Inter', system-ui, -apple-system, sans-serif;
-  }
+  /* Body styles are now handled in layout.tsx via utility classes */
 }
 
 @layer components {
@@ -32,5 +29,13 @@
 
   .progress-bar {
     transition: width 1s ease-in-out;
+  }
+
+  .no-scrollbar::-webkit-scrollbar {
+      display: none;
+  }
+  .no-scrollbar {
+      -ms-overflow-style: none;  /* IE and Edge */
+      scrollbar-width: none;  /* Firefox */
   }
 }

@@ -8,6 +8,8 @@ export type DynamicFeedbackInput = {
 
 export type DynamicFeedbackOutput = {
   diagnostico: string;
+  score_seguridad: number;
+  score_claridad: number;
   lo_que_suma: string[];
   lo_que_resta: string[];
   decision: string;
@@ -20,60 +22,58 @@ export type DynamicFeedbackOutput = {
 // Total por usuario Free: Whisper ($0.006) + GPT-4o-mini ($0.0002) = ~$0.0062
 // Con 100 usuarios Free: ~$0.62 en costos de IA
 
-const SYSTEM_PROMPT = `Eres un analista experto en comunicación oral, autoridad vocal y percepción de liderazgo.
+const SYSTEM_PROMPT = `Eres un coach experto en oratoria y liderazgo. Tu análisis determina qué tan "segura" y "profesional" suena una persona.
 
-Tu tarea es evaluar cómo se percibe una voz al hablar en contextos reales
-(reuniones, explicaciones, liderazgo).
+Tu tarea es analizar la TRANSCRIPCIÓN y las MÉTRICAS para evaluar tres pilares:
+1. SEGURIDAD: ¿Usa lenguaje dubitativo (eh, este, creo que) o firme?
+2. CLARIDAD: ¿Sus frases son directas o laberínticas?
+3. RITMO: ¿Es monótono, acelerado o dinámico?
 
-No enseñas técnica.
-No usas jerga.
-Hablas claro, directo y humano.
-
-Tu feedback debe ayudar a que la persona:
-- entienda cómo suena
-- sepa qué le suma
-- sepa qué le resta
-- sepa qué hacer en la próxima vez que hable`;
+Devuelve un JSON con:
+- "diagnostico": Una frase de alto impacto sobre su proyección actual.
+- "score_seguridad": Del 1 al 100 (basado en vicios del lenguaje y firmeza).
+- "score_claridad": Del 1 al 100 (basado en estructura de frases).
+- "lo_que_suma": 2 puntos fuertes específicos.
+- "lo_que_resta": 2 puntos débiles específicos.
+- "decision": Una acción concreta para mejorar YA.
+- "payoff": El beneficio inmediato de hacer esa acción.`;
 
 function buildUserPrompt(input: DynamicFeedbackInput): string {
-  return `TRANSCRIPCIÓN COMPLETA (con muletillas y silencios):
+  return `TRANSCRIPCIÓN:
 """
 ${input.transcript}
 """
 
-MÉTRICAS OBJETIVAS:
-- Palabras por minuto: ${input.metrics.wordsPerMinute}
-- Cantidad de pausas: ${input.metrics.pauseCount}
-- Duración promedio de pausas (seg): ${input.metrics.avgPauseDuration.toFixed(2)}
-- Cantidad de muletillas: ${input.metrics.fillerCount}
-- Variación tonal: ${input.metrics.pitchVariation.toFixed(2)}
-- Estabilidad de energía: ${input.metrics.energyStability.toFixed(2)}
+MÉTRICAS ACÚSTICAS Y ESTRUCTURALES:
+- Velocidad: ${input.metrics.wordsPerMinute} PPM
+- Pausas Totales: ${input.metrics.pauseCount}
+- Pausas Estratégicas (>0.5s): ${input.metrics.strategicPauses}
+- Silencios Incómodos (>2s): ${input.metrics.awkwardSilences}
+- Entonación Descendente al Afirmar: ${input.metrics.fallingIntonationScore ?? 'N/A'}% (Alto = Seguridad)
+- Rango Tonal: ${input.metrics.pitchRange ?? 'N/A'} Hz
+- Consistencia de Ritmo: ${Math.round(input.metrics.rhythmConsistency * 100)}%
 
-CONTEXTO:
-La persona grabó su voz simulando una situación real
-(reunión, explicación o presentación breve).
+VICIOS DEL LENGUAJE:
+- Muletillas (eh, este, mmm): ${input.metrics.fillerCount}
+- Palabras Repetidas: ${input.metrics.repetitionCount}
+- Longitud Promedio de Frase: ${input.metrics.avgSentenceLength} palabras
 
 TAREA:
-Genera un feedback ÚNICO y ESPECÍFICO para esta voz.
+Evalúa la "Seguridad Percibida" combinando acústica y lenguaje.
+1. Si "Entonación Descendente" es baja (<50%) Y tiene silencios incómodos, menciona inseguridad.
+2. Si usa pausas estratégicas y tono descendente, felicítalo por su control.
+3. Si tiene frases largas (>25 palabras) y muchas muletillas, critica la claridad.
 
-DEVUELVE ÚNICAMENTE este JSON (sin texto adicional):
-
+JSON FORMAT:
 {
-  "diagnostico": "",
-  "lo_que_suma": [],
-  "lo_que_resta": [],
-  "decision": "",
-  "payoff": ""
-}
-
-REGLAS ESTRICTAS:
-- El diagnóstico es UNA sola frase clara.
-- "lo_que_suma": máximo 2 ítems.
-- "lo_que_resta": máximo 2 ítems.
-- Todo debe estar basado en ESTA transcripción y ESTAS métricas.
-- No repitas frases genéricas.
-- No menciones métricas ni números en el texto final.
-- Lenguaje simple, cotidiano, sin tecnicismos.`;
+  "diagnostico": "string",
+  "score_seguridad": number,
+  "score_claridad": number,
+  "lo_que_suma": ["string", "string"],
+  "lo_que_resta": ["string", "string"],
+  "decision": "string",
+  "payoff": "string"
+}`;
 }
 
 export async function generateDynamicFeedback(
@@ -120,6 +120,8 @@ export async function generateDynamicFeedback(
     // Validar que tenga los campos requeridos
     if (
       !parsed.diagnostico ||
+      typeof parsed.score_seguridad !== 'number' ||
+      typeof parsed.score_claridad !== 'number' ||
       !parsed.lo_que_suma ||
       !parsed.lo_que_resta ||
       !parsed.decision ||
@@ -136,6 +138,8 @@ export async function generateDynamicFeedback(
     return {
       diagnostico:
         "No pudimos generar un análisis personalizado en este momento.",
+      score_seguridad: 50,
+      score_claridad: 50,
       lo_que_suma: ["Completaste la grabación correctamente"],
       lo_que_resta: ["Intenta hablar con más naturalidad"],
       decision:

@@ -14,6 +14,11 @@ export type VoiceMetrics = {
   avgSentenceLength: number; // palabras por frase (ideal: 10-20)
   longSentences: number; // frases >25 palabras
   rhythmConsistency: number; // qué tan consistente es el ritmo (0-1)
+  
+  // 🎵 Métricas de Entonación (Pitch)
+  fallingIntonationScore?: number; // % de frases con tono descendente (Seguridad)
+  meanPitch?: number; // Hz
+  pitchRange?: number; // Hz
 };
 
 type TranscriptionSegment = {

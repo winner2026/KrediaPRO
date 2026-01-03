@@ -21,7 +21,6 @@ export default function PracticePage() {
 
   const [isRecording, setIsRecording] = useState(false);
   const [audioBlob, setAudioBlob] = useState<Blob | null>(null);
-  const [audioUrl, setAudioUrl] = useState<string | null>(null);
   const [isAnalyzing, setIsAnalyzing] = useState(false);
   const [userId, setUserId] = useState<string | null>(null);
   const [showLimitModal, setShowLimitModal] = useState(false);
@@ -35,17 +34,12 @@ export default function PracticePage() {
       const { shouldBlockAccess } = await import("@/lib/detectIncognito");
       const shouldBlock = await shouldBlockAccess();
 
-      console.log('[PRACTICE] Access check result - shouldBlock:', shouldBlock);
-
       if (shouldBlock) {
-        console.log('[PRACTICE] ❌ BLOQUEANDO acceso - modo incógnito o localStorage no persistente');
         setShowIncognitoWarning(true);
         setIsCheckingIncognito(false);
         return;
       }
 
-      // Si no debe bloquear, generar userId
-      console.log('[PRACTICE] ✅ Permitiendo acceso');
       const id = getOrCreateAnonymousUserId();
       setUserId(id);
       setIsCheckingIncognito(false);
@@ -58,13 +52,10 @@ export default function PracticePage() {
     try {
       const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
 
-      // Intentar forzar formato webm (mejor compatibilidad con Whisper)
       let options = { mimeType: "audio/webm" };
       if (!MediaRecorder.isTypeSupported(options.mimeType)) {
-        console.warn("audio/webm no soportado, intentando alternativa...");
         options = { mimeType: "audio/mp4" };
         if (!MediaRecorder.isTypeSupported(options.mimeType)) {
-          console.warn("audio/mp4 no soportado, usando default");
           options = {} as any;
         }
       }
@@ -75,20 +66,13 @@ export default function PracticePage() {
       recordingStartTimeRef.current = Date.now();
       setRecordingTime(0);
 
-      // 📊 EVENTO: recording_started
       logEvent("recording_started");
 
-      // 🎯 CONTADOR DE TIEMPO VISUAL
       const countdownInterval = setInterval(() => {
-        setRecordingTime((prev) => {
-          const newTime = prev + 1;
-          return newTime;
-        });
+        setRecordingTime((prev) => prev + 1);
       }, 1000);
 
-      // 💰 AUTO-STOP A LOS 60 SEGUNDOS (control de costos)
       autoStopTimerRef.current = setTimeout(() => {
-        console.log("⏱️ Auto-stop: 60 segundos alcanzados");
         clearInterval(countdownInterval);
         stopRecording();
         logEvent("recording_auto_stopped", { duration: MAX_RECORDING_DURATION });
@@ -101,52 +85,21 @@ export default function PracticePage() {
       };
 
       mediaRecorder.onstop = () => {
+        clearInterval(countdownInterval);
         const blob = new Blob(audioChunksRef.current, { type: "audio/webm" });
-
-        // Validar duración mínima
         const recordingDuration = recordingStartTimeRef.current ? (Date.now() - recordingStartTimeRef.current) / 1000 : 0;
 
-        console.log("🎙️ Grabación completada:");
-        console.log("- Duración:", recordingDuration.toFixed(1), "segundos");
-        console.log("- Tamaño:", blob.size, "bytes");
-        console.log("- Tipo:", blob.type);
-
         if (recordingDuration < MIN_RECORDING_DURATION) {
-          // 📊 EVENTO: recording_abandoned (demasiado corta)
-          logEvent("recording_abandoned", {
-            duration: recordingDuration,
-            reason: "too_short"
-          });
-          alert("La grabación es muy corta. Habla al menos 3 segundos para poder analizar tu voz.");
+          logEvent("recording_abandoned", { duration: recordingDuration, reason: "too_short" });
+          alert("La grabación es muy corta. Habla al menos 3 segundos.");
           stream.getTracks().forEach(track => track.stop());
           return;
         }
-
-        // 🎯 Detectar abandono temprano (< 5 segundos)
-        if (recordingDuration < EARLY_ABANDONMENT_THRESHOLD) {
-          logEvent("early_abandonment", { duration: recordingDuration });
-        }
-
-        if (blob.size === 0) {
-          // 📊 EVENTO: recording_abandoned (audio vacío)
-          logEvent("recording_abandoned", {
-            duration: recordingDuration,
-            reason: "empty_audio"
-          });
-          alert("Error: El audio está vacío. Intenta grabar de nuevo.");
-          stream.getTracks().forEach(track => track.stop());
-          return;
-        }
-
-        // 📊 EVENTO: recording_completed
-        logEvent("recording_completed", { duration: recordingDuration });
-
+        
+        // Auto-analyze after stop to match flow
         setAudioBlob(blob);
-        setAudioUrl(URL.createObjectURL(blob));
         stream.getTracks().forEach(track => track.stop());
-
-        // Limpiar el timestamp DESPUÉS de usarlo
-        recordingStartTimeRef.current = null;
+        analyzeAudio(blob, id); // Auto trigger analysis or show preview? UIUX implies direct analysis or stop
       };
 
       mediaRecorder.start();
@@ -158,341 +111,289 @@ export default function PracticePage() {
   };
 
   const stopRecording = () => {
-    // Limpiar timers
     if (autoStopTimerRef.current) {
       clearTimeout(autoStopTimerRef.current);
       autoStopTimerRef.current = null;
     }
-
     mediaRecorderRef.current?.stop();
     setIsRecording(false);
-    // NO limpiar recordingStartTimeRef aquí - se necesita en mediaRecorder.onstop
-    // Se limpiará después de calcular la duración
   };
 
-  const reRecord = () => {
-    setAudioBlob(null);
-    setAudioUrl(null);
-    setRecordingTime(0);
-    recordingStartTimeRef.current = null;
-    audioChunksRef.current = [];
-
-    // Limpiar timers si existen
-    if (autoStopTimerRef.current) {
-      clearTimeout(autoStopTimerRef.current);
-      autoStopTimerRef.current = null;
-    }
-  };
-
-  const analyzeAudio = async () => {
-    if (!audioBlob) {
-      alert("No hay audio para analizar");
-      return;
-    }
-
-    if (!userId) {
-      alert("Error: No se pudo identificar el usuario");
-      return;
-    }
-
-    // ✅ VALIDACIÓN CRÍTICA 1: Verificar tamaño
-    if (audioBlob.size === 0) {
-      alert("El audio está vacío. Por favor, graba de nuevo.");
-      console.error("❌ Audio blob vacío detectado antes de enviar");
-      return;
-    }
-
-    // ✅ VALIDACIÓN CRÍTICA 2: Verificar tipo
-    if (!audioBlob.type || audioBlob.type === "") {
-      console.warn("⚠️ Audio sin mimeType, forzando audio/webm");
-    }
-
-    // 💰 VALIDACIÓN CRÍTICA 3: Estimar duración por tamaño de archivo
-    // WebM audio: ~12-16 KB/segundo aproximadamente
-    // Si el archivo es muy grande, probablemente excede los 60 segundos
-    const estimatedDuration = audioBlob.size / 12000; // Estimación conservadora
-    const MAX_FILE_SIZE = MAX_RECORDING_DURATION * 16000; // ~960 KB para 60 segundos
-
-    if (audioBlob.size > MAX_FILE_SIZE) {
-      alert(
-        `⚠️ El audio es muy largo (${Math.round(estimatedDuration)}s estimados).\n\n` +
-        `Máximo permitido: ${MAX_RECORDING_DURATION} segundos.\n\n` +
-        `Por favor, graba un audio más corto.`
-      );
-      console.error("❌ Audio demasiado largo:", {
-        size: audioBlob.size,
-        estimatedDuration: Math.round(estimatedDuration),
-        maxAllowed: MAX_RECORDING_DURATION
-      });
-      return;
-    }
-
-    // VERIFICACIÓN: Log detallado antes de enviar
-    console.log("📤 Enviando audio al servidor:");
-    console.log("  - Tamaño:", audioBlob.size, "bytes");
-    console.log("  - Tipo:", audioBlob.type);
-    console.log("  - User ID:", userId);
-
-    // 📊 EVENTO: cta_analyze_clicked (proceeded to analysis)
-    logEvent("cta_analyze_clicked");
-    logEvent("proceeded_to_analysis");
-
+  const analyzeAudio = async (blob: Blob, uid: string | null) => {
+    if (!blob || !uid) return;
+    
     setIsAnalyzing(true);
-
     try {
       const formData = new FormData();
-      // Forzar nombre con extensión correcta
-      const fileName = audioBlob.type.includes("mp4") ? "voice.mp4" : "voice.webm";
-      formData.append("audio", audioBlob, fileName);
-      formData.append("userId", userId);
-
-      console.log("🚀 Llamando a /api/analysis...");
+      const fileName = blob.type.includes("mp4") ? "voice.mp4" : "voice.webm";
+      formData.append("audio", blob, fileName);
+      formData.append("userId", uid);
 
       const response = await fetch("/api/analysis", {
         method: "POST",
         body: formData,
-        // NO agregar Content-Type, FormData lo hace automáticamente
       });
 
-      console.log("Respuesta del servidor:", response.status);
-
       if (!response.ok) {
-        const errorData = await response.json().catch(() => ({ error: "Error desconocido" }));
-        console.error("API Error:", errorData);
-
-        // 🚫 MANEJO ESPECIAL: Free limit reached
+        const errorData = await response.json();
         if (response.status === 403 && errorData.error === "FREE_LIMIT_REACHED") {
-          console.log("🔒 Free limit reached, showing modal");
-          // 📊 EVENTO: free_limit_reached
-          logEvent("free_limit_reached");
           setShowLimitModal(true);
           return;
         }
-
-        throw new Error(errorData.message || errorData.error || "Error en el análisis");
+        throw new Error(errorData.error || "Error en el análisis");
       }
 
       const result = await response.json();
-      console.log("Resultado del análisis:", result);
-
-      // Guardar resultado en localStorage para la siguiente pantalla
-      // Si la API devuelve result.data, usarlo; si no, usar result directamente
       const dataToSave = result.data || result;
       localStorage.setItem("voiceAnalysisResult", JSON.stringify(dataToSave));
-
-      // Navegar a la pantalla de resultados
       router.push("/results");
-    } catch (error) {
-      console.error("Error al analizar:", error);
-      const errorMessage = error instanceof Error ? error.message : "Error desconocido";
-      alert(`Error: ${errorMessage}\n\nRevisa la consola para más detalles.`);
+    } catch (error: any) {
+      alert(`Error: ${error.message}`);
     } finally {
       setIsAnalyzing(false);
     }
   };
 
-  // Mostrar loading mientras se verifica incógnito
-  if (isCheckingIncognito) {
-    return (
-      <main className="min-h-screen flex items-center justify-center p-6">
-        <div className="text-gray-400">Verificando...</div>
-      </main>
-    );
+  // Wrapper for analyzeAudio to use state
+  const handleAnalysis = () => {
+      if(audioBlob && userId) analyzeAudio(audioBlob, userId);
   }
 
-  // Si está en modo incógnito, mostrar solo el modal de bloqueo
-  if (showIncognitoWarning) {
-    return (
-      <main className="min-h-screen flex items-center justify-center p-6">
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/95 p-6">
-          <div className="bg-gray-900 rounded-2xl p-8 max-w-md w-full space-y-6 border border-white/10">
-            <div className="space-y-4 text-center">
-              <div className="text-4xl">🔒</div>
-              <h2 className="text-2xl font-bold text-white">
-                No se puede usar en modo incógnito
-              </h2>
-              <div className="space-y-3 text-gray-300 text-left">
-                <p className="leading-relaxed">
-                  <strong className="text-white">Oratoria Efectiva</strong> necesita guardar tu progreso para funcionar correctamente.
-                </p>
-                <p className="leading-relaxed">
-                  En modo incógnito no podemos:
-                </p>
-                <ul className="space-y-2 ml-4">
-                  <li className="flex items-start gap-2">
-                    <span className="text-red-400 mt-1">✗</span>
-                    <span>Guardar tu historial de análisis</span>
-                  </li>
-                  <li className="flex items-start gap-2">
-                    <span className="text-red-400 mt-1">✗</span>
-                    <span>Recordar tu progreso</span>
-                  </li>
-                  <li className="flex items-start gap-2">
-                    <span className="text-red-400 mt-1">✗</span>
-                    <span>Controlar tu plan gratuito</span>
-                  </li>
-                </ul>
-                <p className="text-sm text-gray-400 pt-2">
-                  💡 <strong>Solución:</strong> Abre esta página en una ventana normal del navegador.
-                </p>
-              </div>
+  // Helper to format time
+  const formatTime = (seconds: number) => {
+    const mins = Math.floor(seconds / 60);
+    const secs = seconds % 60;
+    return `${mins.toString().padStart(2, '0')}:${secs.toString().padStart(2, '0')}`;
+  };
+
+  if (isCheckingIncognito) return <div className="min-h-screen bg-background-dark flex items-center justify-center text-white">Cargando...</div>;
+
+  // --- RECORDING VIEW ---
+  if (isRecording) {
+      return (
+        <main className="min-h-screen bg-background-light dark:bg-background-dark text-[#111418] dark:text-white font-display overflow-x-hidden antialiased flex flex-col">
+            {/* Header */}
+            <div className="flex items-center p-4 pb-2 justify-between sticky top-0 z-10 bg-background-light dark:bg-background-dark">
+                <button 
+                  onClick={() => stopRecording()}
+                  className="text-[#111418] dark:text-white flex size-12 shrink-0 items-center justify-center rounded-full hover:bg-black/5 dark:hover:bg-white/10 transition-colors">
+                    <span className="material-symbols-outlined">arrow_back_ios_new</span>
+                </button>
+                <div className="flex flex-col items-center flex-1 pr-12">
+                    <h2 className="text-lg font-bold leading-tight tracking-[-0.015em]">Nueva Grabación</h2>
+                    <p className="text-sm font-normal text-gray-500 dark:text-gray-400">En curso</p>
+                </div>
             </div>
 
-            <div className="flex flex-col gap-3">
-              <button
-                onClick={() => router.push("/")}
-                className="w-full py-4 rounded-xl bg-white text-gray-900 font-bold hover:bg-gray-200 transition-all duration-200 hover:scale-[1.02] active:scale-[0.98]"
-              >
-                Volver al inicio
-              </button>
+            {/* Content */}
+            <div className="flex-1 flex flex-col items-center w-full max-w-md mx-auto px-4 pb-32">
+                {/* Timer */}
+                <div className="flex flex-col items-center justify-center py-8">
+                    <div className="flex items-baseline gap-1 text-6xl font-bold tracking-tighter text-[#111418] dark:text-white tabular-nums">
+                        <span>{formatTime(recordingTime)}</span>
+                    </div>
+                    <div className="mt-2 flex items-center gap-2 px-3 py-1 rounded-full bg-primary/10 text-primary">
+                        <div className="size-2 rounded-full bg-primary animate-pulse"></div>
+                        <span className="text-xs font-medium uppercase tracking-wide">Grabando</span>
+                    </div>
+                </div>
+
+                {/* Simulated Waveform */}
+                <div className="w-full h-32 flex items-center justify-center gap-[3px] px-4 my-4 overflow-hidden">
+                    {[4,8,6,10,14,20,24,16,28,20,12,16,8,12,6,4,3,2,4,2].map((h, i) => (
+                        <div key={i} className={`w-1.5 rounded-full ${i > 3 && i < 15 ? 'bg-primary animate-pulse' : 'bg-gray-300 dark:bg-gray-700'}`} style={{ height: `${h * 4}%` }}></div>
+                    ))}
+                </div>
+
+                {/* Stats Grid (Mocked for visual) */}
+                <div className="w-full grid grid-cols-2 gap-4 mt-6">
+                    <div className="bg-surface-light dark:bg-surface-dark p-5 rounded-2xl shadow-sm border border-gray-100 dark:border-gray-800 flex flex-col justify-between h-32">
+                        <div className="flex items-start justify-between">
+                            <span className="text-sm font-medium text-gray-500 dark:text-gray-400">Ritmo</span>
+                            <span className="material-symbols-outlined text-green-500 text-xl">speed</span>
+                        </div>
+                        <div>
+                            <p className="text-3xl font-bold text-[#111418] dark:text-white tabular-nums">--</p>
+                            <p className="text-xs font-medium text-green-500 mt-1">Calculando...</p>
+                        </div>
+                    </div>
+                    <div className="bg-surface-light dark:bg-surface-dark p-5 rounded-2xl shadow-sm border border-gray-100 dark:border-gray-800 flex flex-col justify-between h-32">
+                        <div className="flex items-start justify-between">
+                            <span className="text-sm font-medium text-gray-500 dark:text-gray-400">Muletillas</span>
+                            <span className="material-symbols-outlined text-yellow-500 text-xl">warning</span>
+                        </div>
+                        <div>
+                            <p className="text-3xl font-bold text-[#111418] dark:text-white tabular-nums">--</p>
+                            <p className="text-xs font-medium text-yellow-500 mt-1">Detectando...</p>
+                        </div>
+                    </div>
+                </div>
             </div>
-          </div>
-        </div>
-      </main>
-    );
+
+            {/* Controls Dock */}
+            <div className="fixed bottom-0 left-0 w-full bg-surface-light/90 dark:bg-surface-dark/90 backdrop-blur-md border-t border-gray-200 dark:border-gray-800 pb-8 pt-4 px-6 z-50">
+                <div className="flex items-center justify-between max-w-md mx-auto">
+                    <button className="flex flex-col items-center gap-1 group opacity-50 cursor-not-allowed">
+                        <div className="size-14 rounded-full bg-gray-200 dark:bg-gray-700 flex items-center justify-center text-[#111418] dark:text-white">
+                            <span className="material-symbols-outlined text-3xl">pause</span>
+                        </div>
+                        <span className="text-xs font-medium text-gray-500 dark:text-gray-400">Pausar</span>
+                    </button>
+
+                    <button 
+                        onClick={stopRecording}
+                        className="flex flex-col items-center gap-1 -mt-8 relative group">
+                        <div className="absolute inset-0 bg-primary/20 rounded-full blur-xl transform group-hover:scale-110 transition-transform"></div>
+                        <div className="relative size-20 rounded-full bg-primary text-white shadow-lg flex items-center justify-center transition-transform active:scale-95 hover:bg-blue-600 border-4 border-background-light dark:border-background-dark">
+                            <div className="size-8 bg-white rounded-md"></div>
+                        </div>
+                        <span className="text-xs font-medium text-primary mt-1">Detener</span>
+                    </button>
+
+                    <button className="flex flex-col items-center gap-1 group opacity-50 cursor-not-allowed">
+                        <div className="size-14 rounded-full bg-gray-200 dark:bg-gray-700 flex items-center justify-center text-[#111418] dark:text-white">
+                            <span className="material-symbols-outlined text-3xl">flag</span>
+                        </div>
+                        <span className="text-xs font-medium text-gray-500 dark:text-gray-400">Marcar</span>
+                    </button>
+                </div>
+            </div>
+        </main>
+      )
   }
 
+  // --- ANALYSIS / LOADING VIEW ---
+  if (isAnalyzing || audioBlob) {
+      return (
+        <main className="min-h-screen bg-background-dark flex flex-col items-center justify-center p-6 text-white text-center">
+            <div className="relative size-24 mb-6">
+                 <div className="absolute inset-0 border-4 border-primary/30 rounded-full"></div>
+                 <div className="absolute inset-0 border-4 border-primary border-t-transparent rounded-full animate-spin"></div>
+            </div>
+            <h2 className="text-2xl font-bold mb-2">Analizando grabación...</h2>
+            <p className="text-gray-400">Esto tomará unos segundos.</p>
+        </main>
+      )
+  }
+
+  // --- SETUP VIEW (Default) ---
   return (
-    <main className="min-h-screen flex items-center justify-center p-6">
-      <div className="card p-8 md:p-12 max-w-2xl w-full space-y-8">
-        <h1 className="text-3xl md:text-4xl font-bold text-white text-center">
-          Graba tu voz
-        </h1>
-
-        <div className="space-y-6 text-center">
-          <p className="text-gray-300">
-            Habla durante 10-30 segundos como lo harías en una reunión importante.
-          </p>
-
-          <p className="text-gray-400 text-sm">
-            Explica una idea, comparte una opinión o describe un proyecto.
-          </p>
-
-          <div className="bg-blue-900/20 border border-blue-700/30 rounded-xl p-4">
-            <p className="text-blue-300 text-sm">
-              ⏱️ <strong>Máximo 60 segundos.</strong> La grabación se detendrá automáticamente.
-            </p>
-          </div>
-        </div>
-
-        <div className="space-y-6">
-          {!audioBlob && !isRecording && (
-            <button
-              onClick={startRecording}
-              className="w-full py-6 rounded-xl bg-red-600 text-white font-bold text-xl hover:bg-red-700 transition-all duration-200 hover:scale-[1.02] active:scale-[0.98] flex items-center justify-center gap-3"
-            >
-              <span className="text-2xl">●</span>
-              Iniciar grabación
-            </button>
-          )}
-
-          {isRecording && (
-            <div className="space-y-4">
-              <div className="flex items-center justify-center gap-3 text-red-600 animate-pulse">
-                <span className="text-3xl">●</span>
-                <span className="text-xl font-semibold">Grabando...</span>
-              </div>
-
-              {/* Timer visual */}
-              <div className="bg-gray-800 rounded-xl p-4 text-center">
-                <div className="text-4xl font-bold text-white font-mono">
-                  {recordingTime}s
-                </div>
-                <div className="text-sm text-gray-400 mt-1">
-                  Máximo: {MAX_RECORDING_DURATION}s
-                </div>
-                {recordingTime >= 45 && (
-                  <div className="text-yellow-500 text-xs mt-2 animate-pulse">
-                    ⚠️ Se detendrá automáticamente en {MAX_RECORDING_DURATION - recordingTime}s
-                  </div>
-                )}
-              </div>
-
-              <button
-                onClick={stopRecording}
-                className="w-full py-6 rounded-xl bg-gray-700 text-white font-bold text-xl hover:bg-gray-600 transition-all duration-200"
-              >
-                ■ Detener grabación
-              </button>
-            </div>
-          )}
-
-          {audioUrl && audioBlob && (
-            <div className="space-y-4">
-              <div className="bg-gray-800 rounded-xl p-6 space-y-4">
-                <p className="text-gray-300 text-sm font-semibold">Vista previa:</p>
-                <audio
-                  controls
-                  src={audioUrl}
-                  className="w-full"
-                  onPlay={() => {
-                    // 📊 EVENTO: playback_started
-                    logEvent("playback_started");
-                  }}
-                  onEnded={() => {
-                    // 📊 EVENTO: playback_completed
-                    logEvent("playback_completed");
-                  }}
-                />
-              </div>
-
-              <div className="flex gap-3">
-                <button
-                  onClick={reRecord}
-                  disabled={isAnalyzing}
-                  className="flex-1 py-4 rounded-xl bg-gray-700 text-white font-semibold hover:bg-gray-600 transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed"
-                >
-                  ↻ Grabar de nuevo
+    <main className="min-h-screen bg-background-light dark:bg-background-dark font-display text-[#111418] dark:text-white overflow-x-hidden antialiased">
+        <div className="relative flex h-full min-h-screen w-full flex-col">
+            {/* Header */}
+            <div className="sticky top-0 z-10 flex items-center bg-background-light/95 dark:bg-background-dark/95 backdrop-blur-sm p-4 pb-2 justify-between border-b border-gray-200 dark:border-gray-800">
+                <button 
+                    onClick={() => router.push("/listen")}
+                    className="text-slate-900 dark:text-white flex size-10 shrink-0 items-center justify-center rounded-full hover:bg-gray-200 dark:hover:bg-gray-800 transition-colors">
+                    <span className="material-symbols-outlined text-2xl">arrow_back_ios_new</span>
                 </button>
+                <h2 className="text-slate-900 dark:text-white text-lg font-bold leading-tight tracking-[-0.015em]">Nueva Sesión</h2>
+                <div className="size-10"></div> 
+            </div>
 
-                <button
-                  onClick={analyzeAudio}
-                  disabled={isAnalyzing}
-                  className="flex-1 py-4 rounded-xl bg-gray-300 text-dark-950 font-bold hover:bg-gray-200 transition-all duration-200 hover:scale-[1.02] active:scale-[0.98] disabled:opacity-50 disabled:cursor-not-allowed"
-                >
-                  {isAnalyzing ? "Analizando..." : "Analizar →"}
+            <div className="flex-1 flex flex-col p-4 gap-6 pb-24">
+                {/* Topic Selection */}
+                <div className="flex flex-col gap-4">
+                    <h3 className="text-slate-900 dark:text-white text-lg font-bold leading-tight">¿De qué quieres hablar?</h3>
+                    <label className="flex flex-col h-12 w-full">
+                        <div className="flex w-full flex-1 items-stretch rounded-xl h-full shadow-sm">
+                            <div className="text-gray-500 dark:text-[#9dabb9] flex border-none bg-white dark:bg-[#283039] items-center justify-center pl-4 rounded-l-xl border-r-0">
+                                <span className="material-symbols-outlined">search</span>
+                            </div>
+                            <input className="form-input flex w-full min-w-0 flex-1 resize-none overflow-hidden rounded-xl text-slate-900 dark:text-white focus:outline-0 focus:ring-2 focus:ring-primary/50 border-none bg-white dark:bg-[#283039] h-full placeholder:text-gray-400 dark:placeholder:text-[#9dabb9] px-4 rounded-l-none pl-2 text-base font-normal leading-normal transition-all" placeholder="Escribe un tema para practicar..." />
+                        </div>
+                    </label>
+                    <div className="flex gap-3 overflow-x-auto pb-2 scrollbar-hide -mx-4 px-4">
+                        <button className="flex h-9 shrink-0 items-center justify-center gap-x-2 rounded-lg bg-primary pl-4 pr-4 transition-transform active:scale-95 shadow-md shadow-primary/20">
+                            <p className="text-white text-sm font-medium leading-normal">Improvisado</p>
+                        </button>
+                        <button className="flex h-9 shrink-0 items-center justify-center gap-x-2 rounded-lg bg-white dark:bg-[#283039] border border-gray-200 dark:border-transparent pl-4 pr-4 transition-transform active:scale-95 hover:bg-gray-50 dark:hover:bg-[#323b46]">
+                            <p className="text-slate-700 dark:text-white text-sm font-medium leading-normal">Entrevista</p>
+                        </button>
+                        <button className="flex h-9 shrink-0 items-center justify-center gap-x-2 rounded-lg bg-white dark:bg-[#283039] border border-gray-200 dark:border-transparent pl-4 pr-4 transition-transform active:scale-95 hover:bg-gray-50 dark:hover:bg-[#323b46]">
+                            <p className="text-slate-700 dark:text-white text-sm font-medium leading-normal">Presentación</p>
+                        </button>
+                    </div>
+                </div>
+
+                <div className="h-px bg-gray-200 dark:bg-gray-800 w-full"></div>
+
+                {/* Duration */}
+                <div className="flex flex-col gap-4">
+                    <div className="flex justify-between items-end">
+                        <h3 className="text-slate-900 dark:text-white text-lg font-bold leading-tight">Duración límite</h3>
+                        <span className="text-primary text-xl font-bold font-display">1:00 <span className="text-sm font-normal text-gray-500 dark:text-gray-400">min</span></span>
+                    </div>
+                    <div className="bg-white dark:bg-[#283039] rounded-xl p-6 shadow-sm">
+                        <div className="relative w-full h-8 flex items-center">
+                            <div className="absolute w-full h-2 bg-gray-200 dark:bg-[#3b4754] rounded-full"></div>
+                            <div className="absolute h-2 bg-primary rounded-full" style={{width: '100%'}}></div>
+                            <div className="absolute size-6 bg-white border-2 border-primary rounded-full shadow-lg" style={{right: '0%', transform: 'translateX(50%)'}}></div>
+                        </div>
+                    </div>
+                </div>
+
+                <div className="h-px bg-gray-200 dark:bg-gray-800 w-full"></div>
+
+                {/* Feedback Metrics */}
+                <div className="flex flex-col gap-4">
+                    <h3 className="text-slate-900 dark:text-white text-lg font-bold leading-tight">Métricas activas</h3>
+                    <div className="flex flex-col gap-3">
+                        <div className="flex items-center justify-between bg-white dark:bg-[#283039] p-4 rounded-xl shadow-sm">
+                            <div className="flex items-center gap-4">
+                                <div className="size-10 rounded-lg bg-blue-50 dark:bg-blue-500/10 flex items-center justify-center text-primary">
+                                    <span className="material-symbols-outlined">speed</span>
+                                </div>
+                                <div className="flex flex-col">
+                                    <span className="text-slate-900 dark:text-white font-medium text-base">Velocidad</span>
+                                    <span className="text-gray-500 dark:text-gray-400 text-xs">Palabras por minuto</span>
+                                </div>
+                            </div>
+                            <div className="w-11 h-6 bg-primary rounded-full relative">
+                                <div className="absolute top-[2px] right-[2px] h-5 w-5 bg-white rounded-full"></div>
+                            </div>
+                        </div>
+                        <div className="flex items-center justify-between bg-white dark:bg-[#283039] p-4 rounded-xl shadow-sm">
+                             <div className="flex items-center gap-4">
+                                <div className="size-10 rounded-lg bg-purple-50 dark:bg-purple-500/10 flex items-center justify-center text-purple-600 dark:text-purple-400">
+                                    <span className="material-symbols-outlined">graphic_eq</span>
+                                </div>
+                                <div className="flex flex-col">
+                                    <span className="text-slate-900 dark:text-white font-medium text-base">Pausas</span>
+                                    <span className="text-gray-500 dark:text-gray-400 text-xs">Silencios prolongados</span>
+                                </div>
+                            </div>
+                            <div className="w-11 h-6 bg-primary rounded-full relative">
+                                <div className="absolute top-[2px] right-[2px] h-5 w-5 bg-white rounded-full"></div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+             {/* Floating Action Button */}
+            <div className="fixed bottom-0 left-0 w-full bg-background-light/80 dark:bg-background-dark/80 backdrop-blur-md p-4 pb-8 border-t border-gray-200 dark:border-gray-800">
+                <button 
+                    onClick={startRecording}
+                    className="w-full flex items-center justify-center gap-2 bg-primary hover:bg-primary/90 text-white font-bold text-lg h-14 rounded-xl shadow-lg shadow-primary/25 transition-all active:scale-[0.98]">
+                    <span className="material-symbols-outlined">mic</span>
+                    Comenzar Práctica
                 </button>
-              </div>
             </div>
-          )}
         </div>
 
-        <p className="text-gray-500 text-center text-sm">
-          Simple · Directo · Paz Mental
-        </p>
-      </div>
-
-      {/* Modal - Límite alcanzado */}
-      {showLimitModal && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/80 p-6">
-          <div className="bg-gray-900 rounded-2xl p-8 max-w-md w-full space-y-6 border border-white/10">
-            <div className="space-y-3 text-center">
-              <h2 className="text-2xl font-bold text-white">
-                Ya terminaste tu prueba gratuita
-              </h2>
-              <p className="text-gray-300 leading-relaxed">
-                Esta prueba era única. Para seguir entrenando tu voz, desbloquea el plan completo.
-              </p>
-            </div>
-
-            <div className="flex flex-col gap-3">
-              <button
-                onClick={() => router.push("/upgrade")}
-                className="w-full py-4 rounded-xl bg-white text-gray-900 font-bold hover:bg-gray-200 transition-all duration-200 hover:scale-[1.02] active:scale-[0.98]"
-              >
-                Desbloquear Premium
-              </button>
-
-              <button
-                onClick={() => router.push("/")}
-                className="w-full py-3 text-gray-400 hover:text-white transition-colors"
-              >
-                Volver al inicio
-              </button>
-            </div>
-          </div>
+        {/* Modal - Logout/Menu (Optional, simplified for now) */}
+        <div className="fixed top-4 right-4 z-50">
+             <button 
+               onClick={() => {
+                  const { signOut } = require("next-auth/react");
+                  signOut({ callbackUrl: "/" });
+               }}
+               className="text-gray-400 hover:text-white text-xs border border-gray-700 hover:border-gray-500 rounded-lg px-3 py-1.5 bg-background-dark/50 backdrop-blur-md"
+             >
+               Cerrar Sesión
+             </button>
         </div>
-      )}
     </main>
   );
 }

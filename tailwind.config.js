@@ -4,9 +4,15 @@ export default {
     "./app/**/*.{js,ts,jsx,tsx,mdx}",
     "./src/**/*.{js,ts,jsx,tsx,mdx}",
   ],
+  darkMode: "class",
   theme: {
     extend: {
       colors: {
+        primary: "#137fec",
+        "background-light": "#f6f7f8",
+        "background-dark": "#101922",
+        "surface-dark": "#1c2127",
+        "surface-light": "#ffffff",
         dark: {
           50: '#f5f5f5',
           100: '#e5e5e5',
@@ -22,6 +28,7 @@ export default {
         },
       },
       fontFamily: {
+        display: ["Lexend", "sans-serif"],
         sans: ['Inter', 'system-ui', 'sans-serif'],
       },
       animation: {

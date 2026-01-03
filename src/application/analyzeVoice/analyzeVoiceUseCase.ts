@@ -39,6 +39,8 @@ function buildTranscriptionWithSilences(
   return result.trim();
 }
 
+import { analyzePitch } from '../../infrastructure/audio/PitchAnalysis';
+
 export async function analyzeVoiceUseCase({
   audioBuffer,
 }: AnalyzeVoiceInput): Promise<AnalyzeVoiceResult> {
@@ -46,26 +48,40 @@ export async function analyzeVoiceUseCase({
   console.log('[ANALYZE] Transcribing audio...');
   const transcriptionResult = await transcribeAudio(audioBuffer);
 
-  // 2. Extraer métricas reales desde la transcripción
-  console.log('[ANALYZE] Extracting metrics...');
-  const metrics = extractMetrics(
+  // 2. Extraer métricas de texto
+  console.log('[ANALYZE] Extracting text metrics...');
+  const textMetrics = extractMetrics(
     transcriptionResult.text,
     transcriptionResult.segments,
     transcriptionResult.duration
   );
 
-  console.log('[ANALYZE] Metrics:', metrics);
+  // 3. Analizar Entonación Real (Pitch) 🎵
+  console.log('[ANALYZE] Analyzing pitch & intonation...');
+  const pitchMetrics = await analyzePitch(audioBuffer, transcriptionResult.segments);
+  
+  console.log('[ANALYZE] Pitch Metrics:', pitchMetrics);
 
-  // 3. Construir transcripción con silencios visibles
+  // Combinar métricas
+  const metrics: VoiceMetrics = {
+    ...textMetrics,
+    ...pitchMetrics,
+    // Sobrescribir pitchVariation fake con una basada en rango si se desea, 
+    // pero mantenemos la calculada por ahora como "variación de duración"
+  };
+
+  console.log('[ANALYZE] Final Metrics:', metrics);
+
+  // 4. Construir transcripción con silencios visibles
   const transcriptionWithSilences = buildTranscriptionWithSilences(
     transcriptionResult.segments
   );
 
-  // 4. Calcular score de autoridad basado en métricas reales (con contexto de duración)
+  // 5. Calcular score de autoridad
   console.log('[ANALYZE] Calculating authority score...');
   const authorityScore = buildAuthorityScore(metrics, transcriptionResult.duration);
 
-  // 5. Generar feedback dinámico con GPT-4o-mini
+  // 6. Generar feedback dinámico con GPT-4o-mini
   console.log('[ANALYZE] Generating dynamic feedback with GPT-4o-mini...');
   const feedback = await generateDynamicFeedback({
     transcript: transcriptionResult.text,

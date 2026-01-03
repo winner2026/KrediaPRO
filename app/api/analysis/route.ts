@@ -169,6 +169,8 @@ export async function POST(req: NextRequest) {
             priorityAdjustment: "PAUSE_MORE"
           },
           diagnosis: "Tu voz transmite autoridad media, pero genera dudas en momentos clave.",
+          score_seguridad: 65, // 🆕 Mock value
+          score_claridad: 78,  // 🆕 Mock value
           strengths: ["Ritmo estable y no suenas apurado", "Se te entiende con claridad"],
           weaknesses: ["El cierre de tus frases no transmite decisión"],
           decision: "En tu próxima intervención, marca el final con un tono descendente.",
@@ -245,6 +247,8 @@ export async function POST(req: NextRequest) {
         durationSeconds: result.durationSeconds,
         // Mapear el feedback dinámico al formato esperado por el frontend
         diagnosis: result.feedback.diagnostico,
+        score_seguridad: result.feedback.score_seguridad, // 🆕
+        score_claridad: result.feedback.score_claridad,   // 🆕
         strengths: result.feedback.lo_que_suma,
         weaknesses: result.feedback.lo_que_resta,
         decision: result.feedback.decision,

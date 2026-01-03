@@ -1,0 +1,20 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model Resource {
+  id          String   @id @default(uuid())
+  title       String
+  description String?
+  type        String   // "VIDEO" | "BOOK" | "EXERCISE"
+  url         String
+  imageUrl    String
+  duration    String?
+  author      String?
+  createdAt   DateTime @default(now())
+}

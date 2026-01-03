@@ -1,0 +1,1177 @@
+<!-- Bienvenida -->
+<!DOCTYPE html>
+
+<html class="dark" lang="es"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>Bienvenida - App de Seguridad al Hablar</title>
+<!-- Fonts -->
+<link href="https://fonts.googleapis.com" rel="preconnect"/>
+<link crossorigin="" href="https://fonts.gstatic.com" rel="preconnect"/>
+<link href="https://fonts.googleapis.com/css2?family=Lexend:wght@300;400;500;700&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<!-- Tailwind CSS -->
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<!-- Theme Configuration -->
+<script id="tailwind-config">
+        tailwind.config = {
+            darkMode: "class",
+            theme: {
+                extend: {
+                    colors: {
+                        "primary": "#137fec",
+                        "background-light": "#f6f7f8",
+                        "background-dark": "#101922",
+                    },
+                    fontFamily: {
+                        "display": ["Lexend", "sans-serif"]
+                    },
+                    borderRadius: {
+                        "DEFAULT": "0.25rem",
+                        "lg": "0.5rem",
+                        "xl": "0.75rem",
+                        "full": "9999px"
+                    },
+                },
+            },
+        }
+    </script>
+<style>
+    body {
+      min-height: max(884px, 100dvh);
+    }
+  </style>
+  </head>
+<body class="bg-background-light dark:bg-background-dark font-display antialiased text-slate-900 dark:text-white">
+<div class="relative flex h-full min-h-screen w-full flex-col overflow-x-hidden">
+<!-- TopAppBar: Skip Button -->
+<div class="flex items-center justify-between p-4 pt-6 pb-2">
+<div class="flex w-12 items-center justify-start">
+<!-- Empty left side for balance if needed, or back button later -->
+</div>
+<div class="flex items-center justify-end">
+<button class="text-slate-500 dark:text-[#9dabb9] text-sm font-bold leading-normal tracking-wide shrink-0 hover:text-primary dark:hover:text-primary transition-colors">
+                    Omitir
+                </button>
+</div>
+</div>
+<!-- Main Content: Vertical Layout for Phone -->
+<div class="flex flex-1 flex-col items-center justify-center w-full px-6 gap-6">
+<!-- Hero Image Section -->
+<div class="w-full flex justify-center py-4">
+<div class="relative w-full aspect-[4/5] max-w-sm overflow-hidden rounded-2xl bg-center bg-cover shadow-xl" data-alt="Abstract 3D illustration of sound waves and communication bubbles in blue and purple tones" style='background-image: url("https://lh3.googleusercontent.com/aida-public/AB6AXuAsg_obJLOwS2nVBOtyH35z-BE2fxyya8Z_uHs6fwCRR9w0XLek0_fyX3ywp93QKIk807iNb4-EVb-a2q78_Ek1GfCkohrsn79KJeka_3GR7eu_mZrap1IuPulOAOdLS9pVlJ1oNewOrLTyUvHVAS8lbEibBg94ziKRczHCzNSfBzPTwZBNwnkmNh6JyXKUJf5mFl1u7xZPC2yXCfSheMNSUHZ2H_X70bdiqPnf1NifFfaGju5unLtCIN7xdO2CNMVcHg0bPx_fh-4");'>
+<!-- Overlay for text readability if needed, but keeping it clean for now -->
+<div class="absolute inset-0 bg-gradient-to-b from-transparent via-transparent to-background-dark/20 dark:to-background-dark/50"></div>
+</div>
+</div>
+<!-- Text Content -->
+<div class="flex flex-col items-center gap-2 text-center w-full max-w-xs mx-auto">
+<!-- HeadlineText -->
+<h1 class="text-slate-900 dark:text-white tracking-tight text-[28px] sm:text-[32px] font-bold leading-tight">
+                    Habla con Seguridad
+                </h1>
+<!-- BodyText -->
+<p class="text-slate-600 dark:text-slate-400 text-base font-normal leading-relaxed">
+                    La herramienta definitiva para mejorar tu confianza al hablar en público o en privado.
+                </p>
+</div>
+<!-- PageIndicators -->
+<div class="flex flex-row items-center justify-center gap-2 py-4">
+<div class="h-2 w-2 rounded-full bg-primary transition-all duration-300 w-6"></div>
+<div class="h-2 w-2 rounded-full bg-slate-300 dark:bg-[#3b4754]"></div>
+<div class="h-2 w-2 rounded-full bg-slate-300 dark:bg-[#3b4754]"></div>
+</div>
+</div>
+<!-- Bottom Actions -->
+<div class="w-full p-6 pt-0 mt-auto">
+<div class="flex flex-col gap-3 w-full max-w-md mx-auto">
+<button class="flex w-full items-center justify-center overflow-hidden rounded-xl bg-primary h-14 px-5 text-white text-base font-bold leading-normal tracking-[0.015em] hover:bg-blue-600 transition-colors shadow-lg shadow-primary/20">
+<span class="mr-2 material-symbols-outlined text-[20px]">mic</span>
+                    Comenzar ahora
+                </button>
+<button class="flex w-full items-center justify-center overflow-hidden rounded-xl bg-transparent h-12 px-5 text-slate-600 dark:text-slate-400 text-sm font-bold leading-normal tracking-[0.015em] hover:text-primary dark:hover:text-white transition-colors">
+                    ¿Ya tienes cuenta? <span class="text-primary ml-1">Inicia sesión</span>
+</button>
+</div>
+<!-- Bottom safe area spacer -->
+<div class="h-6 w-full"></div>
+</div>
+</div>
+</body></html>
+
+<!-- Historial de Prácticas -->
+<!DOCTYPE html>
+
+<html class="dark" lang="es"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>Historial de Prácticas</title>
+<link href="https://fonts.googleapis.com/css2?family=Lexend:wght@300;400;500;700&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<script id="tailwind-config">
+        tailwind.config = {
+            darkMode: "class",
+            theme: {
+                extend: {
+                    colors: {
+                        "primary": "#137fec",
+                        "background-light": "#f6f7f8",
+                        "background-dark": "#101922",
+                    },
+                    fontFamily: {
+                        "display": ["Lexend", "sans-serif"]
+                    },
+                    borderRadius: {"DEFAULT": "0.25rem", "lg": "0.5rem", "xl": "0.75rem", "full": "9999px"},
+                },
+            },
+        }
+    </script>
+<style>
+    body {
+      min-height: max(884px, 100dvh);
+    }
+  </style>
+  </head>
+<body class="bg-background-light dark:bg-background-dark font-display antialiased text-gray-900 dark:text-white">
+<div class="relative flex h-full min-h-screen w-full flex-col overflow-hidden max-w-md mx-auto shadow-xl bg-background-light dark:bg-background-dark">
+<!-- Top App Bar -->
+<header class="sticky top-0 z-50 flex items-center justify-between p-4 bg-background-light/95 dark:bg-background-dark/95 backdrop-blur-md border-b border-gray-200 dark:border-gray-800">
+<h1 class="text-xl font-bold leading-tight tracking-tight flex-1">Historial de Prácticas</h1>
+<button class="group flex items-center justify-center rounded-full p-2 hover:bg-gray-100 dark:hover:bg-gray-800 transition-colors">
+<span class="material-symbols-outlined text-gray-600 dark:text-gray-300 group-hover:text-primary transition-colors">filter_list</span>
+</button>
+</header>
+<!-- Main Content -->
+<main class="flex-1 flex flex-col gap-4 p-4 pb-24">
+<!-- Summary Stats -->
+<section aria-label="Estadísticas generales">
+<div class="grid grid-cols-2 gap-4">
+<div class="flex flex-col gap-1 rounded-xl p-5 bg-white dark:bg-[#1a2632] shadow-sm border border-gray-100 dark:border-gray-800">
+<div class="flex items-center gap-2 mb-1">
+<span class="material-symbols-outlined text-primary text-[20px]">mic</span>
+<p class="text-gray-500 dark:text-gray-400 text-sm font-medium">Sesiones</p>
+</div>
+<p class="text-3xl font-bold tracking-tight text-gray-900 dark:text-white">12</p>
+</div>
+<div class="flex flex-col gap-1 rounded-xl p-5 bg-white dark:bg-[#1a2632] shadow-sm border border-gray-100 dark:border-gray-800">
+<div class="flex items-center gap-2 mb-1">
+<span class="material-symbols-outlined text-primary text-[20px]">analytics</span>
+<p class="text-gray-500 dark:text-gray-400 text-sm font-medium">Promedio</p>
+</div>
+<p class="text-3xl font-bold tracking-tight text-gray-900 dark:text-white">85%</p>
+</div>
+</div>
+</section>
+<!-- Chart Preview (Visual Separator) -->
+<div class="flex flex-col gap-2 py-2">
+<h3 class="text-sm font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wider pl-1">Esta Semana</h3>
+<div class="h-32 w-full rounded-xl bg-gradient-to-r from-primary/10 to-primary/5 flex items-end justify-between px-4 pb-2 pt-8 relative overflow-hidden border border-gray-200 dark:border-gray-800">
+<!-- Abstract Chart Bars -->
+<div class="w-[12%] h-[40%] bg-primary/30 rounded-t-sm"></div>
+<div class="w-[12%] h-[60%] bg-primary/40 rounded-t-sm"></div>
+<div class="w-[12%] h-[30%] bg-primary/30 rounded-t-sm"></div>
+<div class="w-[12%] h-[80%] bg-primary/60 rounded-t-sm"></div>
+<div class="w-[12%] h-[50%] bg-primary/40 rounded-t-sm"></div>
+<div class="w-[12%] h-[90%] bg-primary rounded-t-sm shadow-[0_0_10px_rgba(19,127,236,0.3)]"></div>
+<div class="w-[12%] h-[70%] bg-primary/50 rounded-t-sm"></div>
+<div class="absolute top-3 right-3 flex items-center gap-1 text-xs text-primary font-medium bg-primary/10 px-2 py-1 rounded-full">
+<span class="material-symbols-outlined text-[14px]">trending_up</span>
+                        +12% vs sem. ant.
+                     </div>
+</div>
+</div>
+<!-- List Section -->
+<section aria-label="Lista de sesiones" class="flex flex-col gap-3">
+<h3 class="text-sm font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wider pl-1">Recientes</h3>
+<!-- List Item 1 -->
+<div class="group relative flex gap-4 bg-white dark:bg-[#1a2632] px-4 py-4 rounded-xl border border-gray-100 dark:border-gray-800 shadow-sm active:scale-[0.98] transition-all duration-200 cursor-pointer overflow-hidden">
+<!-- Score Indicator -->
+<div class="shrink-0 flex flex-col items-center justify-center gap-1">
+<div class="relative size-12 flex items-center justify-center rounded-full bg-green-100 dark:bg-green-900/30">
+<span class="text-green-600 dark:text-green-400 font-bold text-sm">9.0</span>
+<svg class="absolute inset-0 size-full -rotate-90" viewbox="0 0 36 36">
+<path class="text-transparent" d="M18 2.0845 a 15.9155 15.9155 0 0 1 0 31.831 a 15.9155 15.9155 0 0 1 0 -31.831" fill="none" stroke="currentColor" stroke-width="3"></path>
+<path class="text-green-500 stroke-current" d="M18 2.0845 a 15.9155 15.9155 0 0 1 0 31.831 a 15.9155 15.9155 0 0 1 0 -31.831" fill="none" stroke-dasharray="90, 100" stroke-width="3"></path>
+</svg>
+</div>
+</div>
+<!-- Content -->
+<div class="flex flex-1 flex-col justify-center min-w-0">
+<div class="flex justify-between items-start">
+<h4 class="text-gray-900 dark:text-white text-base font-bold leading-tight truncate">Práctica Libre</h4>
+<span class="text-xs font-medium text-gray-400 dark:text-gray-500">24 Oct</span>
+</div>
+<div class="flex items-center gap-3 mt-1">
+<div class="flex items-center gap-1">
+<span class="material-symbols-outlined text-[14px] text-gray-400">schedule</span>
+<span class="text-xs text-gray-500 dark:text-gray-400">5 min</span>
+</div>
+<div class="w-1 h-1 rounded-full bg-gray-300 dark:bg-gray-600"></div>
+<div class="flex items-center gap-1">
+<span class="material-symbols-outlined text-[14px] text-gray-400">equalizer</span>
+<span class="text-xs text-gray-500 dark:text-gray-400 truncate">Entonación excelente</span>
+</div>
+</div>
+</div>
+<!-- Action -->
+<div class="shrink-0 flex items-center">
+<button class="size-8 flex items-center justify-center rounded-full bg-gray-100 dark:bg-gray-700 text-gray-600 dark:text-gray-300 hover:bg-primary hover:text-white transition-colors">
+<span class="material-symbols-outlined text-[20px]">play_arrow</span>
+</button>
+</div>
+</div>
+<!-- List Item 2 -->
+<div class="group relative flex gap-4 bg-white dark:bg-[#1a2632] px-4 py-4 rounded-xl border border-gray-100 dark:border-gray-800 shadow-sm active:scale-[0.98] transition-all duration-200 cursor-pointer overflow-hidden">
+<!-- Score Indicator -->
+<div class="shrink-0 flex flex-col items-center justify-center gap-1">
+<div class="relative size-12 flex items-center justify-center rounded-full bg-yellow-100 dark:bg-yellow-900/30">
+<span class="text-yellow-600 dark:text-yellow-400 font-bold text-sm">7.2</span>
+<svg class="absolute inset-0 size-full -rotate-90" viewbox="0 0 36 36">
+<path class="text-transparent" d="M18 2.0845 a 15.9155 15.9155 0 0 1 0 31.831 a 15.9155 15.9155 0 0 1 0 -31.831" fill="none" stroke="currentColor" stroke-width="3"></path>
+<path class="text-yellow-500 stroke-current" d="M18 2.0845 a 15.9155 15.9155 0 0 1 0 31.831 a 15.9155 15.9155 0 0 1 0 -31.831" fill="none" stroke-dasharray="72, 100" stroke-width="3"></path>
+</svg>
+</div>
+</div>
+<!-- Content -->
+<div class="flex flex-1 flex-col justify-center min-w-0">
+<div class="flex justify-between items-start">
+<h4 class="text-gray-900 dark:text-white text-base font-bold leading-tight truncate">Entrevista Laboral</h4>
+<span class="text-xs font-medium text-gray-400 dark:text-gray-500">22 Oct</span>
+</div>
+<div class="flex items-center gap-3 mt-1">
+<div class="flex items-center gap-1">
+<span class="material-symbols-outlined text-[14px] text-gray-400">schedule</span>
+<span class="text-xs text-gray-500 dark:text-gray-400">3 min</span>
+</div>
+<div class="w-1 h-1 rounded-full bg-gray-300 dark:bg-gray-600"></div>
+<div class="flex items-center gap-1">
+<span class="material-symbols-outlined text-[14px] text-gray-400">warning</span>
+<span class="text-xs text-gray-500 dark:text-gray-400 truncate">Demasiadas pausas</span>
+</div>
+</div>
+</div>
+<!-- Action -->
+<div class="shrink-0 flex items-center">
+<button class="size-8 flex items-center justify-center rounded-full bg-gray-100 dark:bg-gray-700 text-gray-600 dark:text-gray-300 hover:bg-primary hover:text-white transition-colors">
+<span class="material-symbols-outlined text-[20px]">play_arrow</span>
+</button>
+</div>
+</div>
+<!-- List Item 3 -->
+<div class="group relative flex gap-4 bg-white dark:bg-[#1a2632] px-4 py-4 rounded-xl border border-gray-100 dark:border-gray-800 shadow-sm active:scale-[0.98] transition-all duration-200 cursor-pointer overflow-hidden">
+<!-- Score Indicator -->
+<div class="shrink-0 flex flex-col items-center justify-center gap-1">
+<div class="relative size-12 flex items-center justify-center rounded-full bg-blue-100 dark:bg-blue-900/30">
+<span class="text-blue-600 dark:text-blue-400 font-bold text-sm">8.5</span>
+<svg class="absolute inset-0 size-full -rotate-90" viewbox="0 0 36 36">
+<path class="text-transparent" d="M18 2.0845 a 15.9155 15.9155 0 0 1 0 31.831 a 15.9155 15.9155 0 0 1 0 -31.831" fill="none" stroke="currentColor" stroke-width="3"></path>
+<path class="text-blue-500 stroke-current" d="M18 2.0845 a 15.9155 15.9155 0 0 1 0 31.831 a 15.9155 15.9155 0 0 1 0 -31.831" fill="none" stroke-dasharray="85, 100" stroke-width="3"></path>
+</svg>
+</div>
+</div>
+<!-- Content -->
+<div class="flex flex-1 flex-col justify-center min-w-0">
+<div class="flex justify-between items-start">
+<h4 class="text-gray-900 dark:text-white text-base font-bold leading-tight truncate">Presentación de Ventas</h4>
+<span class="text-xs font-medium text-gray-400 dark:text-gray-500">20 Oct</span>
+</div>
+<div class="flex items-center gap-3 mt-1">
+<div class="flex items-center gap-1">
+<span class="material-symbols-outlined text-[14px] text-gray-400">schedule</span>
+<span class="text-xs text-gray-500 dark:text-gray-400">10 min</span>
+</div>
+<div class="w-1 h-1 rounded-full bg-gray-300 dark:bg-gray-600"></div>
+<div class="flex items-center gap-1">
+<span class="material-symbols-outlined text-[14px] text-gray-400">check_circle</span>
+<span class="text-xs text-gray-500 dark:text-gray-400 truncate">Volumen controlado</span>
+</div>
+</div>
+</div>
+<!-- Action -->
+<div class="shrink-0 flex items-center">
+<button class="size-8 flex items-center justify-center rounded-full bg-gray-100 dark:bg-gray-700 text-gray-600 dark:text-gray-300 hover:bg-primary hover:text-white transition-colors">
+<span class="material-symbols-outlined text-[20px]">play_arrow</span>
+</button>
+</div>
+</div>
+</section>
+</main>
+<!-- Floating Action Button -->
+<div class="fixed bottom-6 right-6 z-40">
+<button class="flex items-center justify-center size-14 rounded-full bg-primary text-white shadow-[0_4px_14px_0_rgba(19,127,236,0.39)] hover:scale-105 active:scale-95 transition-transform">
+<span class="material-symbols-outlined text-[28px]">mic</span>
+</button>
+</div>
+</div>
+</body></html>
+
+<!-- Configuración de Sesión de Práctica -->
+<!DOCTYPE html>
+
+<html class="dark" lang="es"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>Configuración de Sesión</title>
+<!-- Google Fonts -->
+<link href="https://fonts.googleapis.com" rel="preconnect"/>
+<link crossorigin="" href="https://fonts.gstatic.com" rel="preconnect"/>
+<link href="https://fonts.googleapis.com/css2?family=Lexend:wght@300;400;500;600;700&amp;family=Noto+Sans:wght@400;500;700&amp;display=swap" rel="stylesheet"/>
+<!-- Material Symbols -->
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<!-- Tailwind CSS -->
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<script id="tailwind-config">
+        tailwind.config = {
+            darkMode: "class",
+            theme: {
+                extend: {
+                    colors: {
+                        "primary": "#137fec",
+                        "background-light": "#f6f7f8",
+                        "background-dark": "#101922",
+                    },
+                    fontFamily: {
+                        "display": ["Lexend", "sans-serif"],
+                        "body": ["Noto Sans", "sans-serif"],
+                    },
+                    borderRadius: {"DEFAULT": "0.25rem", "lg": "0.5rem", "xl": "0.75rem", "full": "9999px"},
+                },
+            },
+        }
+    </script>
+<style>
+    body {
+      min-height: max(884px, 100dvh);
+    }
+  </style>
+  </head>
+<body class="bg-background-light dark:bg-background-dark font-display antialiased">
+<div class="relative flex h-full min-h-screen w-full flex-col overflow-x-hidden">
+<!-- Top App Bar -->
+<div class="sticky top-0 z-10 flex items-center bg-background-light/95 dark:bg-background-dark/95 backdrop-blur-sm p-4 pb-2 justify-between border-b border-gray-200 dark:border-gray-800">
+<button class="text-slate-900 dark:text-white flex size-10 shrink-0 items-center justify-center rounded-full hover:bg-gray-200 dark:hover:bg-gray-800 transition-colors">
+<span class="material-symbols-outlined text-2xl">arrow_back_ios_new</span>
+</button>
+<h2 class="text-slate-900 dark:text-white text-lg font-bold leading-tight tracking-[-0.015em]">Nueva Sesión</h2>
+<div class="size-10"></div> <!-- Spacer for alignment -->
+</div>
+<div class="flex-1 flex flex-col p-4 gap-6 pb-24">
+<!-- Section: Topic Selection -->
+<div class="flex flex-col gap-4">
+<h3 class="text-slate-900 dark:text-white text-lg font-bold leading-tight">¿De qué quieres hablar?</h3>
+<!-- Search Bar -->
+<label class="flex flex-col h-12 w-full">
+<div class="flex w-full flex-1 items-stretch rounded-xl h-full shadow-sm">
+<div class="text-gray-500 dark:text-[#9dabb9] flex border-none bg-white dark:bg-[#283039] items-center justify-center pl-4 rounded-l-xl border-r-0">
+<span class="material-symbols-outlined">search</span>
+</div>
+<input class="form-input flex w-full min-w-0 flex-1 resize-none overflow-hidden rounded-xl text-slate-900 dark:text-white focus:outline-0 focus:ring-2 focus:ring-primary/50 border-none bg-white dark:bg-[#283039] h-full placeholder:text-gray-400 dark:placeholder:text-[#9dabb9] px-4 rounded-l-none pl-2 text-base font-normal leading-normal transition-all" placeholder="Escribe un tema para practicar..." value=""/>
+</div>
+</label>
+<!-- Topic Chips -->
+<div class="flex gap-3 overflow-x-auto pb-2 scrollbar-hide -mx-4 px-4">
+<button class="flex h-9 shrink-0 items-center justify-center gap-x-2 rounded-lg bg-primary pl-4 pr-4 transition-transform active:scale-95 shadow-md shadow-primary/20">
+<p class="text-white text-sm font-medium leading-normal">Improvisado</p>
+</button>
+<button class="flex h-9 shrink-0 items-center justify-center gap-x-2 rounded-lg bg-white dark:bg-[#283039] border border-gray-200 dark:border-transparent pl-4 pr-4 transition-transform active:scale-95 hover:bg-gray-50 dark:hover:bg-[#323b46]">
+<p class="text-slate-700 dark:text-white text-sm font-medium leading-normal">Entrevista</p>
+</button>
+<button class="flex h-9 shrink-0 items-center justify-center gap-x-2 rounded-lg bg-white dark:bg-[#283039] border border-gray-200 dark:border-transparent pl-4 pr-4 transition-transform active:scale-95 hover:bg-gray-50 dark:hover:bg-[#323b46]">
+<p class="text-slate-700 dark:text-white text-sm font-medium leading-normal">Presentación</p>
+</button>
+<button class="flex h-9 shrink-0 items-center justify-center gap-x-2 rounded-lg bg-white dark:bg-[#283039] border border-gray-200 dark:border-transparent pl-4 pr-4 transition-transform active:scale-95 hover:bg-gray-50 dark:hover:bg-[#323b46]">
+<p class="text-slate-700 dark:text-white text-sm font-medium leading-normal">Debate</p>
+</button>
+</div>
+</div>
+<div class="h-px bg-gray-200 dark:bg-gray-800 w-full"></div>
+<!-- Section: Duration -->
+<div class="flex flex-col gap-4">
+<div class="flex justify-between items-end">
+<h3 class="text-slate-900 dark:text-white text-lg font-bold leading-tight">Duración de la sesión</h3>
+<span class="text-primary text-xl font-bold font-display">3:00 <span class="text-sm font-normal text-gray-500 dark:text-gray-400">min</span></span>
+</div>
+<div class="bg-white dark:bg-[#283039] rounded-xl p-6 shadow-sm">
+<div class="relative w-full h-8 flex items-center">
+<!-- Slider Track Background -->
+<div class="absolute w-full h-2 bg-gray-200 dark:bg-[#3b4754] rounded-full"></div>
+<!-- Slider Active Track -->
+<div class="absolute h-2 bg-primary rounded-full" style="width: 30%;"></div>
+<!-- Slider Thumb -->
+<div class="absolute size-6 bg-white border-2 border-primary rounded-full shadow-lg cursor-pointer transform hover:scale-110 transition-transform" style="left: 30%; transform: translateX(-50%);"></div>
+<!-- Min/Max labels -->
+<div class="absolute -bottom-6 left-0 text-xs text-gray-400 font-medium">1 min</div>
+<div class="absolute -bottom-6 right-0 text-xs text-gray-400 font-medium">10 min</div>
+</div>
+</div>
+</div>
+<div class="h-px bg-gray-200 dark:bg-gray-800 w-full"></div>
+<!-- Section: Feedback Metrics -->
+<div class="flex flex-col gap-4">
+<h3 class="text-slate-900 dark:text-white text-lg font-bold leading-tight">Métricas a evaluar</h3>
+<div class="flex flex-col gap-3">
+<!-- Toggle Item: Speed -->
+<div class="flex items-center justify-between bg-white dark:bg-[#283039] p-4 rounded-xl shadow-sm border border-transparent dark:border-transparent">
+<div class="flex items-center gap-4">
+<div class="size-10 rounded-lg bg-blue-50 dark:bg-blue-500/10 flex items-center justify-center text-primary">
+<span class="material-symbols-outlined">speed</span>
+</div>
+<div class="flex flex-col">
+<span class="text-slate-900 dark:text-white font-medium text-base">Velocidad</span>
+<span class="text-gray-500 dark:text-gray-400 text-xs">Palabras por minuto</span>
+</div>
+</div>
+<label class="relative inline-flex items-center cursor-pointer">
+<input checked="" class="sr-only peer" type="checkbox" value=""/>
+<div class="w-11 h-6 bg-gray-200 peer-focus:outline-none rounded-full peer dark:bg-gray-700 peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all dark:border-gray-600 peer-checked:bg-primary"></div>
+</label>
+</div>
+<!-- Toggle Item: Pauses -->
+<div class="flex items-center justify-between bg-white dark:bg-[#283039] p-4 rounded-xl shadow-sm">
+<div class="flex items-center gap-4">
+<div class="size-10 rounded-lg bg-purple-50 dark:bg-purple-500/10 flex items-center justify-center text-purple-600 dark:text-purple-400">
+<span class="material-symbols-outlined">graphic_eq</span>
+</div>
+<div class="flex flex-col">
+<span class="text-slate-900 dark:text-white font-medium text-base">Pausas Largas</span>
+<span class="text-gray-500 dark:text-gray-400 text-xs">Silencios &gt; 3s</span>
+</div>
+</div>
+<label class="relative inline-flex items-center cursor-pointer">
+<input checked="" class="sr-only peer" type="checkbox" value=""/>
+<div class="w-11 h-6 bg-gray-200 peer-focus:outline-none rounded-full peer dark:bg-gray-700 peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all dark:border-gray-600 peer-checked:bg-primary"></div>
+</label>
+</div>
+<!-- Toggle Item: Filler Words -->
+<div class="flex items-center justify-between bg-white dark:bg-[#283039] p-4 rounded-xl shadow-sm">
+<div class="flex items-center gap-4">
+<div class="size-10 rounded-lg bg-orange-50 dark:bg-orange-500/10 flex items-center justify-center text-orange-600 dark:text-orange-400">
+<span class="material-symbols-outlined">record_voice_over</span>
+</div>
+<div class="flex flex-col">
+<span class="text-slate-900 dark:text-white font-medium text-base">Muletillas</span>
+<span class="text-gray-500 dark:text-gray-400 text-xs">"Eh", "Estee", "Mmm"</span>
+</div>
+</div>
+<label class="relative inline-flex items-center cursor-pointer">
+<input checked="" class="sr-only peer" type="checkbox" value=""/>
+<div class="w-11 h-6 bg-gray-200 peer-focus:outline-none rounded-full peer dark:bg-gray-700 peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all dark:border-gray-600 peer-checked:bg-primary"></div>
+</label>
+</div>
+</div>
+</div>
+</div>
+<!-- Floating Action Button Container -->
+<div class="fixed bottom-0 left-0 w-full bg-background-light/80 dark:bg-background-dark/80 backdrop-blur-md p-4 pb-8 border-t border-gray-200 dark:border-gray-800">
+<button class="w-full flex items-center justify-center gap-2 bg-primary hover:bg-primary/90 text-white font-bold text-lg h-14 rounded-xl shadow-lg shadow-primary/25 transition-all active:scale-[0.98]">
+<span class="material-symbols-outlined">mic</span>
+            Comenzar Práctica
+        </button>
+</div>
+</div>
+</body></html>
+
+<!-- Consejos y Recursos -->
+<!DOCTYPE html>
+
+<html class="dark" lang="es"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>Consejos y Recursos</title>
+<link href="https://fonts.googleapis.com/css2?family=Lexend:wght@300;400;500;600;700&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<script id="tailwind-config">
+        tailwind.config = {
+            darkMode: "class",
+            theme: {
+                extend: {
+                    colors: {
+                        "primary": "#137fec",
+                        "background-light": "#f6f7f8",
+                        "background-dark": "#101922",
+                        "surface-dark": "#1c2127",
+                        "surface-light": "#ffffff",
+                    },
+                    fontFamily: {
+                        "display": ["Lexend", "sans-serif"]
+                    },
+                    borderRadius: { "DEFAULT": "0.25rem", "lg": "0.5rem", "xl": "0.75rem", "2xl": "1rem", "full": "9999px" },
+                },
+            },
+        }
+    </script>
+<style>
+        /* Hide scrollbar for Chrome, Safari and Opera */
+        .no-scrollbar::-webkit-scrollbar {
+            display: none;
+        }
+        /* Hide scrollbar for IE, Edge and Firefox */
+        .no-scrollbar {
+            -ms-overflow-style: none;  /* IE and Edge */
+            scrollbar-width: none;  /* Firefox */
+        }
+    </style>
+<style>
+    body {
+      min-height: max(884px, 100dvh);
+    }
+  </style>
+  </head>
+<body class="bg-background-light dark:bg-background-dark font-display antialiased">
+<div class="relative flex h-full min-h-screen w-full flex-col overflow-x-hidden pb-24">
+<!-- Header -->
+<div class="sticky top-0 z-10 flex items-center bg-background-light dark:bg-background-dark p-4 pb-2 justify-between border-b border-gray-200 dark:border-gray-800">
+<div class="cursor-pointer text-gray-900 dark:text-white flex size-12 shrink-0 items-center justify-center rounded-full hover:bg-gray-200 dark:hover:bg-gray-800 transition-colors">
+<span class="material-symbols-outlined">arrow_back</span>
+</div>
+<h2 class="text-gray-900 dark:text-white text-lg font-bold leading-tight tracking-[-0.015em] flex-1 text-center">Consejos y Recursos</h2>
+<div class="flex w-12 items-center justify-end">
+<button class="flex cursor-pointer items-center justify-center overflow-hidden rounded-full size-10 bg-transparent text-gray-900 dark:text-white hover:bg-gray-200 dark:hover:bg-gray-800 transition-colors">
+<span class="material-symbols-outlined">bookmark</span>
+</button>
+</div>
+</div>
+<!-- Search Bar -->
+<div class="px-4 py-3 bg-background-light dark:bg-background-dark">
+<label class="flex flex-col min-w-40 h-12 w-full">
+<div class="flex w-full flex-1 items-stretch rounded-xl h-full shadow-sm">
+<div class="text-gray-500 dark:text-[#9dabb9] flex border-none bg-surface-light dark:bg-surface-dark items-center justify-center pl-4 rounded-l-xl border-r-0">
+<span class="material-symbols-outlined">search</span>
+</div>
+<input class="form-input flex w-full min-w-0 flex-1 resize-none overflow-hidden rounded-xl text-gray-900 dark:text-white focus:outline-0 focus:ring-0 border-none bg-surface-light dark:bg-surface-dark focus:border-none h-full placeholder:text-gray-500 dark:placeholder:text-[#9dabb9] px-4 rounded-l-none border-l-0 pl-2 text-base font-normal leading-normal" placeholder="Buscar artículos, videos, ejercicios..." value=""/>
+</div>
+</label>
+</div>
+<!-- Filter Chips -->
+<div class="flex gap-3 px-4 py-2 overflow-x-auto no-scrollbar bg-background-light dark:bg-background-dark">
+<button class="flex h-9 shrink-0 items-center justify-center gap-x-2 rounded-full bg-primary pl-5 pr-5 shadow-md shadow-primary/20 transition-transform active:scale-95">
+<p class="text-white text-sm font-medium leading-normal">Todo</p>
+</button>
+<button class="flex h-9 shrink-0 items-center justify-center gap-x-2 rounded-full bg-surface-light dark:bg-surface-dark pl-5 pr-5 border border-gray-200 dark:border-gray-800 transition-transform active:scale-95">
+<p class="text-gray-700 dark:text-white text-sm font-medium leading-normal">Artículos</p>
+</button>
+<button class="flex h-9 shrink-0 items-center justify-center gap-x-2 rounded-full bg-surface-light dark:bg-surface-dark pl-5 pr-5 border border-gray-200 dark:border-gray-800 transition-transform active:scale-95">
+<p class="text-gray-700 dark:text-white text-sm font-medium leading-normal">Videos</p>
+</button>
+<button class="flex h-9 shrink-0 items-center justify-center gap-x-2 rounded-full bg-surface-light dark:bg-surface-dark pl-5 pr-5 border border-gray-200 dark:border-gray-800 transition-transform active:scale-95">
+<p class="text-gray-700 dark:text-white text-sm font-medium leading-normal">Ejercicios</p>
+</button>
+</div>
+<!-- Featured Section -->
+<div class="pt-6 pb-2">
+<h2 class="text-gray-900 dark:text-white tracking-tight text-[22px] font-bold leading-tight px-4 text-left pb-4">Destacado de hoy</h2>
+<div class="px-4 @container">
+<div class="flex flex-col items-stretch justify-start rounded-2xl @xl:flex-row @xl:items-start shadow-lg bg-surface-light dark:bg-surface-dark overflow-hidden transition-all hover:shadow-xl">
+<div class="w-full relative bg-center bg-no-repeat aspect-video bg-cover" data-alt="Abstract blue sound waves representing voice" style='background-image: url("https://lh3.googleusercontent.com/aida-public/AB6AXuBdGTtP3OC3HqFQIZw85Y3Zm-z_nlc1N9weBF7ABn_lO-fc0QH0jDe6llb2QAZSQ384t5-po8NtFtIubveip181Kh67R1Z2KcuBGVMVg8wh7ycPgmTNRLyTf-hXRc27nybD2Rj5Vzt4oeY6OyPJctZjD-e4a7nlem0d0ichU0sGayakQPil0bo85x1QzjGY8fPkwYlm2wY3GOCxwKkY7bTK6BFkK9jkLcUz-gghuj0BZTmRwQwHuIMn-h-cLj0QSXzgC73VjYCnL-s");'>
+<div class="absolute inset-0 bg-gradient-to-t from-black/60 to-transparent flex items-end p-4">
+<span class="inline-flex items-center justify-center px-2 py-1 rounded bg-black/40 backdrop-blur-sm text-white text-xs font-bold uppercase tracking-wider">
+<span class="material-symbols-outlined text-[16px] mr-1">play_circle</span> Video
+                            </span>
+</div>
+</div>
+<div class="flex w-full min-w-72 grow flex-col items-stretch justify-center gap-3 p-5">
+<div class="flex flex-col gap-1">
+<p class="text-gray-900 dark:text-white text-lg font-bold leading-tight">Calentamiento vocal en 5 minutos</p>
+<p class="text-gray-500 dark:text-[#9dabb9] text-sm font-normal leading-normal line-clamp-2">Prepárate antes de tu presentación con esta rutina rápida diseñada por expertos fonoaudiólogos.</p>
+</div>
+<div class="flex items-center justify-between mt-1">
+<div class="flex items-center gap-2 text-xs font-medium text-gray-400">
+<span class="material-symbols-outlined text-[16px]">schedule</span> 5 min
+                            </div>
+<button class="flex cursor-pointer items-center justify-center overflow-hidden rounded-lg h-9 px-4 bg-primary text-white text-sm font-bold shadow-md shadow-primary/20 hover:bg-blue-600 transition-colors">
+                                Ver Video
+                            </button>
+</div>
+</div>
+</div>
+</div>
+</div>
+<!-- Horizontal Scroll Section: Miedo Escénico -->
+<div class="pt-6">
+<div class="flex items-center justify-between px-4 pb-3">
+<h2 class="text-gray-900 dark:text-white tracking-tight text-[20px] font-bold leading-tight">Miedo Escénico</h2>
+<a class="text-primary text-sm font-semibold hover:underline" href="#">Ver todo</a>
+</div>
+<div class="flex overflow-x-auto snap-x gap-4 px-4 pb-4 no-scrollbar">
+<!-- Card 1 -->
+<div class="snap-center shrink-0 w-[260px] flex flex-col rounded-2xl bg-surface-light dark:bg-surface-dark shadow-sm overflow-hidden border border-gray-100 dark:border-gray-800">
+<div class="h-36 w-full bg-cover bg-center relative" data-alt="Person taking a deep breath in a calm environment" style='background-image: url("https://lh3.googleusercontent.com/aida-public/AB6AXuAr-m2KBkwZJRhvDcQKwzeiK8vxz8rNKqpszRX34_i1jEyaViry4pPGEbiP8iWVjkkxR6TtVzwZNmjsDwG5ZynLhTOKLMhs5if0SrOnVP95E_lMu8Wuq-i5xIN4yhgQp4VZkALOEphX69ht-CRN5JHJidBWt3lTMFcafN6gA2aFlW16txjyffXFWbutllPyCFXIK2QcnSN4qndroNA3uclWFf1KVK6Cf1NovI2ZbmxOKXRvyPPdFbtUrQwUZLTkUZGjHF0GZsJe7gU");'>
+<div class="absolute top-2 right-2 bg-white/90 dark:bg-black/60 backdrop-blur-sm rounded-md px-2 py-1">
+<span class="material-symbols-outlined text-primary text-sm">article</span>
+</div>
+</div>
+<div class="p-4 flex flex-col gap-2 h-full justify-between">
+<div>
+<p class="text-xs font-semibold text-primary mb-1 uppercase tracking-wider">Artículo</p>
+<h3 class="text-gray-900 dark:text-white text-base font-bold leading-tight">10 trucos mentales para olvidar los nervios</h3>
+</div>
+<p class="text-gray-400 text-xs mt-2">Lectura • 4 min</p>
+</div>
+</div>
+<!-- Card 2 -->
+<div class="snap-center shrink-0 w-[260px] flex flex-col rounded-2xl bg-surface-light dark:bg-surface-dark shadow-sm overflow-hidden border border-gray-100 dark:border-gray-800">
+<div class="h-36 w-full bg-cover bg-center relative" data-alt="Close up of a microphone on stage" style='background-image: url("https://lh3.googleusercontent.com/aida-public/AB6AXuB3TLtHsmNO3kXtXHCyQqPcznWXCuOo6Au0eGIInmXT6H7pOk76MKMSIRZYPUn8sWwx9WEPYrdjBTMOle-4tPiTcROHR9sxSyp93G0Rn5lWPaQMX444dZiNDaaFAVCRjvY3GiruOxvGYtggZEB3GdFIleU0xXZA5D-DGywof2kTa-SYUmvJ79zqkbQn6Grpiq81GmwNL8O1RHlDTXtaZy2MWLQxdjElvYCWN7n0fxqyNcgnCsEidTSMkaBYN7iRpl_RP_hO03GeYm4");'>
+<div class="absolute top-2 right-2 bg-white/90 dark:bg-black/60 backdrop-blur-sm rounded-md px-2 py-1">
+<span class="material-symbols-outlined text-primary text-sm">play_arrow</span>
+</div>
+</div>
+<div class="p-4 flex flex-col gap-2 h-full justify-between">
+<div>
+<p class="text-xs font-semibold text-primary mb-1 uppercase tracking-wider">Video</p>
+<h3 class="text-gray-900 dark:text-white text-base font-bold leading-tight">Cómo empezar tu discurso con fuerza</h3>
+</div>
+<p class="text-gray-400 text-xs mt-2">Video • 8 min</p>
+</div>
+</div>
+<!-- Card 3 -->
+<div class="snap-center shrink-0 w-[260px] flex flex-col rounded-2xl bg-surface-light dark:bg-surface-dark shadow-sm overflow-hidden border border-gray-100 dark:border-gray-800">
+<div class="h-36 w-full bg-cover bg-center relative" data-alt="Abstract calm blue gradient" style='background-image: url("https://lh3.googleusercontent.com/aida-public/AB6AXuBuQfIIoeoLvOSw4DV5ghb5BrMaceesaXSRYrChpEvnBs603PZWGfC2tBOdwFSoOupbOgoqbUvKDxG2Q8plTd9XsPE6wYHKMjzBu9BmiC08BW15fSgOc0GsVkSlGajROqLKBX0WwTqTrIQX_larFep_JI2s4kI-OEcsLMQq4ZNYxrrW3_hFS-wSmfUPI8Kucxiy3vqHPbC5-iwLNIVZ4nI9HiRj4vyUEQtfQQszdf4QqaLIO1xIBZKNNut5TKp-MvkQU4UEPXhdlQ0");'>
+<div class="absolute top-2 right-2 bg-white/90 dark:bg-black/60 backdrop-blur-sm rounded-md px-2 py-1">
+<span class="material-symbols-outlined text-primary text-sm">self_improvement</span>
+</div>
+</div>
+<div class="p-4 flex flex-col gap-2 h-full justify-between">
+<div>
+<p class="text-xs font-semibold text-primary mb-1 uppercase tracking-wider">Ejercicio</p>
+<h3 class="text-gray-900 dark:text-white text-base font-bold leading-tight">Visualización positiva guiada</h3>
+</div>
+<p class="text-gray-400 text-xs mt-2">Audio • 10 min</p>
+</div>
+</div>
+</div>
+</div>
+<!-- Vertical Section: Técnicas de Oratoria -->
+<div class="pt-2 px-4">
+<div class="flex items-center justify-between pb-3 mt-4">
+<h2 class="text-gray-900 dark:text-white tracking-tight text-[20px] font-bold leading-tight">Técnicas de Oratoria</h2>
+<a class="text-primary text-sm font-semibold hover:underline" href="#">Ver todo</a>
+</div>
+<div class="flex flex-col gap-3">
+<!-- List Item 1 -->
+<div class="flex items-center gap-4 p-3 rounded-xl bg-surface-light dark:bg-surface-dark shadow-sm border border-gray-100 dark:border-gray-800 hover:bg-gray-50 dark:hover:bg-[#252b32] transition-colors cursor-pointer group">
+<div class="size-16 shrink-0 rounded-lg bg-cover bg-center relative overflow-hidden" data-alt="Geometric pattern representing structure" style='background-image: url("https://lh3.googleusercontent.com/aida-public/AB6AXuDdHJli-Rkh6lBVMnV4HDjB2RvPZN9kXoLMMP1cdpFLl5mev1kTVlw0a_MsLDwaRSEckF9S8CEOoyyAleChZHtHfPjEv3nYR0PGmHmzHS3kAhcSqP56a35aa_jzj-_ITIs5wW5QswnfHXVJ5bG7Xz5xxXYnrRZMG6JdMsAk2WmsOD9sSRN4acIvA9k41FR61bx9DdMbDEP96YmXg4Eq3x25LGAymljUInY0I89KqxZWRW1CKdWf245jFHUD1yzVWCoVPzL6sI9435w");'>
+<div class="absolute inset-0 bg-black/20 group-hover:bg-transparent transition-colors"></div>
+<div class="absolute inset-0 flex items-center justify-center">
+<span class="material-symbols-outlined text-white drop-shadow-md">menu_book</span>
+</div>
+</div>
+<div class="flex flex-col flex-1 gap-1">
+<h4 class="text-gray-900 dark:text-white font-bold text-sm leading-tight">Estructura del discurso persuasivo</h4>
+<p class="text-gray-500 dark:text-gray-400 text-xs line-clamp-1">Aprende el método AIDA para convencer.</p>
+<div class="flex items-center gap-2 mt-1">
+<span class="text-[10px] font-medium px-1.5 py-0.5 rounded bg-blue-100 dark:bg-blue-900/30 text-blue-600 dark:text-blue-400">Guía</span>
+<span class="text-[10px] text-gray-400">• 6 min de lectura</span>
+</div>
+</div>
+<div class="flex items-center justify-center size-8 rounded-full bg-gray-100 dark:bg-gray-800 text-gray-400 dark:text-gray-500">
+<span class="material-symbols-outlined text-lg">chevron_right</span>
+</div>
+</div>
+<!-- List Item 2 -->
+<div class="flex items-center gap-4 p-3 rounded-xl bg-surface-light dark:bg-surface-dark shadow-sm border border-gray-100 dark:border-gray-800 hover:bg-gray-50 dark:hover:bg-[#252b32] transition-colors cursor-pointer group">
+<div class="size-16 shrink-0 rounded-lg bg-cover bg-center relative overflow-hidden" data-alt="Person gesturing with hands while speaking" style='background-image: url("https://lh3.googleusercontent.com/aida-public/AB6AXuArYOsgceXGSwG6Z5Slw4Q32MGKmp2h1-UyfJZKd5Kcv53HItwqr2W5VXPvm3ul-trQHZTARbFEoUxmYqoHaEzr6gcEtPFPPPcPPMe0XaYCUDyO9ORebATQAN1LmlGvYbqUk7aOTLUUKVx7lPpnHwCYwbI5umHHsYnn_l6L7B6nUmnftmtyIHB25MnDdVUQPHKzaL8h8Z68TYrOj3zv_ory0WRVZIjow_n5QEpoyUTbYp1MpacARjmEn-Pm09T-gnDZ5mctnpxxyoI");'>
+<div class="absolute inset-0 bg-black/20 group-hover:bg-transparent transition-colors"></div>
+<div class="absolute inset-0 flex items-center justify-center">
+<span class="material-symbols-outlined text-white drop-shadow-md">play_arrow</span>
+</div>
+</div>
+<div class="flex flex-col flex-1 gap-1">
+<h4 class="text-gray-900 dark:text-white font-bold text-sm leading-tight">Lenguaje corporal efectivo</h4>
+<p class="text-gray-500 dark:text-gray-400 text-xs line-clamp-1">Qué hacer con tus manos al hablar.</p>
+<div class="flex items-center gap-2 mt-1">
+<span class="text-[10px] font-medium px-1.5 py-0.5 rounded bg-purple-100 dark:bg-purple-900/30 text-purple-600 dark:text-purple-400">Video</span>
+<span class="text-[10px] text-gray-400">• 4:30 min</span>
+</div>
+</div>
+<div class="flex items-center justify-center size-8 rounded-full bg-gray-100 dark:bg-gray-800 text-gray-400 dark:text-gray-500">
+<span class="material-symbols-outlined text-lg">chevron_right</span>
+</div>
+</div>
+<!-- List Item 3 -->
+<div class="flex items-center gap-4 p-3 rounded-xl bg-surface-light dark:bg-surface-dark shadow-sm border border-gray-100 dark:border-gray-800 hover:bg-gray-50 dark:hover:bg-[#252b32] transition-colors cursor-pointer group">
+<div class="size-16 shrink-0 rounded-lg bg-cover bg-center relative overflow-hidden" data-alt="Close up of lips speaking clearly" style='background-image: url("https://lh3.googleusercontent.com/aida-public/AB6AXuATiQg61XgmAcXvNJAxKV_HfKedgA5Z5_0vuKNzT4nvm6cMGgoxSI3Xf0yz9qUk7cBAqMGb-9UYgbrjIMk9rfy8pkL6OPW8K_xpD9KjcMYmlz4jc_za1voXegtq7qTQfuM7Hs2V9gfIZZ5CwKLOYOPVSF1jpHjDepBSXbpdgq64dYRCLy7SQqo6kiOxGIhuiDHkp1PuDrwRAjiXtvN3QQs76QinRal_zDSFcqltmiLCMNZkoRAjrA3lESVR30qtWEU9jY6nN9UGKOY");'>
+<div class="absolute inset-0 bg-black/20 group-hover:bg-transparent transition-colors"></div>
+<div class="absolute inset-0 flex items-center justify-center">
+<span class="material-symbols-outlined text-white drop-shadow-md">graphic_eq</span>
+</div>
+</div>
+<div class="flex flex-col flex-1 gap-1">
+<h4 class="text-gray-900 dark:text-white font-bold text-sm leading-tight">Ejercicios de Dicción</h4>
+<p class="text-gray-500 dark:text-gray-400 text-xs line-clamp-1">Trabalenguas para mejorar la pronunciación.</p>
+<div class="flex items-center gap-2 mt-1">
+<span class="text-[10px] font-medium px-1.5 py-0.5 rounded bg-green-100 dark:bg-green-900/30 text-green-600 dark:text-green-400">Práctica</span>
+<span class="text-[10px] text-gray-400">• 3 ejercicios</span>
+</div>
+</div>
+<div class="flex items-center justify-center size-8 rounded-full bg-gray-100 dark:bg-gray-800 text-gray-400 dark:text-gray-500">
+<span class="material-symbols-outlined text-lg">chevron_right</span>
+</div>
+</div>
+</div>
+<div class="h-6"></div> <!-- Spacer -->
+</div>
+</div>
+<!-- Bottom Navigation Bar -->
+<div class="fixed bottom-0 left-0 w-full bg-surface-light dark:bg-surface-dark border-t border-gray-200 dark:border-gray-800 pb-safe pt-2 px-2 z-50">
+<div class="flex justify-around items-end h-16 pb-2">
+<button class="flex flex-col items-center justify-center w-full gap-1 group">
+<span class="material-symbols-outlined text-gray-400 group-hover:text-primary text-2xl transition-colors">home</span>
+<span class="text-[10px] font-medium text-gray-400 group-hover:text-primary transition-colors">Inicio</span>
+</button>
+<button class="flex flex-col items-center justify-center w-full gap-1 group">
+<span class="material-symbols-outlined text-primary text-2xl transition-colors fill-1">school</span>
+<span class="text-[10px] font-medium text-primary transition-colors">Recursos</span>
+</button>
+<div class="flex flex-col items-center justify-end w-full relative -top-6">
+<button class="size-14 rounded-full bg-primary text-white shadow-lg shadow-primary/40 flex items-center justify-center transform transition-transform active:scale-95">
+<span class="material-symbols-outlined text-3xl">mic</span>
+</button>
+</div>
+<button class="flex flex-col items-center justify-center w-full gap-1 group">
+<span class="material-symbols-outlined text-gray-400 group-hover:text-primary text-2xl transition-colors">equalizer</span>
+<span class="text-[10px] font-medium text-gray-400 group-hover:text-primary transition-colors">Progreso</span>
+</button>
+<button class="flex flex-col items-center justify-center w-full gap-1 group">
+<span class="material-symbols-outlined text-gray-400 group-hover:text-primary text-2xl transition-colors">person</span>
+<span class="text-[10px] font-medium text-gray-400 group-hover:text-primary transition-colors">Perfil</span>
+</button>
+</div>
+</div>
+</body></html>
+
+<!-- Grabador de Voz y Análisis en Tiempo Real -->
+<!DOCTYPE html>
+
+<html class="dark" lang="es"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>Grabación en Curso</title>
+<!-- Tailwind CSS -->
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<!-- Theme Configuration -->
+<script id="tailwind-config">
+        tailwind.config = {
+            darkMode: "class",
+            theme: {
+                extend: {
+                    colors: {
+                        "primary": "#137fec",
+                        "background-light": "#f6f7f8",
+                        "background-dark": "#101922",
+                        "surface-dark": "#1a242d",
+                        "surface-light": "#ffffff",
+                    },
+                    fontFamily: {
+                        "display": ["Lexend", "sans-serif"]
+                    },
+                    borderRadius: {
+                        "DEFAULT": "0.25rem",
+                        "lg": "0.5rem",
+                        "xl": "0.75rem",
+                        "2xl": "1rem",
+                        "3xl": "1.5rem",
+                        "full": "9999px"
+                    },
+                },
+            },
+        }
+    </script>
+<!-- Fonts & Icons -->
+<link href="https://fonts.googleapis.com/css2?family=Lexend:wght@300;400;500;600;700&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<style>
+    body {
+      min-height: max(884px, 100dvh);
+    }
+  </style>
+  </head>
+<body class="bg-background-light dark:bg-background-dark text-[#111418] dark:text-white font-display overflow-x-hidden antialiased">
+<div class="relative flex h-full min-h-screen w-full flex-col">
+<!-- Header -->
+<div class="flex items-center p-4 pb-2 justify-between sticky top-0 z-10 bg-background-light dark:bg-background-dark">
+<button class="text-[#111418] dark:text-white flex size-12 shrink-0 items-center justify-center rounded-full hover:bg-black/5 dark:hover:bg-white/10 transition-colors">
+<span class="material-symbols-outlined">arrow_back_ios_new</span>
+</button>
+<div class="flex flex-col items-center flex-1 pr-12">
+<h2 class="text-lg font-bold leading-tight tracking-[-0.015em]">Nueva Grabación</h2>
+<p class="text-sm font-normal text-gray-500 dark:text-gray-400">En curso</p>
+</div>
+</div>
+<!-- Main Content Scroll Area -->
+<div class="flex-1 flex flex-col items-center w-full max-w-md mx-auto px-4 pb-32">
+<!-- Timer -->
+<div class="flex flex-col items-center justify-center py-8">
+<div class="flex items-baseline gap-1 text-6xl font-bold tracking-tighter text-[#111418] dark:text-white tabular-nums">
+<span>04</span><span class="text-gray-400 text-4xl">:</span><span>12</span>
+</div>
+<div class="mt-2 flex items-center gap-2 px-3 py-1 rounded-full bg-primary/10 text-primary">
+<div class="size-2 rounded-full bg-primary animate-pulse"></div>
+<span class="text-xs font-medium uppercase tracking-wide">Grabando</span>
+</div>
+</div>
+<!-- Waveform Visualization -->
+<div class="w-full h-32 flex items-center justify-center gap-[3px] px-4 my-4 overflow-hidden mask-gradient">
+<!-- Simulated Waveform Bars -->
+<div class="w-1.5 bg-gray-300 dark:bg-gray-700 h-4 rounded-full"></div>
+<div class="w-1.5 bg-gray-300 dark:bg-gray-700 h-8 rounded-full"></div>
+<div class="w-1.5 bg-gray-300 dark:bg-gray-700 h-6 rounded-full"></div>
+<div class="w-1.5 bg-primary/30 h-10 rounded-full"></div>
+<div class="w-1.5 bg-primary/50 h-14 rounded-full"></div>
+<div class="w-1.5 bg-primary h-20 rounded-full"></div>
+<div class="w-1.5 bg-primary h-24 rounded-full"></div>
+<div class="w-1.5 bg-primary h-16 rounded-full"></div>
+<div class="w-1.5 bg-primary h-28 rounded-full"></div>
+<div class="w-1.5 bg-primary h-20 rounded-full"></div>
+<div class="w-1.5 bg-primary h-12 rounded-full"></div>
+<div class="w-1.5 bg-primary/60 h-16 rounded-full"></div>
+<div class="w-1.5 bg-primary/40 h-8 rounded-full"></div>
+<div class="w-1.5 bg-primary/30 h-12 rounded-full"></div>
+<div class="w-1.5 bg-gray-300 dark:bg-gray-700 h-6 rounded-full"></div>
+<div class="w-1.5 bg-gray-300 dark:bg-gray-700 h-4 rounded-full"></div>
+<div class="w-1.5 bg-gray-300 dark:bg-gray-700 h-3 rounded-full"></div>
+<div class="w-1.5 bg-gray-300 dark:bg-gray-700 h-2 rounded-full"></div>
+<div class="w-1.5 bg-gray-300 dark:bg-gray-700 h-4 rounded-full"></div>
+<div class="w-1.5 bg-gray-300 dark:bg-gray-700 h-2 rounded-full"></div>
+</div>
+<!-- Real-time Stats Grid -->
+<div class="w-full grid grid-cols-2 gap-4 mt-6">
+<!-- Ritmo Card -->
+<div class="bg-surface-light dark:bg-surface-dark p-5 rounded-2xl shadow-sm border border-gray-100 dark:border-gray-800 flex flex-col justify-between h-32">
+<div class="flex items-start justify-between">
+<span class="text-sm font-medium text-gray-500 dark:text-gray-400">Ritmo</span>
+<span class="material-symbols-outlined text-green-500 text-xl">speed</span>
+</div>
+<div>
+<p class="text-3xl font-bold text-[#111418] dark:text-white tabular-nums">120</p>
+<p class="text-xs font-medium text-green-500 mt-1">Óptimo (PPM)</p>
+</div>
+</div>
+<!-- Muletillas Card -->
+<div class="bg-surface-light dark:bg-surface-dark p-5 rounded-2xl shadow-sm border border-gray-100 dark:border-gray-800 flex flex-col justify-between h-32">
+<div class="flex items-start justify-between">
+<span class="text-sm font-medium text-gray-500 dark:text-gray-400">Muletillas</span>
+<span class="material-symbols-outlined text-yellow-500 text-xl">warning</span>
+</div>
+<div>
+<p class="text-3xl font-bold text-[#111418] dark:text-white tabular-nums">2</p>
+<p class="text-xs font-medium text-yellow-500 mt-1">Detectadas</p>
+</div>
+</div>
+</div>
+<!-- Volume Progress Bar -->
+<div class="w-full mt-4 bg-surface-light dark:bg-surface-dark p-5 rounded-2xl shadow-sm border border-gray-100 dark:border-gray-800">
+<div class="flex justify-between items-center mb-3">
+<span class="text-sm font-medium text-gray-500 dark:text-gray-400">Intensidad de Voz</span>
+<span class="text-sm font-bold text-primary">75%</span>
+</div>
+<div class="relative w-full h-3 bg-gray-100 dark:bg-gray-700 rounded-full overflow-hidden">
+<div class="absolute top-0 left-0 h-full bg-primary rounded-full transition-all duration-300" style="width: 75%;"></div>
+</div>
+<div class="flex justify-between mt-2 text-[10px] text-gray-400 uppercase font-semibold tracking-wider">
+<span>Bajo</span>
+<span class="text-primary">Ideal</span>
+<span>Alto</span>
+</div>
+</div>
+</div>
+<!-- Controls Dock (Fixed Bottom) -->
+<div class="fixed bottom-0 left-0 w-full bg-surface-light/90 dark:bg-surface-dark/90 backdrop-blur-md border-t border-gray-200 dark:border-gray-800 pb-8 pt-4 px-6 z-50">
+<div class="flex items-center justify-between max-w-md mx-auto">
+<!-- Pause Button -->
+<button class="flex flex-col items-center gap-1 group">
+<div class="size-14 rounded-full bg-gray-200 dark:bg-gray-700 flex items-center justify-center text-[#111418] dark:text-white transition-transform active:scale-95 group-hover:bg-gray-300 dark:group-hover:bg-gray-600">
+<span class="material-symbols-outlined text-3xl">pause</span>
+</div>
+<span class="text-xs font-medium text-gray-500 dark:text-gray-400">Pausar</span>
+</button>
+<!-- Stop/Finish Button (Primary) -->
+<button class="flex flex-col items-center gap-1 -mt-8 relative group">
+<div class="absolute inset-0 bg-primary/20 rounded-full blur-xl transform group-hover:scale-110 transition-transform"></div>
+<div class="relative size-20 rounded-full bg-primary text-white shadow-lg flex items-center justify-center transition-transform active:scale-95 hover:bg-blue-600 border-4 border-background-light dark:border-background-dark">
+<div class="size-8 bg-white rounded-md"></div> <!-- Stop Square -->
+</div>
+<span class="text-xs font-medium text-primary mt-1">Detener</span>
+</button>
+<!-- Settings/Flag Button (Example) -->
+<button class="flex flex-col items-center gap-1 group">
+<div class="size-14 rounded-full bg-gray-200 dark:bg-gray-700 flex items-center justify-center text-[#111418] dark:text-white transition-transform active:scale-95 group-hover:bg-gray-300 dark:group-hover:bg-gray-600">
+<span class="material-symbols-outlined text-3xl">flag</span>
+</div>
+<span class="text-xs font-medium text-gray-500 dark:text-gray-400">Marcar</span>
+</button>
+</div>
+</div>
+</div>
+</body></html>
+
+<!-- Detalles de la Sesión -->
+<!DOCTYPE html>
+
+<html class="dark" lang="es"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>Detalles de la Sesión</title>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com" rel="preconnect"/>
+<link crossorigin="" href="https://fonts.gstatic.com" rel="preconnect"/>
+<link href="https://fonts.googleapis.com/css2?family=Lexend:wght@300;400;500;700&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<script id="tailwind-config">
+        tailwind.config = {
+            darkMode: "class",
+            theme: {
+                extend: {
+                    colors: {
+                        "primary": "#137fec",
+                        "background-light": "#f6f7f8",
+                        "background-dark": "#101922", // Matches the theme config, though specific components use #111418
+                        "surface-dark": "#283039",
+                        "text-secondary": "#9dabb9"
+                    },
+                    fontFamily: {
+                        "display": ["Lexend", "sans-serif"],
+                        "body": ["Lexend", "sans-serif"]
+                    },
+                    borderRadius: { "DEFAULT": "0.25rem", "lg": "0.5rem", "xl": "0.75rem", "full": "9999px" },
+                },
+            },
+        }
+    </script>
+<style>
+        /* Custom scrollbar for better look in dark mode */
+        ::-webkit-scrollbar {
+            width: 8px;
+        }
+        ::-webkit-scrollbar-track {
+            background: #111418; 
+        }
+        ::-webkit-scrollbar-thumb {
+            background: #3b4754; 
+            border-radius: 4px;
+        }
+        ::-webkit-scrollbar-thumb:hover {
+            background: #4b5a6b; 
+        }
+        .highlight-filler {
+            background-color: rgba(251, 146, 60, 0.2);
+            color: #fb923c;
+            padding: 0 4px;
+            border-radius: 4px;
+            cursor: pointer;
+            text-decoration: underline;
+            text-decoration-style: dotted;
+            text-underline-offset: 2px;
+        }
+    </style>
+<style>
+    body {
+      min-height: max(884px, 100dvh);
+    }
+  </style>
+  </head>
+<body class="bg-background-light dark:bg-[#111418] font-display text-white overflow-x-hidden antialiased">
+<div class="relative flex h-full min-h-screen w-full flex-col max-w-md mx-auto bg-[#111418] shadow-xl">
+<!-- Header -->
+<div class="flex items-center bg-[#111418] p-4 pb-2 justify-between sticky top-0 z-50 border-b border-[#283039]">
+<button class="text-white flex size-12 shrink-0 items-center justify-center rounded-full hover:bg-[#283039] transition-colors">
+<span class="material-symbols-outlined">arrow_back</span>
+</button>
+<h2 class="text-white text-lg font-bold leading-tight tracking-[-0.015em] flex-1 text-center">Detalles de la Sesión</h2>
+<div class="flex w-12 items-center justify-end">
+<button class="flex size-12 cursor-pointer items-center justify-center rounded-full hover:bg-[#283039] transition-colors text-white">
+<span class="material-symbols-outlined">more_vert</span>
+</button>
+</div>
+</div>
+<div class="flex-1 overflow-y-auto pb-20">
+<!-- Stats Summary -->
+<div class="flex flex-wrap gap-3 px-4 py-4">
+<div class="flex min-w-[111px] flex-1 basis-[fit-content] flex-col gap-2 rounded-xl border border-[#3b4754] bg-[#1a2027] p-4 items-center text-center shadow-sm">
+<div class="flex items-center gap-1">
+<span class="text-primary text-2xl font-bold leading-tight">85</span>
+<span class="text-gray-500 text-sm font-medium">/100</span>
+</div>
+<div class="flex items-center gap-2">
+<span class="material-symbols-outlined text-[#9dabb9] text-[18px]">verified</span>
+<p class="text-[#9dabb9] text-sm font-normal leading-normal">Puntaje</p>
+</div>
+</div>
+<div class="flex min-w-[111px] flex-1 basis-[fit-content] flex-col gap-2 rounded-xl border border-[#3b4754] bg-[#1a2027] p-4 items-center text-center shadow-sm">
+<p class="text-white tracking-light text-2xl font-bold leading-tight">04:12</p>
+<div class="flex items-center gap-2">
+<span class="material-symbols-outlined text-[#9dabb9] text-[18px]">timer</span>
+<p class="text-[#9dabb9] text-sm font-normal leading-normal">Duración</p>
+</div>
+</div>
+</div>
+<!-- Media Player -->
+<div class="px-4 py-2">
+<div class="flex flex-col gap-3 rounded-xl bg-[#283039] px-4 py-4 shadow-md">
+<div class="flex items-center gap-4 overflow-hidden">
+<div class="relative bg-center bg-no-repeat aspect-square bg-cover rounded-lg size-14 shrink-0 overflow-hidden" data-alt="Sound wave visualization abstract art" style='background-image: url("https://lh3.googleusercontent.com/aida-public/AB6AXuBJpcEoWrH8oQeNPHC_ScCytmrtxdumOBImiW8aDHpzjAG-mBnSM3mKFXyLYos7LWO_MsMMOeu7SFj839DnafrMX25MfBAplrvHYkwxH7yRSB4EVEsv7scHmrRvfP1fFHR-Jre4vVenUFsbr7D3YIKwCdS9Lb8B8deQ4yjjpE2Mx0_i-d4nww-nAyTJNreDXozdBhnE4XR5ONJ5rIXLWNOHTNX-6VUgJ1fkj3Hk7lCKsjo-Y3W4B3Y2apx2kDTRGL3PzwqYih8qtxg");'>
+<div class="absolute inset-0 bg-primary/20 backdrop-blur-[1px]"></div>
+</div>
+<div class="flex-1 min-w-0">
+<p class="text-white text-base font-bold leading-tight truncate">Práctica de Pitch #42</p>
+<p class="text-[#9dabb9] text-sm font-normal leading-normal truncate">24 Oct, 10:30 AM</p>
+</div>
+<button class="flex shrink-0 items-center justify-center rounded-full size-12 bg-primary text-white hover:bg-primary/90 transition-colors shadow-lg shadow-primary/30">
+<span class="material-symbols-outlined text-[28px] fill-current">play_arrow</span>
+</button>
+</div>
+<!-- Waveform visualization -->
+<div class="pt-2 flex flex-col gap-2">
+<div class="flex h-8 items-center justify-center gap-[2px] opacity-80">
+<!-- Fake waveform bars -->
+<div class="w-1 h-3 bg-white/30 rounded-full"></div>
+<div class="w-1 h-5 bg-white/30 rounded-full"></div>
+<div class="w-1 h-3 bg-white/30 rounded-full"></div>
+<div class="w-1 h-6 bg-white/30 rounded-full"></div>
+<div class="w-1 h-4 bg-primary rounded-full"></div>
+<div class="w-1 h-7 bg-primary rounded-full"></div>
+<div class="w-1 h-5 bg-primary rounded-full"></div>
+<div class="w-1 h-3 bg-primary rounded-full"></div>
+<!-- Active/Current playhead position approx -->
+<div class="relative w-1 h-8 bg-white rounded-full mx-0.5 shadow-[0_0_8px_rgba(255,255,255,0.8)]"></div>
+<div class="w-1 h-4 bg-white/30 rounded-full"></div>
+<div class="w-1 h-6 bg-white/30 rounded-full"></div>
+<div class="w-1 h-3 bg-white/30 rounded-full"></div>
+<div class="w-1 h-2 bg-white/30 rounded-full"></div>
+<div class="w-1 h-5 bg-white/30 rounded-full"></div>
+<div class="w-1 h-3 bg-white/30 rounded-full"></div>
+<div class="w-1 h-4 bg-white/30 rounded-full"></div>
+<div class="w-1 h-2 bg-white/30 rounded-full"></div>
+<div class="w-1 h-3 bg-white/30 rounded-full"></div>
+<div class="w-1 h-5 bg-white/30 rounded-full"></div>
+<div class="w-1 h-3 bg-white/30 rounded-full"></div>
+<div class="w-1 h-4 bg-white/30 rounded-full"></div>
+<div class="w-1 h-2 bg-white/30 rounded-full"></div>
+<div class="w-1 h-4 bg-white/30 rounded-full"></div>
+<div class="w-1 h-3 bg-white/30 rounded-full"></div>
+</div>
+<div class="flex items-center justify-between mt-1">
+<p class="text-[#9dabb9] text-xs font-medium leading-normal tracking-[0.015em]">1:17</p>
+<p class="text-[#9dabb9] text-xs font-medium leading-normal tracking-[0.015em]">-2:55</p>
+</div>
+</div>
+</div>
+</div>
+<!-- Transcription Section -->
+<div class="px-4 pt-4">
+<div class="flex items-center justify-between mb-3">
+<h3 class="text-white text-lg font-bold leading-tight">Transcripción</h3>
+<button class="text-primary text-sm font-medium hover:text-primary/80">Ver todo</button>
+</div>
+<div class="bg-[#283039]/50 border border-[#3b4754] rounded-xl p-4">
+<p class="text-gray-300 text-base leading-relaxed font-light">
+                        Hola a todos, bienvenidos a la presentación. Hoy quiero hablar de... <span class="highlight-filler" onclick="alert('Jumping to 0:12')">eh</span>... el impacto de la inteligencia artificial en nuestro día a día. Es un tema que... <span class="highlight-filler" onclick="alert('Jumping to 0:18')">esteee</span>... nos concierne a todos profundamente.
+                        <br/><br/>
+                        Como pueden ver en este gráfico, el crecimiento ha sido exponencial. Sin embargo, tenemos que considerar... <span class="highlight-filler" onclick="alert('Jumping to 0:34')">o sea</span>... las implicaciones éticas.
+                        <br/><br/>
+                        Para concluir, yo creo que... <span class="highlight-filler" onclick="alert('Jumping to 0:50')">bueno</span>... es vital seguir investigando.
+                    </p>
+</div>
+</div>
+<!-- Filler Words Chips -->
+<div class="pt-6">
+<h3 class="text-white text-lg font-bold leading-tight tracking-[-0.015em] px-4 pb-3">Análisis de Muletillas</h3>
+<div class="flex gap-3 px-4 flex-wrap">
+<div class="flex h-8 shrink-0 items-center justify-center gap-x-2 rounded-lg bg-[#283039] border border-[#3b4754] pl-3 pr-4 group cursor-pointer hover:border-orange-500/50 transition-colors">
+<div class="bg-orange-500/20 text-orange-400 rounded-md px-1.5 py-0.5 text-xs font-bold">5</div>
+<p class="text-white text-sm font-medium leading-normal">Eh</p>
+</div>
+<div class="flex h-8 shrink-0 items-center justify-center gap-x-2 rounded-lg bg-[#283039] border border-[#3b4754] pl-3 pr-4 group cursor-pointer hover:border-orange-500/50 transition-colors">
+<div class="bg-orange-500/20 text-orange-400 rounded-md px-1.5 py-0.5 text-xs font-bold">3</div>
+<p class="text-white text-sm font-medium leading-normal">Esteee</p>
+</div>
+<div class="flex h-8 shrink-0 items-center justify-center gap-x-2 rounded-lg bg-[#283039] border border-[#3b4754] pl-3 pr-4 group cursor-pointer hover:border-orange-500/50 transition-colors">
+<div class="bg-orange-500/20 text-orange-400 rounded-md px-1.5 py-0.5 text-xs font-bold">2</div>
+<p class="text-white text-sm font-medium leading-normal">Bueno</p>
+</div>
+<div class="flex h-8 shrink-0 items-center justify-center gap-x-2 rounded-lg bg-[#283039] border border-[#3b4754] pl-3 pr-4 group cursor-pointer hover:border-orange-500/50 transition-colors">
+<div class="bg-orange-500/20 text-orange-400 rounded-md px-1.5 py-0.5 text-xs font-bold">1</div>
+<p class="text-white text-sm font-medium leading-normal">O sea</p>
+</div>
+</div>
+</div>
+<!-- Charts Section -->
+<div class="px-4 pt-6 pb-2 grid grid-cols-2 gap-3">
+<!-- Speed Chart -->
+<div class="bg-[#283039] rounded-xl p-4 border border-[#3b4754]">
+<div class="flex items-center gap-2 mb-3">
+<span class="material-symbols-outlined text-primary text-sm">speed</span>
+<h4 class="text-white text-sm font-bold">Velocidad</h4>
+</div>
+<div class="flex items-end justify-between h-24 gap-1">
+<div class="w-full bg-primary/20 rounded-t-sm h-[40%]"></div>
+<div class="w-full bg-primary/30 rounded-t-sm h-[60%]"></div>
+<div class="w-full bg-primary/60 rounded-t-sm h-[80%]"></div>
+<div class="w-full bg-primary rounded-t-sm h-[50%]"></div>
+<div class="w-full bg-primary/40 rounded-t-sm h-[70%]"></div>
+<div class="w-full bg-primary/20 rounded-t-sm h-[45%]"></div>
+</div>
+<p class="text-[#9dabb9] text-xs mt-2 text-center">Palabras / min</p>
+</div>
+<!-- Volume Chart -->
+<div class="bg-[#283039] rounded-xl p-4 border border-[#3b4754]">
+<div class="flex items-center gap-2 mb-3">
+<span class="material-symbols-outlined text-green-400 text-sm">graphic_eq</span>
+<h4 class="text-white text-sm font-bold">Volumen</h4>
+</div>
+<div class="flex items-center justify-center h-24 relative">
+<!-- Simulated Line Chart with SVG -->
+<svg class="w-full h-full overflow-visible" viewbox="0 0 100 50">
+<path d="M0,40 Q10,35 20,40 T40,20 T60,30 T80,10 T100,25" fill="none" stroke="#4ade80" stroke-linecap="round" stroke-width="3"></path>
+<area/>
+<path d="M0,40 Q10,35 20,40 T40,20 T60,30 T80,10 T100,25 V50 H0 Z" fill="url(#gradient)" opacity="0.2"></path>
+<defs>
+<lineargradient id="gradient" x1="0%" x2="0%" y1="0%" y2="100%">
+<stop offset="0%" style="stop-color:#4ade80;stop-opacity:1"></stop>
+<stop offset="100%" style="stop-color:#4ade80;stop-opacity:0"></stop>
+</lineargradient>
+</defs>
+</svg>
+</div>
+<p class="text-[#9dabb9] text-xs mt-2 text-center">Decibelios (dB)</p>
+</div>
+</div>
+<!-- Suggestions -->
+<div class="px-4 pt-4 pb-6">
+<h3 class="text-white text-lg font-bold leading-tight tracking-[-0.015em] pb-3">Sugerencias para Mejorar</h3>
+<div class="flex flex-col gap-3">
+<div class="bg-[#1a2027] border border-l-4 border-[#3b4754] border-l-orange-400 rounded-r-lg p-3 flex gap-3 items-start">
+<span class="material-symbols-outlined text-orange-400 mt-0.5">pause_circle</span>
+<div>
+<p class="text-white text-sm font-medium">Usa el silencio a tu favor</p>
+<p class="text-[#9dabb9] text-xs mt-1">Intenta hacer pausas de 2 segundos en lugar de usar "eh" para pensar tu siguiente idea.</p>
+</div>
+</div>
+<div class="bg-[#1a2027] border border-l-4 border-[#3b4754] border-l-blue-400 rounded-r-lg p-3 flex gap-3 items-start">
+<span class="material-symbols-outlined text-blue-400 mt-0.5">volume_up</span>
+<div>
+<p class="text-white text-sm font-medium">Proyección de voz</p>
+<p class="text-[#9dabb9] text-xs mt-1">Tu volumen bajó considerablemente al final de la frase introductoria. Mantén la energía hasta el punto final.</p>
+</div>
+</div>
+</div>
+</div>
+<div class="h-10"></div>
+</div>
+<!-- Sticky Footer CTA -->
+<!-- Although not explicitly requested as sticky, helps with long pages -->
+<div class="absolute bottom-6 right-4 z-40">
+<button class="flex items-center justify-center gap-2 bg-primary hover:bg-primary/90 text-white rounded-full px-5 py-3 shadow-lg shadow-black/50 font-bold transition-transform active:scale-95">
+<span class="material-symbols-outlined">analytics</span>
+<span>Ver Análisis Completo</span>
+</button>
+</div>
+</div>
+</body></html>
