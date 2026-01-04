@@ -1,27 +1,50 @@
 import { Plan } from "@/types/Plan";
 
 /**
- * Free Plan Definition - MVP
+ * Free Plan Definition - v2.0
  *
- * REGLA DURA:
- * - 3 análisis TOTAL por usuario (no por día, no por semana, TOTAL)
- * - No historial
- * - No re-grabar
- * - No ejercicios
- * - No comparaciones
- *
- * Objetivo:
- * - Permitir probar el producto adecuadamente (antes/después/confirmación)
- * - Evitar abusos
- * - Costo mínimo: ~$0.018 por usuario (~3 análisis × $0.006)
- * - Aumentar conversión a Premium
+ * REGLA: 3 análisis POR SEMANA (se resetea cada lunes)
+ * 
+ * Beneficios:
+ * - Suficiente para crear hábito
+ * - Suficiente fricción para querer Premium
+ * - Costo controlado: ~$0.06/usuario/mes
+ * 
+ * Premium desbloquea:
+ * - Análisis ilimitados
+ * - Historial completo
+ * - Gimnasio completo
+ * - Cursos
  */
 export const FREE_PLAN: Plan = {
   type: "FREE",
   features: {
-    maxAnalyses: 3, // TOTAL, no por período
-    hasHistory: false,
+    maxAnalysesPerWeek: 3, // Por semana, no total
+    maxAnalyses: 3, // Compatibilidad con código existente
+    hasHistory: true, // Ahora sí tienen historial limitado
+    hasHistoryLimit: 3, // Solo últimas 3 sesiones
     hasReRecord: false,
-    hasExercises: false,
+    hasExercises: true, // Algunos ejercicios
+    hasExercisesLimit: 5, // Solo 5 ejercicios
+    hasFullGym: false,
+    hasCourses: false,
+  },
+};
+
+/**
+ * Premium Plan Definition
+ */
+export const PREMIUM_PLAN: Plan = {
+  type: "PREMIUM",
+  features: {
+    maxAnalysesPerWeek: -1, // Ilimitado
+    maxAnalyses: -1,
+    hasHistory: true,
+    hasHistoryLimit: -1, // Sin límite
+    hasReRecord: true,
+    hasExercises: true,
+    hasExercisesLimit: -1,
+    hasFullGym: true,
+    hasCourses: true,
   },
 };

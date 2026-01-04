@@ -18,3 +18,41 @@ model Resource {
   author      String?
   createdAt   DateTime @default(now())
 }
+
+// Sesiones de análisis de voz del usuario
+model VoiceSession {
+  id                        String   @id @default(uuid())
+  userId                    String   @map("user_id")
+  createdAt                 DateTime @default(now()) @map("created_at")
+  
+  // Transcripción
+  transcription             String
+  transcriptionWithSilences String   @map("transcription_with_silences")
+  
+  // Métricas técnicas
+  wordsPerMinute            Int      @map("words_per_minute")
+  avgPauseDuration          Decimal  @map("avg_pause_duration") @db.Decimal(5, 2)
+  pauseCount                Int      @map("pause_count")
+  fillerCount               Int      @map("filler_count")
+  pitchVariation            Decimal  @map("pitch_variation") @db.Decimal(5, 2)
+  energyStability           Decimal  @map("energy_stability") @db.Decimal(5, 2)
+  durationSeconds           Decimal  @map("duration_seconds") @db.Decimal(6, 2)
+  
+  // Score de autoridad
+  authorityLevel            String   @map("authority_level")
+  authorityScore            Int      @map("authority_score")
+  strengths                 Json     // Array de strings
+  weaknesses                Json     // Array de strings
+  priorityAdjustment        String   @map("priority_adjustment")
+  
+  // Feedback de GPT
+  feedbackDiagnostico       String   @map("feedback_diagnostico")
+  feedbackLoQueSuma         Json     @map("feedback_lo_que_suma")
+  feedbackLoQueResta        Json     @map("feedback_lo_que_resta")
+  feedbackDecision          String   @map("feedback_decision")
+  feedbackPayoff            String   @map("feedback_payoff")
+  
+  @@map("voice_sessions")
+  @@index([userId])
+  @@index([createdAt(sort: Desc)])
+}

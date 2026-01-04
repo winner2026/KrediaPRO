@@ -3,6 +3,7 @@
 import { useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
 import { logEvent } from "@/lib/events/logEvent";
+import { recordPractice } from "@/lib/streaks/streakSystem";
 
 /**
  * Contrato único de salida del análisis
@@ -45,6 +46,7 @@ export default function ResultsPage() {
   const router = useRouter();
   const [result, setResult] = useState<AnalysisResult | null>(null);
   const [showDetails, setShowDetails] = useState<string | null>(null); // 'seguridad' | 'claridad' | null
+  const [streakUpdated, setStreakUpdated] = useState(false);
 
   useEffect(() => {
     const savedResult = localStorage.getItem("voiceAnalysisResult");
@@ -55,7 +57,14 @@ export default function ResultsPage() {
     const analysisResult = JSON.parse(savedResult);
     setResult(analysisResult);
     logEvent("analysis_viewed");
-  }, [router]);
+    
+    // 🔥 Registrar práctica para el streak
+    if (!streakUpdated) {
+      const newStreak = recordPractice();
+      setStreakUpdated(true);
+      console.log('[STREAK] Practice recorded:', newStreak);
+    }
+  }, [router, streakUpdated]);
 
   if (!result) return <div className="min-h-screen bg-background-dark flex items-center justify-center text-gray-500">Cargando...</div>;
 
