@@ -15,6 +15,7 @@ export type VoiceCourse = {
   description: string;
   durationDays: number;
   lessons: VoiceLesson[];
+  externalLink?: string; // Para cursos en Hotmart u otras plataformas
 };
 
 export const COURSES: VoiceCourse[] = [
@@ -24,6 +25,7 @@ export const COURSES: VoiceCourse[] = [
     subtitle: 'Transforma tu miedo escénico en confianza en 21 días',
     description: 'No son frases motivadoras. Es un método paso a paso para desactivar el miedo desde la raíz y reconectar con tu voz auténtica.',
     durationDays: 21,
+    externalLink: 'https://pay.hotmart.com/TU_ID_AQUI', // Enlace a tu curso de Hotmart
     lessons: [
       // Week 1: Desactivar el Miedo
       {

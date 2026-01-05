@@ -46,13 +46,9 @@ export default function CoursesPage() {
           {COURSES.map(course => (
             <div key={course.id} className="relative">
               <Link 
-                href={hasCourseAccess ? `/courses/${course.id}` : "/upgrade"} 
+                href={hasCourseAccess ? (course.externalLink || `/courses/${course.id}`) : "/upgrade"} 
+                target={course.externalLink && hasCourseAccess ? "_blank" : "_self"}
                 className={`block group ${!hasCourseAccess ? 'cursor-default' : ''}`}
-                onClick={(e) => {
-                  if (!hasCourseAccess) {
-                    // Prevenir navegación si no hay acceso, que vaya a upgrade via Link o similar
-                  }
-                }}
               >
                 <div className={`bg-slate-900 rounded-3xl overflow-hidden border transition-all ${
                   hasCourseAccess 
@@ -63,7 +59,7 @@ export default function CoursesPage() {
                   {/* Course Art Placeholder */}
                   <div className="h-40 bg-gradient-to-br from-slate-800 to-slate-900 flex items-center justify-center relative">
                     <span className="text-6xl {hasCourseAccess ? 'group-hover:scale-110' : ''} transition-transform duration-500">
-                      {course.id === 'sprint-7' ? '⚡' : '🦁'}
+                      {course.externalLink ? '🚀' : (course.id === 'sprint-7' ? '⚡' : '🦁')}
                     </span>
                     <div className="absolute bottom-3 right-4 bg-black/60 backdrop-blur px-3 py-1 rounded-full text-xs font-bold border border-white/10">
                       {course.durationDays} Días
@@ -76,19 +72,26 @@ export default function CoursesPage() {
                          </div>
                       </div>
                     )}
+
+                    {course.externalLink && hasCourseAccess && (
+                      <div className="absolute top-3 left-4 bg-blue-600/80 backdrop-blur px-2 py-0.5 rounded text-[10px] font-black uppercase tracking-widest text-white border border-blue-400/50">
+                        Externo (Hotmart)
+                      </div>
+                    )}
                   </div>
 
                   <div className="p-6 space-y-3">
                     <div className="flex justify-between items-start">
                       <h3 className={`text-2xl font-bold transition-colors ${hasCourseAccess ? 'text-white group-hover:text-amber-400' : 'text-slate-500'}`}>
                         {course.title}
+                        {course.externalLink && hasCourseAccess && <span className="material-symbols-outlined text-sm ml-2">open_in_new</span>}
                       </h3>
                     </div>
                     <p className={`text-sm leading-relaxed ${hasCourseAccess ? 'text-slate-400' : 'text-slate-600'}`}>
                       {course.description}
                     </p>
                     
-                    {hasCourseAccess && (
+                    {hasCourseAccess && !course.externalLink && (
                       <div className="pt-2">
                         <div className="flex justify-between text-xs font-semibold mb-1">
                           <span className="text-slate-500">Progreso</span>
@@ -96,6 +99,15 @@ export default function CoursesPage() {
                         </div>
                         <div className="h-2 bg-slate-800 rounded-full overflow-hidden">
                           <div className="h-full bg-amber-500 w-0"></div>
+                        </div>
+                      </div>
+                    )}
+
+                    {course.externalLink && hasCourseAccess && (
+                      <div className="pt-2">
+                        <div className="text-[10px] font-bold text-blue-400 uppercase tracking-widest flex items-center gap-1">
+                          <span className="material-symbols-outlined text-sm">rocket_launch</span>
+                          Acceso en plataforma externa
                         </div>
                       </div>
                     )}
