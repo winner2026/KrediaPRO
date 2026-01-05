@@ -132,13 +132,22 @@ export function getStreakBadge(streak: number): { emoji: string; label: string; 
  */
 export function getStreakMessage(streak: number, practicedToday: boolean): string {
   if (practicedToday) {
-    if (streak >= 30) return '¡Increíble dedicación! Eres imparable.';
-    if (streak >= 14) return '¡Dos semanas seguidas! Tu voz mejora cada día.';
-    if (streak >= 7) return '¡Una semana entera! Vas muy bien.';
-    if (streak >= 3) return '¡Excelente constancia! Sigue así.';
-    return '¡Bien hecho hoy! Vuelve mañana.';
+    const messages = [
+      "Tu voz es tu poder. Gran trabajo hoy.",
+      "Cada palabra que perfeccionas hoy, resonará mañana.",
+      "Has dado un paso más hacia tu mejor versión. ¡Felicidades!",
+      "La constancia es la llave de la autoridad. Vuelve mañana.",
+      "Has dominado tu miedo una vez más. Que tu impacto siga creciendo."
+    ];
+    // Usar el streak como semilla para variar mensajes o devolver uno fijo
+    if (streak >= 30) return "Eres una leyenda en formación. Tu impacto es imparable.";
+    if (streak >= 7) return `¡${streak} días de maestría! Tu transformación es real.`;
+    
+    return messages[streak % messages.length];
   } else {
-    if (streak > 0) return `¡No pierdas tu racha de ${streak} días!`;
-    return 'Empieza tu racha hoy. Un día a la vez.';
+    if (streak > 0) {
+      return `Tienes una luz que el mundo necesita oír. Mantén viva tu racha de ${streak} días.`;
+    }
+    return "Hoy es el día perfecto para que tu voz sea escuchada. ¿Empezamos?";
   }
 }
