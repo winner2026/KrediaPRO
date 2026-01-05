@@ -36,7 +36,10 @@ export type EventName =
   | "upgrade_page_viewed"
   | "upgrade_plan_selected"
   | "camera_error"
-  | "mic_error";
+  | "mic_error"
+  | "exercise_started"
+  | "result_shared"
+  | "history_viewed";
 
 export type EventMetadata = {
   duration?: number;

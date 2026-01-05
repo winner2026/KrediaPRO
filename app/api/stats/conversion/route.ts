@@ -28,7 +28,16 @@ export async function GET(req: NextRequest) {
       WHERE event IN ('camera_error', 'mic_error')
     ` as { count: number }[];
 
-    // 5. Calcular % de Conversión
+    // 5. Engagement Metrics (Influencia en el crecimiento)
+    const exerciseStarts = await prisma.$queryRaw`
+      SELECT count(*)::int as count FROM events WHERE event = 'exercise_started'
+    ` as { count: number }[];
+
+    const resultsShared = await prisma.$queryRaw`
+      SELECT count(*)::int as count FROM events WHERE event = 'result_shared'
+    ` as { count: number }[];
+
+    // 6. Calcular % de Conversión
     const conversionRate = totalUsers > 0 ? (premiumUsers / totalUsers) * 100 : 0;
     const activationRate = totalUsers > 0 ? (activeUsers / totalUsers) * 100 : 0;
 
@@ -37,6 +46,8 @@ export async function GET(req: NextRequest) {
       activeUsers,
       premiumUsers,
       technicalErrors: technicalErrors[0]?.count || 0,
+      exerciseStarts: exerciseStarts[0]?.count || 0,
+      resultsShared: resultsShared[0]?.count || 0,
       conversionRate: `${conversionRate.toFixed(2)}%`,
       activationRate: `${activationRate.toFixed(2)}%`,
       timestamp: new Date().toISOString()

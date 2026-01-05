@@ -96,6 +96,14 @@ const ExerciseCard: React.FC<ExerciseCardProps> = ({ exercise }) => {
             <div className="pt-2 flex gap-3">
               <Link 
                 href={`/practice?exercise=${exercise.id}`}
+                onClick={() => {
+                  const { logEvent } = require('@/lib/events/logEvent');
+                  logEvent("exercise_started", { 
+                    exerciseId: exercise.id, 
+                    title: exercise.title,
+                    category: exercise.category 
+                  });
+                }}
                 className="flex-1 bg-blue-600 hover:bg-blue-500 text-white py-3 rounded-2xl font-bold text-sm text-center transition-all shadow-lg shadow-blue-900/20 active:scale-95"
               >
                 Practicar ahora

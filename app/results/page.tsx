@@ -432,12 +432,37 @@ export default function ResultsPage() {
           <div className="h-8"></div>
 
           {/* Botones Finales */}
-          <button 
-            onClick={() => router.push("/practice")}
-            className="w-full py-4 rounded-xl bg-white text-background-dark font-bold hover:bg-gray-200 transition-colors shadow-lg"
-          >
-            Nueva Grabación
-          </button>
+          <div className="space-y-3">
+            <button 
+              onClick={async () => {
+                logEvent("result_shared", { score: result.authorityScore.score });
+                if (navigator.share) {
+                  try {
+                    await navigator.share({
+                      title: 'Mi Análisis de Oratoria',
+                      text: `¡Mira mi nivel de autoridad en Oratoria Efectiva! Saqué un ${result.authorityScore.score}/100.`,
+                      url: window.location.origin
+                    });
+                  } catch (err) {
+                    console.error("Error sharing:", err);
+                  }
+                } else {
+                  alert("Copiado al portapapeles: " + window.location.origin);
+                  navigator.clipboard.writeText(window.location.origin);
+                }
+              }}
+              className="w-full py-4 rounded-xl bg-blue-600 text-white font-bold hover:bg-blue-500 transition-colors shadow-lg flex items-center justify-center gap-2"
+            >
+              <span className="material-symbols-outlined">share</span>
+              Compartir Resultado
+            </button>
+            <button 
+              onClick={() => router.push("/practice")}
+              className="w-full py-4 rounded-xl bg-white text-background-dark font-bold hover:bg-gray-200 transition-colors shadow-lg"
+            >
+              Nueva Grabación
+            </button>
+          </div>
           <button 
              onClick={() => router.push("/listen")}
              className="w-full py-4 mt-3 rounded-xl border border-gray-700 text-gray-400 font-bold hover:text-white transition-colors"

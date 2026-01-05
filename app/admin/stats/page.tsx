@@ -10,6 +10,8 @@ interface Stats {
   conversionRate: string;
   activationRate: string;
   technicalErrors: number;
+  exerciseStarts: number;
+  resultsShared: number;
 }
 
 export default function AdminStatsPage() {
@@ -58,6 +60,11 @@ export default function AdminStatsPage() {
             subtitle="Cámara/Mic fallidos" 
             urgent={ (stats?.technicalErrors || 0) > 0 }
           />
+        </div>
+
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+          <StatCard title="Enganchados al Gym" value={stats?.exerciseStarts || 0} subtitle="Ejercicios iniciados" />
+          <StatCard title="Efecto Viral" value={stats?.resultsShared || 0} subtitle="Resultados compartidos" />
         </div>
 
         <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
