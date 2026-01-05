@@ -186,5 +186,15 @@ export const COURSES: VoiceCourse[] = [
         exercises: ['stage-presence', 'audience-scanning']
       }
     ]
+  },
+  {
+    id: 'negociacion-persuasion',
+    title: 'Negociación y Persuasión',
+    subtitle: 'Cómo Influenciar y Convencer para Alcanzar el Éxito',
+    description: 'Descubre los 6 Potentes Disparadores de Ventas, Psicología Inversa y el poder de la Prueba Social para transformar tu capacidad de influencia.',
+    durationDays: 5,
+    externalLink: '/go/persuasion',
+    image: '/nego-persuasion-mockup.jpg',
+    lessons: []
   }
 ];
