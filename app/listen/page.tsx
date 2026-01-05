@@ -88,24 +88,26 @@ export default function ListenPage() {
           </div>
         )}
 
-        {/* Hero Image Section */}
-        <div className="w-full flex justify-center py-2">
-          <div 
-            className="relative w-full aspect-[4/5] max-w-sm overflow-hidden rounded-2xl bg-center bg-cover shadow-xl" 
-            style={{ backgroundImage: 'url("https://lh3.googleusercontent.com/aida-public/AB6AXuAsg_obJLOwS2nVBOtyH35z-BE2fxyya8Z_uHs6fwCRR9w0XLek0_fyX3ywp93QKIk807iNb4-EVb-a2q78_Ek1GfCkohrsn79KJeka_3GR7eu_mZrap1IuPulOAOdLS9pVlJ1oNewOrLTyUvHVAS8lbEibBg94ziKRczHCzNSfBzPTwZBNwnkmNh6JyXKUJf5mFl1u7xZPC2yXCfSheMNSUHZ2H_X70bdiqPnf1NifFfaGju5unLtCIN7xdO2CNMVcHg0bPx_fh-4")' }}
-          >
-            <div className="absolute inset-0 bg-gradient-to-b from-transparent via-transparent to-background-dark/20 dark:to-background-dark/50"></div>
-            
-            {/* Badge overlay si tiene streak alto */}
-            {badge && streak && streak.currentStreak >= 7 && (
-              <div className="absolute top-4 right-4 bg-black/60 backdrop-blur px-3 py-1.5 rounded-full border border-white/20">
-                <span className={`${badge.color} font-bold text-sm`}>
-                  {badge.emoji} {badge.label}
-                </span>
-              </div>
-            )}
+        {/* Banner Curso Destacado: Sin Miedo a Hablar */}
+        <Link 
+          href="/go/sin-miedo"
+          target="_blank"
+          className="w-full max-w-sm group"
+        >
+          <div className="relative w-full aspect-[16/9] overflow-hidden rounded-2xl bg-center bg-cover shadow-2xl border border-white/10 group-hover:border-amber-500/50 transition-all duration-500 group-hover:-translate-y-1" 
+               style={{ backgroundImage: 'url("/course-banner.jpg")' }}>
+            <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-transparent to-transparent opacity-60 group-hover:opacity-40 transition-opacity"></div>
+            <div className="absolute bottom-3 left-4 right-4 flex justify-between items-end">
+               <div>
+                 <p className="text-[10px] font-black uppercase tracking-[0.2em] text-amber-500 mb-0.5">Curso Destacado</p>
+                 <h4 className="text-white font-bold text-sm">Sin Miedo a Hablar</h4>
+               </div>
+               <span className="bg-white/10 backdrop-blur-md px-3 py-1 rounded-full text-[10px] font-bold text-white border border-white/20">
+                  Ver Curso
+               </span>
+            </div>
           </div>
-        </div>
+        </Link>
 
         {/* Text Content */}
         <div className="flex flex-col items-center gap-2 text-center w-full max-w-xs mx-auto">

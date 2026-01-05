@@ -25,7 +25,7 @@ export const COURSES: VoiceCourse[] = [
     subtitle: 'Transforma tu miedo escénico en confianza en 21 días',
     description: 'No son frases motivadoras. Es un método paso a paso para desactivar el miedo desde la raíz y reconectar con tu voz auténtica.',
     durationDays: 21,
-    externalLink: 'https://pay.hotmart.com/TU_ID_AQUI', // Enlace a tu curso de Hotmart
+    externalLink: '/go/sin-miedo', 
     lessons: [
       // Week 1: Desactivar el Miedo
       {
