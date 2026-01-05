@@ -3,8 +3,19 @@
 import React from 'react';
 import Link from 'next/link';
 import { COURSES } from '@/domain/training/VoiceCourses';
+import { useState, useEffect } from 'react';
 
 export default function CoursesPage() {
+  const [planType, setPlanType] = useState<string>('FREE');
+
+  useEffect(() => {
+    if (typeof window !== 'undefined') {
+      const storedPlan = localStorage.getItem('user_plan') || 'FREE';
+      setPlanType(storedPlan);
+    }
+  }, []);
+
+  const hasCourseAccess = planType === 'PREMIUM' || planType === 'STARTER';
   return (
     <div className="min-h-screen bg-slate-950 text-white pb-24">
       
@@ -33,38 +44,73 @@ export default function CoursesPage() {
 
         <div className="space-y-6">
           {COURSES.map(course => (
-            <Link key={course.id} href={`/courses/${course.id}`} className="block group">
-              <div className="bg-slate-900 rounded-3xl overflow-hidden border border-slate-800 transition-all hover:border-amber-500/50 hover:shadow-2xl hover:shadow-amber-900/20 group-hover:-translate-y-1">
-                
-                {/* Course Art Placeholder */}
-                <div className="h-40 bg-gradient-to-br from-slate-800 to-slate-900 flex items-center justify-center relative">
-                  <span className="text-6xl group-hover:scale-110 transition-transform duration-500">🦁</span>
-                  <div className="absolute bottom-3 right-4 bg-black/60 backdrop-blur px-3 py-1 rounded-full text-xs font-bold border border-white/10">
-                    {course.durationDays} Días
-                  </div>
-                </div>
-
-                <div className="p-6 space-y-3">
-                  <h3 className="text-2xl font-bold text-white group-hover:text-amber-400 transition-colors">
-                    {course.title}
-                  </h3>
-                  <p className="text-sm text-slate-400 leading-relaxed">
-                    {course.description}
-                  </p>
+            <div key={course.id} className="relative">
+              <Link 
+                href={hasCourseAccess ? `/courses/${course.id}` : "/upgrade"} 
+                className={`block group ${!hasCourseAccess ? 'cursor-default' : ''}`}
+                onClick={(e) => {
+                  if (!hasCourseAccess) {
+                    // Prevenir navegación si no hay acceso, que vaya a upgrade via Link o similar
+                  }
+                }}
+              >
+                <div className={`bg-slate-900 rounded-3xl overflow-hidden border transition-all ${
+                  hasCourseAccess 
+                    ? 'border-slate-800 hover:border-amber-500/50 hover:shadow-2xl hover:shadow-amber-900/20 group-hover:-translate-y-1' 
+                    : 'border-slate-800 opacity-60 grayscale'
+                }`}>
                   
-                  {/* Progress Mock */}
-                  <div className="pt-2">
-                    <div className="flex justify-between text-xs font-semibold mb-1">
-                      <span className="text-slate-500">Progreso</span>
-                      <span className="text-amber-500">0%</span>
+                  {/* Course Art Placeholder */}
+                  <div className="h-40 bg-gradient-to-br from-slate-800 to-slate-900 flex items-center justify-center relative">
+                    <span className="text-6xl {hasCourseAccess ? 'group-hover:scale-110' : ''} transition-transform duration-500">
+                      {course.id === 'sprint-7' ? '⚡' : '🦁'}
+                    </span>
+                    <div className="absolute bottom-3 right-4 bg-black/60 backdrop-blur px-3 py-1 rounded-full text-xs font-bold border border-white/10">
+                      {course.durationDays} Días
                     </div>
-                    <div className="h-2 bg-slate-800 rounded-full overflow-hidden">
-                      <div className="h-full bg-amber-500 w-0"></div>
+                    
+                    {!hasCourseAccess && (
+                      <div className="absolute inset-0 flex items-center justify-center bg-black/40 backdrop-blur-sm">
+                         <div className="bg-amber-600 size-12 rounded-full flex items-center justify-center shadow-lg">
+                            <span className="material-symbols-outlined text-white">lock</span>
+                         </div>
+                      </div>
+                    )}
+                  </div>
+
+                  <div className="p-6 space-y-3">
+                    <div className="flex justify-between items-start">
+                      <h3 className={`text-2xl font-bold transition-colors ${hasCourseAccess ? 'text-white group-hover:text-amber-400' : 'text-slate-500'}`}>
+                        {course.title}
+                      </h3>
                     </div>
+                    <p className={`text-sm leading-relaxed ${hasCourseAccess ? 'text-slate-400' : 'text-slate-600'}`}>
+                      {course.description}
+                    </p>
+                    
+                    {hasCourseAccess && (
+                      <div className="pt-2">
+                        <div className="flex justify-between text-xs font-semibold mb-1">
+                          <span className="text-slate-500">Progreso</span>
+                          <span className="text-amber-500">0%</span>
+                        </div>
+                        <div className="h-2 bg-slate-800 rounded-full overflow-hidden">
+                          <div className="h-full bg-amber-500 w-0"></div>
+                        </div>
+                      </div>
+                    )}
                   </div>
                 </div>
-              </div>
-            </Link>
+              </Link>
+              
+              {!hasCourseAccess && (
+                <div className="absolute -bottom-2 left-1/2 -translate-x-1/2 w-4/5">
+                   <Link href="/upgrade" className="block w-full text-center bg-amber-600 hover:bg-amber-500 text-white text-[10px] font-black uppercase tracking-widest py-2 rounded-full shadow-lg border border-amber-400/50">
+                      Desbloquear con Starter
+                   </Link>
+                </div>
+              )}
+            </div>
           ))}
         </div>
 

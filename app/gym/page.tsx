@@ -11,9 +11,23 @@ const CATEGORIES = ['ALL', 'BREATHING', 'ARTICULATION', 'INTONATION', 'MINDSET',
 export default function GymPage() {
   const [filter, setFilter] = useState('ALL');
 
+  const [planType, setPlanType] = useState<string>('FREE');
+
+  React.useEffect(() => {
+    if (typeof window !== 'undefined') {
+      const storedPlan = localStorage.getItem('user_plan') || 'FREE';
+      setPlanType(storedPlan);
+    }
+  }, []);
+
+  const isFullAccess = planType !== 'FREE';
+
   const filteredExercises = filter === 'ALL' 
     ? VOICE_EXERCISES 
     : VOICE_EXERCISES.filter(ex => ex.category === filter);
+
+  // Limitamos a 3 para usuarios free
+  const displayExercises = isFullAccess ? filteredExercises : filteredExercises.slice(0, 3);
 
   return (
     <div className="min-h-screen bg-slate-950 text-white pb-24">
@@ -75,10 +89,30 @@ export default function GymPage() {
           </h2>
           
           <div className="grid grid-cols-1 gap-6">
-            {filteredExercises.map(ex => (
+            {displayExercises.map(ex => (
               <ExerciseCard key={ex.id} exercise={ex} />
             ))}
           </div>
+
+          {!isFullAccess && filteredExercises.length > 3 && (
+            <div className="bg-gradient-to-br from-slate-900 to-blue-900/30 rounded-3xl p-8 border border-blue-500/30 text-center space-y-4 shadow-xl">
+               <div className="size-16 bg-blue-500/10 rounded-full flex items-center justify-center mx-auto text-blue-400">
+                  <span className="material-symbols-outlined text-3xl">lock</span>
+               </div>
+               <div className="space-y-2">
+                  <h3 className="text-xl font-bold">Desbloquea {VOICE_EXERCISES.length}+ Ejercicios</h3>
+                  <p className="text-slate-400 text-sm">
+                    Los usuarios Premium tienen acceso a la biblioteca completa de oratoria y lenguaje corporal.
+                  </p>
+               </div>
+               <Link 
+                 href="/upgrade"
+                 className="inline-block w-full py-4 bg-blue-600 hover:bg-blue-500 text-white font-bold rounded-xl transition-all"
+               >
+                 Subir de Nivel
+               </Link>
+            </div>
+          )}
 
           {filteredExercises.length === 0 && (
             <div className="text-center py-10 text-slate-500">

@@ -19,6 +19,7 @@ export default function ListenPage() {
   const [practicedToday, setPracticedToday] = useState(false);
   const [tipOfDay, setTipOfDay] = useState<string>("");
   const [tipNumber, setTipNumber] = useState<number>(1);
+  const [planType, setPlanType] = useState<string>("FREE");
 
   useEffect(() => {
     // Cargar datos del streak desde localStorage
@@ -32,6 +33,10 @@ export default function ListenPage() {
     if (typeof window !== 'undefined') {
        const storedEmail = localStorage.getItem("user_email");
        if (storedEmail) setUserName(storedEmail.split('@')[0]);
+
+       // Simulación de plan para demo (o fetch real si hubiera API)
+       const storedPlan = localStorage.getItem("user_plan") || "FREE";
+       setPlanType(storedPlan);
     }
   }, []);
 
@@ -52,7 +57,14 @@ export default function ListenPage() {
             </div>
           )}
         </div>
-        <div className="flex items-center justify-end">
+        <div className="flex items-center justify-end gap-3">
+          <Link href="/upgrade" className={`text-[10px] font-bold px-2 py-1 rounded border transition-all ${
+            planType === 'PREMIUM' ? 'bg-blue-500/20 border-blue-500 text-blue-400' :
+            planType === 'STARTER' ? 'bg-amber-500/20 border-amber-500 text-amber-500' :
+            'bg-slate-800 border-slate-700 text-slate-500'
+          }`}>
+            Nivel: {planType}
+          </Link>
           <button 
             onClick={() => router.push("/my-sessions")}
             className="text-slate-500 dark:text-[#9dabb9] text-sm font-bold leading-normal tracking-wide shrink-0 hover:text-primary dark:hover:text-primary transition-colors"
