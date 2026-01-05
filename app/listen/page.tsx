@@ -68,96 +68,68 @@ export default function ListenPage() {
         </div>
       </div>
 
-      {/* Main Content */}
-      <div className="flex flex-1 flex-col items-center justify-center w-full px-6 gap-4">
+      {/* Main Content - Ultra Focused */}
+      <div className="flex flex-1 flex-col items-center justify-center w-full px-6 text-center">
         
-        {/* Tip del Día */}
-        {tipOfDay && (
-          <div className="w-full max-w-sm bg-gradient-to-r from-blue-900/40 to-indigo-900/40 rounded-2xl p-4 border border-blue-800/50 mb-2">
-            <div className="flex items-start gap-3">
-              <span className="text-2xl">💡</span>
-              <div>
-                <p className="text-blue-300 text-xs font-bold uppercase tracking-wider mb-1">
-                  Tip #{tipNumber}
-                </p>
-                <p className="text-white text-sm leading-relaxed">
-                  {tipOfDay}
-                </p>
+        <div className="space-y-6 max-w-xs animate-fade-in">
+          {/* Title & Concept */}
+          <div className="space-y-2">
+            <h1 className="text-white tracking-tight text-4xl sm:text-5xl font-black uppercase leading-tight">
+              Practica tu <span className="text-primary">oratoria</span>
+            </h1>
+            <p className="text-slate-400 text-sm font-medium leading-relaxed px-4">
+              {streak ? getStreakMessage(streak.currentStreak, practicedToday) : "Mejora tu impacto al hablar con inteligencia artificial."}
+            </p>
+          </div>
+
+          {/* Action Button */}
+          <div className="pt-8">
+            <button
+              onClick={() => {
+                if (session || userName || localStorage.getItem("user_email")) {
+                  router.push("/practice");
+                } else {
+                  router.push("/");
+                }
+              }}
+              className={`group relative flex w-full items-center justify-center overflow-hidden rounded-3xl h-24 px-8 text-white text-xl font-black leading-normal tracking-wider transition-all shadow-2xl ${
+                practicedToday 
+                  ? 'bg-emerald-600 hover:bg-emerald-500 shadow-emerald-900/40' 
+                  : 'bg-primary hover:bg-blue-600 shadow-primary/40'
+              }`}
+            >
+              {/* Inner glow effect */}
+              <div className="absolute inset-0 bg-gradient-to-tr from-white/10 to-transparent opacity-0 group-hover:opacity-100 transition-opacity"></div>
+              
+              <span className="mr-4 material-symbols-outlined text-4xl group-hover:scale-110 transition-transform">mic</span>
+              <div className="text-left leading-tight">
+                <span className="block">{practicedToday ? "Practicar" : "Comenzar"}</span>
+                <span className="text-[10px] uppercase tracking-[0.2em] opacity-60">Sesión de hoy</span>
               </div>
-            </div>
+            </button>
           </div>
-        )}
 
-        {/* Banner Curso Destacado: Sin Miedo a Hablar */}
-        <Link 
-          href="/go/sin-miedo"
-          target="_blank"
-          className="w-full max-w-sm group"
-        >
-          <div className="relative w-full aspect-[16/9] overflow-hidden rounded-2xl bg-center bg-cover shadow-2xl border border-white/10 group-hover:border-amber-500/50 transition-all duration-500 group-hover:-translate-y-1" 
-               style={{ backgroundImage: 'url("/course-banner.jpg")' }}>
-            <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-transparent to-transparent opacity-60 group-hover:opacity-40 transition-opacity"></div>
-            <div className="absolute bottom-3 left-4 right-4 flex justify-between items-end">
-               <div>
-                 <p className="text-[10px] font-black uppercase tracking-[0.2em] text-amber-500 mb-0.5">Curso Destacado</p>
-                 <h4 className="text-white font-bold text-sm">Sin Miedo a Hablar</h4>
-               </div>
-               <span className="bg-white/10 backdrop-blur-md px-3 py-1 rounded-full text-[10px] font-bold text-white border border-white/20">
-                  Ver Curso
-               </span>
-            </div>
+          {/* Subtle Stats / Info */}
+          <div className="pt-4 flex items-center justify-center gap-6">
+             <div className="text-center">
+                <span className="block text-white font-bold text-lg">{streak?.totalDays || 0}</span>
+                <span className="text-[10px] text-slate-500 uppercase font-black tracking-widest">Sesiones</span>
+             </div>
+             <div className="h-8 w-px bg-slate-800"></div>
+             <div className="text-center">
+                <span className="block text-white font-bold text-lg">{streak?.currentStreak || 0}</span>
+                <span className="text-[10px] text-slate-500 uppercase font-black tracking-widest">Racha 🔥</span>
+             </div>
           </div>
-        </Link>
-
-        {/* Text Content */}
-        <div className="flex flex-col items-center gap-2 text-center w-full max-w-xs mx-auto">
-          <h1 className="text-white tracking-tight text-[28px] sm:text-[32px] font-black leading-tight uppercase">
-            Practica tu oratoria
-          </h1>
-          <p className="text-gray-400 text-sm font-normal leading-relaxed">
-            {streak ? getStreakMessage(streak.currentStreak, practicedToday) : "Mejora tu impacto al hablar con inteligencia artificial."}
-          </p>
         </div>
 
-        {/* PageIndicators */}
-        <div className="flex flex-row items-center justify-center gap-2 py-2">
-          <div className="h-2 w-6 rounded-full bg-primary transition-all duration-300"></div>
-          <div className="h-2 w-2 rounded-full bg-slate-300 dark:bg-[#3b4754]"></div>
-          <div className="h-2 w-2 rounded-full bg-slate-300 dark:bg-[#3b4754]"></div>
-        </div>
       </div>
 
-      {/* Bottom Actions */}
-      <div className="w-full p-6 pt-0 mt-auto">
-        <div className="flex flex-col gap-3 w-full max-w-md mx-auto">
-
-          <button
-            onClick={() => {
-              if (session || userName || localStorage.getItem("user_email")) {
-                router.push("/practice");
-              } else {
-                router.push("/");
-              }
-            }}
-            className={`flex w-full items-center justify-center overflow-hidden rounded-2xl h-16 px-5 text-white text-lg font-black leading-normal tracking-wider transition-all shadow-2xl ${
-              practicedToday 
-                ? 'bg-emerald-600 hover:bg-emerald-500 shadow-emerald-900/30' 
-                : 'bg-primary hover:bg-blue-600 shadow-primary/40'
-            }`}
-          >
-            <span className="mr-3 material-symbols-outlined text-[24px]">mic</span>
-            {practicedToday ? "Practicar de nuevo" : "Comenzar práctica"}
-          </button>
-          
-          <button 
-            onClick={() => router.push("/referrals")}
-            className="flex w-full items-center justify-center overflow-hidden rounded-xl bg-transparent h-12 px-5 text-slate-500 text-xs font-bold hover:text-white transition-colors"
-          >
+      {/* Footer subtle link */}
+      <div className="w-full pb-8 pt-4 px-6 text-center opacity-40 hover:opacity-100 transition-opacity">
+          <Link href="/referrals" className="text-[10px] font-black uppercase tracking-[0.2em] text-slate-400">
             Invitar amigos y ganar premios
-          </button>
-        </div>
-        {/* Bottom safe area spacer */}
-        <div className="h-6 w-full"></div>
+          </Link>
       </div>
 
     </div>
