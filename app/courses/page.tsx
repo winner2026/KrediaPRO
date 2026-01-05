@@ -56,11 +56,19 @@ export default function CoursesPage() {
                     : 'border-slate-800 opacity-60 grayscale'
                 }`}>
                   
-                  {/* Course Art Placeholder */}
-                  <div className="h-40 bg-gradient-to-br from-slate-800 to-slate-900 flex items-center justify-center relative">
-                    <span className="text-6xl {hasCourseAccess ? 'group-hover:scale-110' : ''} transition-transform duration-500">
-                      {course.externalLink ? '🚀' : (course.id === 'sprint-7' ? '⚡' : '🦁')}
-                    </span>
+                  {/* Course Art */}
+                  <div className={`h-40 flex items-center justify-center relative ${course.image ? 'bg-slate-950' : 'bg-gradient-to-br from-slate-800 to-slate-900'}`}>
+                    {course.image ? (
+                      <img 
+                        src={course.image} 
+                        alt={course.title}
+                        className="h-full w-full object-contain p-2 group-hover:scale-105 transition-transform duration-500"
+                      />
+                    ) : (
+                      <span className="text-6xl {hasCourseAccess ? 'group-hover:scale-110' : ''} transition-transform duration-500">
+                        {course.externalLink ? '🚀' : (course.id === 'sprint-7' ? '⚡' : '🦁')}
+                      </span>
+                    )}
                     <div className="absolute bottom-3 right-4 bg-black/60 backdrop-blur px-3 py-1 rounded-full text-xs font-bold border border-white/10">
                       {course.durationDays} Días
                     </div>

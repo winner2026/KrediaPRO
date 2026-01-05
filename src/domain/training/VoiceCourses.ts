@@ -15,7 +15,8 @@ export type VoiceCourse = {
   description: string;
   durationDays: number;
   lessons: VoiceLesson[];
-  externalLink?: string; // Para cursos en Hotmart u otras plataformas
+  externalLink?: string; 
+  image?: string; // Ruta de la imagen o mockup
 };
 
 export const COURSES: VoiceCourse[] = [
@@ -26,6 +27,7 @@ export const COURSES: VoiceCourse[] = [
     description: 'No son frases motivadoras. Es un método paso a paso para desactivar el miedo desde la raíz y reconectar con tu voz auténtica.',
     durationDays: 21,
     externalLink: '/go/sin-miedo', 
+    image: '/course-mockup.jpg',
     lessons: [
       // Week 1: Desactivar el Miedo
       {
