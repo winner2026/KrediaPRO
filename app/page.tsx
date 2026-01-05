@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import Image from "next/image";
 
@@ -9,6 +9,15 @@ type Step = "hero" | "role" | "goal" | "capture";
 export default function LandingPage() {
   const router = useRouter();
   const [step, setStep] = useState<Step>("hero");
+
+  // Redirigir si ya está logueado
+  useEffect(() => {
+    const userEmail = localStorage.getItem("user_email");
+    if (userEmail) {
+      router.push("/listen");
+    }
+  }, [router]);
+
   const [formData, setFormData] = useState({
     role: "",
     goal: "",

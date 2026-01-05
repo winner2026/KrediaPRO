@@ -38,7 +38,7 @@ export default function ListenPage() {
   const badge = streak ? getStreakBadge(streak.currentStreak) : null;
 
   return (
-    <div className="relative flex h-full min-h-screen w-full flex-col overflow-x-hidden bg-slate-950">
+    <div className="relative flex h-full min-h-screen w-full flex-col overflow-x-hidden bg-slate-950 pb-24">
 
       {/* TopAppBar: Streak Counter */}
       <div className="flex items-center justify-between p-4 pt-6 pb-2">

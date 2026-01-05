@@ -5,7 +5,7 @@ import Link from 'next/link';
 import { useParams } from 'next/navigation';
 import { COURSES } from '@/domain/training/VoiceCourses';
 import { VOICE_EXERCISES } from '@/domain/training/VoiceExercises';
-import ExerciseCard from '../../../components/ExerciseCard';
+import ExerciseCard from '@/components/ExerciseCard';
 
 export default function CourseDetailPage() {
   const params = useParams();

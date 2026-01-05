@@ -3,7 +3,7 @@
 import React, { useState } from 'react';
 import Link from 'next/link';
 import { VOICE_EXERCISES } from '@/domain/training/VoiceExercises';
-import ExerciseCard from '../../components/ExerciseCard';
+import ExerciseCard from '@/components/ExerciseCard';
 import { getCategoryLabel } from '@/domain/training/CategoryLabels';
 
 const CATEGORIES = ['ALL', 'BREATHING', 'ARTICULATION', 'INTONATION', 'MINDSET', 'IMPROVISATION'];
