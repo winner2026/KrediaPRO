@@ -21,7 +21,7 @@ export default function UpgradePage() {
     // Mapeo de URLs de Lemon Squeezy (Modo Test)
     const checkoutUrls: Record<string, string> = {
       STARTER: "https://oratoria-efectiva.lemonsqueezy.com/checkout/buy/d5f9fc04-259c-4e38-a10e-9a5c6626013a",
-      PREMIUM: "#", // Pendiente link de Lemon Squeezy
+      PREMIUM: "https://oratoria-efectiva.lemonsqueezy.com/checkout/buy/c7518e21-7638-44e7-a49b-79bbcdd0e9c6",
       COACHING: "#" // Pendiente link de Lemon Squeezy
     };
 
