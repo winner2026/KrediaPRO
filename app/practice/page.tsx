@@ -127,9 +127,6 @@ export default function PracticePage() {
               autoGainControl: true, // Esto ayuda a normalizar el volumen
             },
             video: { 
-              width: { ideal: 1920 }, 
-              height: { ideal: 1080 }, 
-              aspectRatio: { ideal: 1.777 },
               facingMode: "user" 
             }
           });
@@ -156,11 +153,7 @@ export default function PracticePage() {
           autoGainControl: true,
         },
         video: { 
-          facingMode: "user",
-          // Configuración 16:9 Full HD (Mayor detalle para gestos/mirada)
-          width: { ideal: 1920 },
-          height: { ideal: 1080 },
-          aspectRatio: { ideal: 1.777 } // 16/9
+          facingMode: "user"
         }
       });
 
@@ -512,16 +505,18 @@ export default function PracticePage() {
   }
 
   return (
-    <main className="min-h-screen bg-[#101922] font-display text-white overflow-hidden flex flex-col relative h-[100dvh]">
-      <div className="absolute inset-0 z-0 bg-[#000] flex items-center justify-center">
+    <main className="fixed inset-0 bg-black font-display text-white overflow-hidden z-[999]">
+      <div className="absolute inset-0 z-0 bg-black flex items-center justify-center overflow-hidden">
         
-        {/* PANEL LATERAL (Flotante sobre video 16:9) */}
+        {/* PANEL LATERAL (Flotante sobre video) */}
         {!isRecording && isPostureReady && (
-          <div className="absolute left-6 top-1/2 -translate-y-1/2 z-20 hidden md:flex flex-col gap-4 w-60">
-            <h3 className="text-white/40 text-xs font-bold uppercase tracking-widest mb-2 pl-1 shadow-black drop-shadow-md">Verificación en Vivo</h3>
+          <div className="absolute left-4 right-4 top-20 md:left-6 md:top-1/2 md:-translate-y-1/2 md:right-auto z-40 flex md:flex-col gap-2 md:gap-4 md:w-60 overflow-x-auto md:overflow-visible pb-4 md:pb-0 no-scrollbar">
+
+            <h3 className="hidden md:block text-white/40 text-xs font-bold uppercase tracking-widest mb-2 pl-1 shadow-black drop-shadow-md">Verificación en Vivo</h3>
+
             
             {/* 1. Mirada/Cabeza */}
-            <div className={`p-4 rounded-2xl border backdrop-blur-md transition-all duration-500 ease-out ${
+            <div className={`p-3 md:p-4 rounded-xl md:rounded-2xl border backdrop-blur-md transition-all duration-500 ease-out flex-shrink-0 w-32 md:w-full ${
               currentMetrics.isPersonDetected && currentMetrics.headPosition === 'centered' 
                 ? 'bg-green-500/20 border-green-500/50 shadow-[0_0_20px_rgba(34,197,94,0.4)]' 
                 : 'bg-gray-900/60 border-gray-700/50 opacity-80 grayscale'
@@ -544,7 +539,7 @@ export default function PracticePage() {
             </div>
 
             {/* 2. Manos */}
-            <div className={`p-4 rounded-2xl border backdrop-blur-md transition-all duration-500 ease-out ${
+            <div className={`p-3 md:p-4 rounded-xl md:rounded-2xl border backdrop-blur-md transition-all duration-500 ease-out flex-shrink-0 w-32 md:w-full ${
                currentMetrics.isPersonDetected && currentMetrics.gesturesUsage !== 'low'
                 ? currentMetrics.gesturesUsage === 'excessive' ? 'bg-orange-500/20 border-orange-500/50 shadow-[0_0_20px_rgba(249,115,22,0.4)]' 
                 : 'bg-blue-500/20 border-blue-500/50 shadow-[0_0_20px_rgba(59,130,246,0.4)]'
@@ -580,9 +575,9 @@ export default function PracticePage() {
             </div>
 
              {/* 3. Postura/Hombros */}
-             <div className={`p-4 rounded-2xl border backdrop-blur-md transition-all duration-500 ease-out ${
+             <div className={`p-3 md:p-4 rounded-xl md:rounded-2xl border backdrop-blur-md transition-all duration-500 ease-out flex-shrink-0 w-32 md:w-full ${
                currentMetrics.isPersonDetected && currentMetrics.shouldersLevel === 'balanced' 
-                ? 'bg-purple-500/20 border-purple-500/50 shadow-[0_0_20px_rgba(168,85,247,0.4)]' 
+                ? 'bg-purple-500/20 border-purple-500/50 shadow-[0_0_20_rgba(168,85,247,0.4)]' 
                 : 'bg-gray-900/60 border-gray-700/50 opacity-80 grayscale'
             }`}>
               <div className="flex items-center gap-3">
@@ -606,18 +601,18 @@ export default function PracticePage() {
         )}
 
         {showPosturePreview && (
-          // Contenedor 16:9 Centrado (Letterbox si la pantalla es más alta)
-          <div className="relative w-full max-w-6xl aspect-video shadow-2xl bg-black overflow-hidden rounded-xl">
+          // Contenedor Pantalla Completa en Mobile, 16:9 en Desktop
+          <div className="absolute inset-0 z-0 md:relative md:w-full md:max-w-6xl md:h-auto md:aspect-video shadow-2xl bg-black overflow-hidden md:rounded-xl">
                 <video
                   ref={videoRef}
                   autoPlay
                   playsInline
                   muted
-                  className="w-full h-full object-contain transform -scale-x-100 bg-black" // object-contain muestra TODO el sensor
+                  className="absolute inset-0 w-full h-full object-cover md:object-contain transform -scale-x-100 bg-black" 
                 />
                 <canvas
                   ref={canvasRef}
-                  className="absolute inset-0 w-full h-full object-contain transform -scale-x-100 pointer-events-none opacity-60"
+                  className="absolute inset-0 w-full h-full object-cover md:object-contain transform -scale-x-100 pointer-events-none opacity-60 z-10"
                 />
                 
                 {/* Guía Visual */}
@@ -663,7 +658,7 @@ export default function PracticePage() {
       </div>
 
       {/* 🔝 Top UI Overlay */}
-      <div className="absolute top-0 w-full z-10 flex items-center justify-between p-4 pt-4 bg-gradient-to-b from-black/80 to-transparent">
+      <div className="absolute top-0 w-full z-10 flex items-center justify-between p-4 pt-safe bg-gradient-to-b from-black/80 to-transparent">
         <Link href="/listen">
           <button className="flex size-10 items-center justify-center rounded-full bg-black/40 backdrop-blur-md border border-white/10 hover:bg-white/20 transition-all text-white shadow-lg">
             <span className="material-symbols-outlined text-xl">arrow_back_ios_new</span>
@@ -682,7 +677,7 @@ export default function PracticePage() {
       </div>
 
       {/* 🔻 Bottom UI Overlay (Controls) */}
-      <div className="absolute bottom-0 w-full z-10 flex flex-col items-center pb-8 pt-24 bg-gradient-to-t from-black via-black/60 to-transparent">
+      <div className="absolute bottom-0 w-full z-10 flex flex-col items-center pb-safe pt-24 bg-gradient-to-t from-black via-black/60 to-transparent">
         
         {/* Tips flotantes (solo si no graba) */}
         {!isRecording && currentTip && (

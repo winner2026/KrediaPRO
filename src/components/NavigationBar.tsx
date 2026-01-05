@@ -8,8 +8,13 @@ const NavigationBar = () => {
   const pathname = usePathname();
 
   // No mostrar en landing, práctica o resultados para mantener el foco
-  const hiddenRoutes = ['/', '/practice', '/results', '/auth/login', '/auth/register', '/waitlist'];
-  if (hiddenRoutes.includes(pathname) || pathname?.startsWith('/auth/')) {
+  const isExcluded = pathname === '/' || 
+                     pathname?.includes('/practice') || 
+                     pathname?.includes('/results') || 
+                     pathname?.includes('/auth/') || 
+                     pathname === '/waitlist';
+
+  if (isExcluded) {
     return null;
   }
 

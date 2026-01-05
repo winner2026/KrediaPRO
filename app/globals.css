@@ -3,7 +3,14 @@
 @tailwind utilities;
 
 @layer base {
-  /* Body styles are now handled in layout.tsx via utility classes */
+  html, body {
+    @apply h-full overflow-x-hidden;
+    height: 100%;
+    height: -webkit-fill-available;
+    margin: 0;
+    padding: 0;
+    overscroll-behavior: none;
+  }
 }
 
 @layer components {
@@ -37,5 +44,12 @@
   .no-scrollbar {
       -ms-overflow-style: none;  /* IE and Edge */
       scrollbar-width: none;  /* Firefox */
+  }
+
+  .pt-safe {
+    padding-top: env(safe-area-inset-top);
+  }
+  .pb-safe {
+    padding-bottom: env(safe-area-inset-bottom);
   }
 }
