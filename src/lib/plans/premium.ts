@@ -11,9 +11,14 @@ import { Plan } from "@/types/Plan";
 export const PREMIUM_PLAN: Plan = {
   type: "PREMIUM",
   features: {
-    maxAnalyses: null, // null = unlimited
+    maxAnalyses: -1, // -1 = unlimited
+    maxAnalysesPerWeek: -1,
     hasHistory: true,
+    hasHistoryLimit: -1,
     hasReRecord: true,
     hasExercises: true,
+    hasExercisesLimit: -1,
+    hasFullGym: true,
+    hasCourses: true,
   },
 };
