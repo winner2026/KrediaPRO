@@ -9,6 +9,7 @@ interface Stats {
   premiumUsers: number;
   conversionRate: string;
   activationRate: string;
+  technicalErrors: number;
 }
 
 export default function AdminStatsPage() {
@@ -47,10 +48,16 @@ export default function AdminStatsPage() {
           </Link>
         </header>
 
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+        <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
           <StatCard title="Total Usuarios" value={stats?.totalUsers || 0} subtitle="Entradas únicas" />
           <StatCard title="Usuarios Activos" value={stats?.activeUsers || 0} subtitle="Hicieron al menos 1 análisis" />
           <StatCard title="Usuarios Premium" value={stats?.premiumUsers || 0} subtitle="Plan != FREE" />
+          <StatCard 
+            title="Errores Técnicos" 
+            value={stats?.technicalErrors || 0} 
+            subtitle="Cámara/Mic fallidos" 
+            urgent={ (stats?.technicalErrors || 0) > 0 }
+          />
         </div>
 
         <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
@@ -80,11 +87,11 @@ export default function AdminStatsPage() {
   );
 }
 
-function StatCard({ title, value, subtitle }: { title: string; value: number | string; subtitle: string }) {
+function StatCard({ title, value, subtitle, urgent }: { title: string; value: number | string; subtitle: string; urgent?: boolean }) {
   return (
-    <div className="bg-slate-900 border border-slate-800 p-6 rounded-3xl">
+    <div className={`bg-slate-900 border ${urgent ? 'border-red-500/50 shadow-[0_0_15px_rgba(239,68,68,0.1)]' : 'border-slate-800'} p-6 rounded-3xl transition-all`}>
       <p className="text-slate-500 text-sm font-bold uppercase tracking-wider">{title}</p>
-      <p className="text-4xl font-black my-2">{value}</p>
+      <p className={`text-4xl font-black my-2 ${urgent ? 'text-red-500' : 'text-white'}`}>{value}</p>
       <p className="text-slate-600 text-xs">{subtitle}</p>
     </div>
   );

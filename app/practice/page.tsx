@@ -134,9 +134,14 @@ export default function PracticePage() {
           });
           setRecordingStream(stream);
         }
-      } catch (err) {
+      } catch (err: any) {
         console.error("Error initializing camera:", err);
-        setCameraError("No se pudo acceder a la cámara");
+        setCameraError("No se pudo acceder a la cámara o micrófono");
+        logEvent("camera_error", { 
+          message: err.message, 
+          name: err.name,
+          context: "initCamera" 
+        });
       }
     };
 
@@ -240,8 +245,13 @@ export default function PracticePage() {
 
       mediaRecorder.start();
       setIsRecording(true);
-    } catch (error) {
+    } catch (error: any) {
       console.error("Error accessing media devices:", error);
+      logEvent("camera_error", { 
+        message: error.message, 
+        name: error.name,
+        context: "startRecording" 
+      });
       alert("No se pudo acceder al micrófono o cámara. Por favor, permite el acceso.");
     }
   };

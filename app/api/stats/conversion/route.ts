@@ -22,7 +22,13 @@ export async function GET(req: NextRequest) {
       }
     });
 
-    // 4. Calcular % de Conversión
+    // 4. Errores técnicos (Novedad para Health Check)
+    const technicalErrors = await prisma.$queryRaw`
+      SELECT count(*)::int as count FROM events 
+      WHERE event IN ('camera_error', 'mic_error')
+    ` as { count: number }[];
+
+    // 5. Calcular % de Conversión
     const conversionRate = totalUsers > 0 ? (premiumUsers / totalUsers) * 100 : 0;
     const activationRate = totalUsers > 0 ? (activeUsers / totalUsers) * 100 : 0;
 
@@ -30,6 +36,7 @@ export async function GET(req: NextRequest) {
       totalUsers,
       activeUsers,
       premiumUsers,
+      technicalErrors: technicalErrors[0]?.count || 0,
       conversionRate: `${conversionRate.toFixed(2)}%`,
       activationRate: `${activationRate.toFixed(2)}%`,
       timestamp: new Date().toISOString()

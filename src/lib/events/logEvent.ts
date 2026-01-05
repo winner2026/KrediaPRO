@@ -34,7 +34,9 @@ export type EventName =
   | "cta_analyze_clicked"
   | "free_limit_reached"
   | "upgrade_page_viewed"
-  | "upgrade_plan_selected";
+  | "upgrade_plan_selected"
+  | "camera_error"
+  | "mic_error";
 
 export type EventMetadata = {
   duration?: number;
