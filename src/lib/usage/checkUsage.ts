@@ -99,14 +99,25 @@ export async function checkUsage(userId: string): Promise<UsageCheckResult> {
       return { allowed: true, currentUsage: monthlyUsage, maxAllowed: max };
     }
 
-    // 4. LÓGICA PARA STARTER (Límite TOTAL)
+    // 4. LÓGICA PARA STARTER (Presencia de Impacto Semanal)
     if (planType === "STARTER") {
-      const totalUsage = usage.total_analyses || 0;
-      const max = STARTER_VIDEO_PLAN.features.maxAnalyses;
-      if (totalUsage >= max) {
-        return { allowed: false, reason: "STARTER_LIMIT_REACHED", currentUsage: totalUsage, maxAllowed: max };
+      const weekStart = new Date(usage.week_start);
+      const currentWeekStart = getWeekStart(now);
+      let weeklyUsage = usage.weekly_analyses || 0;
+
+      if (weekStart < currentWeekStart) weeklyUsage = 0;
+
+      const max = STARTER_VIDEO_PLAN.features.maxAnalysesPerWeek;
+      if (weeklyUsage >= max) {
+         return {
+            allowed: false,
+            reason: "STARTER_LIMIT_REACHED",
+            currentUsage: weeklyUsage,
+            maxAllowed: max,
+            resetsAt: getNextMonday(now).toISOString()
+         };
       }
-      return { allowed: true, currentUsage: totalUsage, maxAllowed: max };
+      return { allowed: true, currentUsage: weeklyUsage, maxAllowed: max };
     }
 
     // 5. LÓGICA PARA PREMIUM/ELITE (Mensual)
