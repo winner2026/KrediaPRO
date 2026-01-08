@@ -30,7 +30,7 @@ export default function GymPage() {
   const displayExercises = isFullAccess ? filteredExercises : filteredExercises.slice(0, 3);
 
   return (
-    <div className="min-h-screen bg-slate-950 text-white pb-24">
+    <div className="min-h-[100dvh] bg-slate-950 text-white pb-24 font-display">
       
       {/* Header */}
       <header className="fixed top-0 w-full z-40 bg-slate-950/80 backdrop-blur-md border-b border-slate-800">
@@ -63,7 +63,7 @@ export default function GymPage() {
       </header>
 
       {/* Main Content */}
-      <main className="pt-28 px-6 max-w-md mx-auto space-y-8 animate-fade-in">
+      <main className="pt-28 mobile-container space-y-8 animate-fade-in">
         
 
         {/* Library Grid */}

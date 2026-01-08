@@ -41,7 +41,7 @@ export default function WaitlistPage() {
   };
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-slate-950 via-slate-900 to-slate-950 text-white flex flex-col">
+    <div className="min-h-[100dvh] bg-gradient-to-br from-slate-950 via-slate-900 to-slate-950 text-white flex flex-col font-display">
       
       {/* Header */}
       <header className="p-6">
@@ -51,8 +51,7 @@ export default function WaitlistPage() {
       </header>
 
       {/* Main Content */}
-      <main className="flex-1 flex items-center justify-center px-6 py-12">
-        <div className="w-full max-w-md">
+      <main className="flex-1 flex items-center justify-center mobile-container py-12">
           
           {!submitted ? (
             <>
@@ -183,7 +182,6 @@ export default function WaitlistPage() {
               </Link>
             </div>
           )}
-        </div>
       </main>
 
       {/* Footer */}

@@ -3,7 +3,7 @@ import { db } from "@/infrastructure/db/client";
 import { PlanType } from "@/types/Plan";
 import { FREE_PLAN } from "@/lib/plans/free";
 import { PREMIUM_PLAN } from "@/lib/plans/premium";
-import { STARTER_PLAN } from "@/lib/plans/starter";
+import { STARTER_VIDEO_PLAN, VOICE_MONTHLY_PLAN, VOICE_WEEKLY_PLAN } from "@/lib/plans/tierDefinitions";
 
 export type UsageCheckResult = {
   allowed: boolean;
@@ -41,36 +41,15 @@ export async function checkUsage(userId: string): Promise<UsageCheckResult> {
     const planType = (usage.plan_type || "FREE") as PlanType;
     const now = new Date();
 
-    // 1. LÓGICA PARA FREE
+    // 1. LÓGICA PARA FREE (Límite TOTAL de 3 análisis)
     if (planType === "FREE") {
-      const weekStart = new Date(usage.week_start);
-      const currentWeekStart = getWeekStart(now);
-      let weeklyUsage = usage.weekly_analyses || 0;
-
-      if (weekStart < currentWeekStart) weeklyUsage = 0;
-
-      const max = FREE_PLAN.features.maxAnalysesPerWeek;
-      if (weeklyUsage >= max) {
-        return {
-          allowed: false,
-          reason: "FREE_LIMIT_REACHED",
-          currentUsage: weeklyUsage,
-          maxAllowed: max,
-          resetsAt: getNextMonday(now).toISOString()
-        };
-      }
-      return { allowed: true, currentUsage: weeklyUsage, maxAllowed: max };
-    }
-
-    // 2. LÓGICA PARA STARTER
-    if (planType === "STARTER") {
       const totalUsage = usage.total_analyses || 0;
-      const max = STARTER_PLAN.features.maxAnalyses;
+      const max = FREE_PLAN.features.maxAnalyses; // Límite total
       
       if (totalUsage >= max) {
         return {
           allowed: false,
-          reason: "STARTER_LIMIT_REACHED",
+          reason: "FREE_LIMIT_REACHED",
           currentUsage: totalUsage,
           maxAllowed: max
         };
@@ -78,12 +57,63 @@ export async function checkUsage(userId: string): Promise<UsageCheckResult> {
       return { allowed: true, currentUsage: totalUsage, maxAllowed: max };
     }
 
-    // 3. LÓGICA PARA PREMIUM (Fair Use)
-    if (planType === "PREMIUM") {
+    // 2. LÓGICA PARA VOICE_WEEKLY (Semanal)
+    if (planType === "VOICE_WEEKLY") {
+      const weekStart = new Date(usage.week_start);
+      const currentWeekStart = getWeekStart(now);
+      let weeklyUsage = usage.weekly_analyses || 0;
+
+      if (weekStart < currentWeekStart) weeklyUsage = 0;
+
+      const max = VOICE_WEEKLY_PLAN.features.maxAnalysesPerWeek;
+      if (weeklyUsage >= max) {
+         return {
+            allowed: false,
+            reason: "PREMIUM_LIMIT_REACHED",
+            currentUsage: weeklyUsage,
+            maxAllowed: max,
+            resetsAt: getNextMonday(now).toISOString()
+         };
+      }
+      return { allowed: true, currentUsage: weeklyUsage, maxAllowed: max };
+    }
+
+    // 3. LÓGICA PARA VOICE_MONTHLY
+    if (planType === "VOICE_MONTHLY") {
       const monthStart = new Date(usage.month_start);
       const currentMonthStart = getMonthStart(now);
       let monthlyUsage = usage.monthly_analyses || 0;
 
+      if (monthStart < currentMonthStart) monthlyUsage = 0;
+
+      const max = VOICE_MONTHLY_PLAN.features.maxAnalysesPerMonth;
+      if (monthlyUsage >= max) {
+        return {
+          allowed: false,
+          reason: "PREMIUM_LIMIT_REACHED",
+          currentUsage: monthlyUsage,
+          maxAllowed: max,
+          resetsAt: getNextMonthStart(now).toISOString()
+        };
+      }
+      return { allowed: true, currentUsage: monthlyUsage, maxAllowed: max };
+    }
+
+    // 4. LÓGICA PARA STARTER (Límite TOTAL)
+    if (planType === "STARTER") {
+      const totalUsage = usage.total_analyses || 0;
+      const max = STARTER_VIDEO_PLAN.features.maxAnalyses;
+      if (totalUsage >= max) {
+        return { allowed: false, reason: "STARTER_LIMIT_REACHED", currentUsage: totalUsage, maxAllowed: max };
+      }
+      return { allowed: true, currentUsage: totalUsage, maxAllowed: max };
+    }
+
+    // 5. LÓGICA PARA PREMIUM/ELITE (Mensual)
+    if (planType === "PREMIUM") {
+      const monthStart = new Date(usage.month_start);
+      const currentMonthStart = getMonthStart(now);
+      let monthlyUsage = usage.monthly_analyses || 0;
       if (monthStart < currentMonthStart) monthlyUsage = 0;
 
       const max = PREMIUM_PLAN.features.maxAnalysesPerMonth;

@@ -69,12 +69,12 @@ export default function SOSPage() {
   };
 
   return (
-    <div className="min-h-screen bg-black text-white flex flex-col items-center justify-center p-6 relative overflow-hidden">
+    <div className="min-h-[100dvh] bg-black text-white flex flex-col items-center justify-center p-6 relative overflow-hidden font-display">
       
       {/* Background Ambience */}
       <div className="absolute inset-0 bg-[radial-gradient(circle_at_center,_var(--tw-gradient-stops))] from-blue-900/20 via-black to-black animate-pulse" />
 
-      <main className="z-10 w-full max-w-md text-center">
+      <main className="z-10 mobile-container text-center px-0">
         
         {step === 'INTRO' && (
           <div className="space-y-8 animate-fade-in-up">

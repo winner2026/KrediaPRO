@@ -17,7 +17,7 @@ export default function CoursesPage() {
 
   const hasCourseAccess = planType === 'PREMIUM' || planType === 'STARTER';
   return (
-    <div className="min-h-screen bg-slate-950 text-white pb-24">
+    <div className="min-h-[100dvh] bg-slate-950 text-white pb-24 font-display">
       
       {/* Header */}
       <header className="fixed top-0 w-full z-40 bg-slate-950/80 backdrop-blur-md border-b border-slate-800">
@@ -31,7 +31,7 @@ export default function CoursesPage() {
       </header>
 
       {/* Main Content */}
-      <main className="pt-24 px-6 max-w-md mx-auto space-y-8 animate-fade-in">
+      <main className="pt-24 mobile-container space-y-8 animate-fade-in">
         
         <div className="text-center space-y-2">
           <h2 className="text-3xl font-black text-transparent bg-clip-text bg-gradient-to-r from-amber-400 to-orange-500">

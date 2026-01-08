@@ -70,7 +70,7 @@ export default function ReferralsPage() {
     : 100;
 
   return (
-    <div className="min-h-screen bg-slate-950 text-white pb-24">
+    <div className="min-h-[100dvh] bg-slate-950 text-white pb-24 font-display">
       {/* Header */}
       <header className="fixed top-0 w-full z-40 bg-slate-950/80 backdrop-blur-md border-b border-slate-800">
         <div className="max-w-md mx-auto px-6 h-16 flex items-center justify-between">
@@ -82,7 +82,7 @@ export default function ReferralsPage() {
         </div>
       </header>
 
-      <main className="pt-24 px-6 max-w-md mx-auto space-y-8 animate-fade-in">
+      <main className="pt-24 mobile-container space-y-8 animate-fade-in">
         
         {/* Hero Card */}
         <div className="bg-gradient-to-br from-purple-600 to-pink-600 rounded-3xl p-6 text-center">

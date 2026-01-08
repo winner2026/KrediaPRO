@@ -5,6 +5,7 @@ import {
   getClientIP,
   normalizeUserAgent,
 } from '@/lib/fingerprint/generateFingerprint';
+import { checkUsage } from '@/lib/usage/checkUsage';
 
 export const runtime = 'nodejs';
 
@@ -38,6 +39,9 @@ export async function GET(req: NextRequest) {
     const fingerprint = generateFingerprint(userId, ip, userAgent);
 
     console.log('[MY-SESSIONS] Fetching sessions for:', fingerprint);
+
+    // Get Usage Stats
+    const usageResult = await checkUsage(fingerprint);
 
     // Usar raw query para evitar problemas con el cliente Prisma auto-generado
     const sessions = await prisma.$queryRaw<VoiceSessionRow[]>`
@@ -96,6 +100,12 @@ export async function GET(req: NextRequest) {
           diagnosis: s.feedback_diagnostico,
         })),
         stats,
+        usage: {
+          current: usageResult.currentUsage,
+          limit: usageResult.maxAllowed,
+          resetDate: usageResult.resetsAt,
+          isLimitReached: !usageResult.allowed
+        }
       },
     });
   } catch (error) {

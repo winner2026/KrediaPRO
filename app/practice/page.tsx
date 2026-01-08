@@ -1,6 +1,6 @@
 "use client";
 
-import { useRouter } from "next/navigation";
+import { useRouter, useSearchParams } from "next/navigation";
 import { useRef, useState, useEffect, useCallback } from "react";
 import { getOrCreateAnonymousUserId } from "@/lib/anonymousUser";
 import { logEvent } from "@/lib/events/logEvent";
@@ -19,6 +19,8 @@ const MAX_RECORDING_DURATION = 60; // segundos (límite de Whisper)
 
 export default function PracticePage() {
   const router = useRouter();
+  const searchParams = useSearchParams();
+  const isVoiceOnly = searchParams.get("mode") === "voice";
   const mediaRecorderRef = useRef<MediaRecorder | null>(null);
   const audioChunksRef = useRef<Blob[]>([]);
   const recordingStartTimeRef = useRef<number | null>(null);
@@ -115,11 +117,12 @@ export default function PracticePage() {
   useEffect(() => {
     const initCamera = async () => {
       try {
-        // usePostureAnalysis se encarga de esperar a que los scripts estén listos
-        await initPosture();
+        if (!isVoiceOnly) {
+          await initPosture();
+        }
         
         // Intentar obtener el stream que MediaPipe está usando para previsualización
-        if (videoRef.current?.srcObject) {
+        if (!isVoiceOnly && videoRef.current?.srcObject) {
           setRecordingStream(videoRef.current.srcObject as MediaStream);
         } else {
            const stream = await navigator.mediaDevices.getUserMedia({ 
@@ -128,7 +131,7 @@ export default function PracticePage() {
               noiseSuppression: true,
               autoGainControl: true, // Esto ayuda a normalizar el volumen
             },
-            video: { 
+            video: isVoiceOnly ? false : { 
               facingMode: "user" 
             }
           });
@@ -159,7 +162,7 @@ export default function PracticePage() {
           noiseSuppression: true,
           autoGainControl: true,
         },
-        video: { 
+        video: isVoiceOnly ? false : { 
           facingMode: "user"
         }
       });
@@ -167,13 +170,15 @@ export default function PracticePage() {
       setRecordingStream(stream);
 
       // Configurar video preview de forma segura
-      if (videoRef.current) {
+      if (!isVoiceOnly && videoRef.current) {
         videoRef.current.srcObject = stream;
         videoRef.current.play().catch(e => console.error("Error start video:", e));
       }
 
       // Iniciar análisis de postura
-      await startPostureAnalysis();
+      if (!isVoiceOnly) {
+        await startPostureAnalysis();
+      }
 
       // Configurar grabación de audio optimizada
       let options: MediaRecorderOptions = { 
@@ -197,19 +202,21 @@ export default function PracticePage() {
       recordingStartTimeRef.current = Date.now();
       setRecordingTime(0);
 
-      logEvent("recording_started_with_video");
+      logEvent(isVoiceOnly ? "voice_test_started" : "recording_started_with_video");
 
       countdownIntervalRef.current = setInterval(() => {
         setRecordingTime((prev) => prev + 1);
       }, 1000);
+
+      const currentMaxDuration = isVoiceOnly ? 15 : MAX_RECORDING_DURATION;
 
       autoStopTimerRef.current = setTimeout(() => {
         if (countdownIntervalRef.current) {
           clearInterval(countdownIntervalRef.current);
         }
         stopRecording();
-        logEvent("recording_auto_stopped", { duration: MAX_RECORDING_DURATION });
-      }, MAX_RECORDING_DURATION * 1000);
+        logEvent("recording_auto_stopped", { duration: currentMaxDuration });
+      }, currentMaxDuration * 1000);
 
       mediaRecorder.ondataavailable = (event) => {
         if (event.data.size > 0) {
@@ -502,12 +509,12 @@ export default function PracticePage() {
   // --- LIMIT MODAL ---
   if (showLimitModal) {
     return (
-      <main className="min-h-screen bg-[#101922] flex items-center justify-center p-4 text-white font-display">
+      <main className="min-h-[100dvh] bg-[#101922] flex items-center justify-center p-4 text-white font-display">
         <div className="bg-[#1a242d] border border-[#3b4754] rounded-2xl p-6 max-w-sm text-center space-y-5">
           <div className="size-16 rounded-full bg-yellow-500/10 flex items-center justify-center mx-auto">
             <span className="material-symbols-outlined text-3xl text-yellow-500">lock</span>
           </div>
-          <h2 className="text-xl font-bold">Límite semanal alcanzado</h2>
+          <h2 className="text-xl font-bold">Límite gratuito alcanzado</h2>
           <p className="text-[#9dabb9] text-sm">
             Has usado tus análisis gratuitos. Únete a la lista de espera para acceso ilimitado.
           </p>
@@ -534,7 +541,7 @@ export default function PracticePage() {
   // --- REVIEW VIEW ---
   if (showReview && audioBlob) {
     return (
-      <main className="min-h-screen bg-[#101922] flex flex-col items-center justify-center p-6 text-white text-center font-display">
+      <main className="min-h-[100dvh] bg-[#101922] flex flex-col items-center justify-center p-6 text-white text-center font-display">
         <div className="size-20 rounded-full bg-green-500/10 flex items-center justify-center mb-6">
           <span className="material-symbols-outlined text-4xl text-green-500">check_circle</span>
         </div>
@@ -567,43 +574,66 @@ export default function PracticePage() {
   // --- ANALYSIS / LOADING VIEW ---
   if (isAnalyzing) {
     return (
-      <main className="min-h-screen bg-[#101922] flex flex-col items-center justify-center p-6 text-white text-center font-display">
-        <div className="relative size-24 mb-6">
-          <div className="absolute inset-0 border-4 border-primary/30 rounded-full"></div>
-          <div className="absolute inset-0 border-4 border-primary border-t-transparent rounded-full animate-spin"></div>
+      <main className="min-h-[100dvh] bg-[#05080a] flex flex-col items-center justify-center p-6 text-white text-center font-display relative overflow-hidden">
+        {/* Background Neural Network Aesthetic */}
+        <div className="absolute top-0 left-0 w-full h-full opacity-20 pointer-events-none">
+          <div className="absolute top-1/4 left-1/4 w-96 h-96 bg-blue-600/10 rounded-full blur-[100px] animate-pulse"></div>
+          <div className="absolute bottom-1/4 right-1/4 w-96 h-96 bg-purple-600/10 rounded-full blur-[100px] animate-pulse" style={{ animationDelay: '1s' }}></div>
         </div>
-        <h2 className="text-2xl font-bold mb-2">Analizando...</h2>
-        <p className="text-[#9dabb9] mb-4 min-h-[1.5em] transition-all duration-300">{loadingMessage}</p>
-        
-        {/* Oratory Tip Card */}
-        {currentTip && (
-          <div className="mt-8 relative w-full max-w-xs bg-gradient-to-br from-[#1a242d] to-[#161f26] rounded-2xl p-6 border border-[#3b4754] shadow-2xl overflow-hidden">
-            {/* Background elements */}
-            <div className="absolute top-0 right-0 p-4 opacity-5">
-              <span className="material-symbols-outlined text-8xl">{currentTip.icon}</span>
-            </div>
-            
-            <div className="flex flex-col items-center relative z-10">
-              <div className={`mb-4 inline-flex items-center gap-2 px-3 py-1 rounded-full text-xs font-bold tracking-wider uppercase border ${getCategoryColor(currentTip.category)}`}>
-                <span className="material-symbols-outlined text-sm">lightbulb</span>
-                {currentTip.category}
-              </div>
-              
-              <div className="mb-3 p-3 bg-white/5 rounded-full border border-white/10">
-                <span className={`material-symbols-outlined text-3xl ${currentTip.category === 'Higiene' ? 'text-blue-400' : currentTip.category === 'Postura' ? 'text-purple-400' : 'text-yellow-400'}`}>
-                  {currentTip.icon}
-                </span>
-              </div>
-              
-              <h3 className="text-lg font-bold text-white mb-2">{currentTip.title}</h3>
-              <p className="text-[#9dabb9] text-sm leading-relaxed">
-                {currentTip.content}
-              </p>
+
+        <div className="relative z-10 w-full max-w-sm flex flex-col items-center">
+          {/* Elite Loader */}
+          <div className="relative size-32 mb-10">
+            <div className="absolute inset-0 border-[6px] border-blue-500/10 rounded-full"></div>
+            <div className="absolute inset-0 border-[6px] border-blue-500 border-t-transparent rounded-full animate-spin"></div>
+            {/* Inner Ring */}
+            <div className="absolute inset-4 border-[4px] border-purple-500/10 rounded-full"></div>
+            <div className="absolute inset-4 border-[4px] border-purple-500 border-b-transparent rounded-full animate-spin" style={{ animationDirection: 'reverse', animationDuration: '3s' }}></div>
+            {/* Core */}
+            <div className="absolute inset-0 flex items-center justify-center">
+               <span className="material-symbols-outlined text-4xl text-blue-400 animate-pulse">neurology</span>
             </div>
           </div>
-        )}
-      </main>
 
+          <h2 className="text-3xl font-black mb-3 tracking-tighter uppercase italic text-transparent bg-clip-text bg-gradient-to-r from-blue-400 to-purple-400">
+            AI Neural Processing
+          </h2>
+          <div className="space-y-1 mb-8">
+            <p className="text-blue-100/60 text-xs font-bold uppercase tracking-[0.3em] font-mono">
+              Analyzing vocal patterns
+            </p>
+            <p className="text-white font-medium text-lg min-h-[1.5em] transition-all duration-300">
+              {loadingMessage}
+            </p>
+          </div>
+          
+          {/* Oratory Tip Card (Premium Style) */}
+          {currentTip && (
+            <div className="w-full relative bg-white/[0.03] backdrop-blur-2xl rounded-[32px] p-8 border border-white/5 shadow-2xl overflow-hidden group">
+              <div className="absolute top-0 right-0 p-6 opacity-[0.03] group-hover:opacity-[0.08] transition-opacity duration-700">
+                <span className="material-symbols-outlined text-9xl">{currentTip.icon}</span>
+              </div>
+              
+              <div className="flex flex-col items-center relative z-10">
+                <div className={`mb-6 inline-flex items-center gap-2 px-3 py-1.5 rounded-xl text-[10px] font-black tracking-widest uppercase bg-white/5 border border-white/10 ${getCategoryColor(currentTip.category)}`}>
+                  <span className="material-symbols-outlined text-sm">auto_awesome</span>
+                  Pro Tip: {currentTip.category}
+                </div>
+                
+                <h3 className="text-xl font-bold text-white mb-3 tracking-tight">{currentTip.title}</h3>
+                <p className="text-slate-400 text-sm leading-relaxed font-medium italic">
+                  "{currentTip.content}"
+                </p>
+              </div>
+            </div>
+          )}
+          
+          {/* Progress hint */}
+          <p className="mt-12 text-[10px] text-slate-600 font-bold uppercase tracking-widest animate-pulse">
+            System Online • Neural Link Active
+          </p>
+        </div>
+      </main>
     );
   }
 
@@ -613,7 +643,7 @@ export default function PracticePage() {
         
         {/* 🎙️ MEDIDOR DE VOLUMEN (Vertical Extenso) */}
         {recordingStream && (
-          <div className="absolute left-4 md:left-8 top-1/4 bottom-1/4 w-10 md:w-12 z-[60] animate-fade-in flex flex-col items-center gap-2">
+          <div className="absolute left-4 md:left-72 top-1/4 bottom-1/4 w-10 md:w-12 z-[60] animate-fade-in flex flex-col items-center gap-2">
              <div className="flex-1 w-full bg-black/60 backdrop-blur-xl rounded-full border border-white/20 p-2 flex flex-col items-center shadow-2xl">
                 <AudioLevelMeter stream={recordingStream} isActive={true} />
              </div>
@@ -626,7 +656,7 @@ export default function PracticePage() {
         )}
 
         {/* PANEL LATERAL / SUPERIOR (Feedback en Vivo) */}
-        {isPostureReady && (
+        {!isVoiceOnly && isPostureReady && (
           <div className={`absolute z-40 transition-all duration-700 ease-in-out no-scrollbar
             ${isRecording 
               ? 'top-20 left-4 right-4 flex flex-row justify-center gap-2 md:top-1/2 md:-translate-y-1/2 md:left-6 md:right-auto md:flex-col md:w-64' 
@@ -729,7 +759,86 @@ export default function PracticePage() {
           </div>
         )}
 
-        {showPosturePreview && (
+        {isVoiceOnly && (
+           <div className="absolute inset-0 flex flex-col items-center justify-center z-10 p-6 pl-20 md:p-6 text-center animate-fade-in overflow-hidden">
+              {/* Background Glows */}
+              <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[500px] h-[500px] bg-blue-600/10 rounded-full blur-[120px] pointer-events-none" />
+              <div className={`absolute bottom-0 right-0 w-[400px] h-[400px] bg-purple-600/5 rounded-full blur-[100px] pointer-events-none transition-opacity duration-1000 ${isRecording ? 'opacity-100' : 'opacity-0'}`} />
+
+              <div className="relative z-10 flex flex-col items-center max-w-lg w-full">
+                {/* Status Indicator */}
+                <div className="mb-8 flex items-center gap-2 px-4 py-1.5 rounded-full bg-blue-500/10 border border-blue-500/20 backdrop-blur-md">
+                  <div className={`size-1.5 rounded-full ${isRecording ? 'bg-red-500 animate-pulse' : 'bg-blue-400 font-bold'}`}></div>
+                  <span className="text-[10px] font-black uppercase tracking-[0.2em] text-blue-100 italic">
+                    {isRecording ? "Neural Audio Analysis Live" : "Elite Voice Diagnostics"}
+                  </span>
+                </div>
+
+                {/* Central Orb / Mic Container */}
+                <div className="relative mb-10">
+                   {/* Decorative Rotating Border */}
+                   <div className={`absolute inset-[-20px] border-2 border-dashed border-blue-500/20 rounded-full transition-all duration-[3000ms] ease-linear ${isRecording ? 'rotate-180 opacity-100' : 'opacity-0'}`}></div>
+                   
+                   <div className={`size-56 md:size-72 bg-gradient-to-br from-blue-900/40 via-black to-purple-900/40 rounded-full flex items-center justify-center border border-white/10 shadow-2xl transition-all duration-700 relative overflow-hidden group
+                    ${isRecording ? 'scale-110 shadow-[0_0_80px_-20px_rgba(59,130,246,0.4)]' : 'shadow-[0_0_60px_-20px_rgba(0,0,0,0.8)]'}`}>
+                    
+                    {/* Scanning Overlay Effect */}
+                    {isRecording && (
+                      <div className="absolute inset-0 bg-gradient-to-t from-transparent via-blue-500/10 to-transparent w-full h-1/2 animate-scan z-[-1]"></div>
+                    )}
+                    
+                    {isRecording ? (
+                      <div className="scale-125 md:scale-150 transform transition-transform duration-700">
+                        <AudioVisualizer stream={recordingStream} isActive={true} />
+                      </div>
+                    ) : (
+                      <div className="flex flex-col items-center gap-2 text-blue-400 group-hover:text-blue-300 transition-colors">
+                        <span className="material-symbols-outlined text-[80px] drop-shadow-[0_0_15px_rgba(59,130,246,0.5)]">settings_voice</span>
+                      </div>
+                    )}
+                  </div>
+                </div>
+
+                <div className="space-y-4 px-4">
+                  <h2 className="text-4xl md:text-6xl font-black mb-4 tracking-tighter text-white leading-none">
+                    {isRecording ? (
+                      <>Escuchando <span className="text-transparent bg-clip-text bg-gradient-to-r from-blue-400 to-purple-400">tu voz</span></>
+                    ) : "Test de Autoridad"}
+                  </h2>
+                  <p className="text-slate-400 text-sm md:text-xl max-w-[320px] md:max-w-md mx-auto leading-relaxed font-medium">
+                    {isRecording 
+                      ? "Habla con naturalidad. La IA está procesando tu tono, cadencia y micro-oscilaciones vocales." 
+                      : "Descubre el impacto real de tu comunicación en solo 15 segundos."}
+                  </p>
+                </div>
+
+                {!isRecording && (
+                  <div className="mt-12 flex items-center gap-6">
+                    <div className="flex flex-col items-center">
+                      <div className="size-10 rounded-xl bg-white/5 border border-white/10 flex items-center justify-center mb-2">
+                        <span className="material-symbols-outlined text-blue-400 text-xl">speed</span>
+                      </div>
+                      <span className="text-[9px] font-bold text-slate-500 uppercase tracking-widest">Fluidez</span>
+                    </div>
+                    <div className="flex flex-col items-center">
+                      <div className="size-10 rounded-xl bg-white/5 border border-white/10 flex items-center justify-center mb-2">
+                        <span className="material-symbols-outlined text-purple-400 text-xl">equalizer</span>
+                      </div>
+                      <span className="text-[9px] font-bold text-slate-500 uppercase tracking-widest">Tono</span>
+                    </div>
+                    <div className="flex flex-col items-center">
+                      <div className="size-10 rounded-xl bg-white/5 border border-white/10 flex items-center justify-center mb-2">
+                        <span className="material-symbols-outlined text-emerald-400 text-xl">verified</span>
+                      </div>
+                      <span className="text-[9px] font-bold text-slate-500 uppercase tracking-widest">Impacto</span>
+                    </div>
+                  </div>
+                )}
+              </div>
+           </div>
+        )}
+
+        {showPosturePreview && !isVoiceOnly && (
           // Contenedor Pantalla Completa en Mobile, 16:9 en Desktop
           <div className="absolute inset-0 z-0 md:relative md:w-full md:max-w-6xl md:h-auto md:aspect-video shadow-2xl bg-black overflow-hidden md:rounded-xl">
                 <video

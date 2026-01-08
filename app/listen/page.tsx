@@ -60,7 +60,7 @@ export default function ListenPage() {
   const badge = streak ? getStreakBadge(streak.currentStreak) : null;
 
   return (
-    <div className="relative flex h-full min-h-screen w-full flex-col overflow-x-hidden bg-slate-950 pb-24">
+    <div className="relative flex h-[100dvh] min-h-[100dvh] w-full flex-col overflow-x-hidden bg-slate-950 pb-24">
 
       {/* TopAppBar: Streak Counter */}
       <div className="flex items-center justify-between p-4 pt-6 pb-2">
@@ -116,30 +116,48 @@ export default function ListenPage() {
             </p>
           </div>
 
-          {/* Action Button */}
-          <div className="pt-8">
+          {/* Action Cards Grid */}
+          <div className="pt-4 grid grid-cols-1 gap-4 w-full">
+            {/* 1. VOCAL MASTER (Audio Only) */}
             <button
-              onClick={() => {
-                if (session || userName || localStorage.getItem("user_email")) {
-                  router.push("/practice");
-                } else {
-                  router.push("/");
-                }
-              }}
-              className={`group relative flex w-full items-center justify-center overflow-hidden rounded-3xl h-24 px-8 text-white text-xl font-black leading-normal tracking-wider transition-all shadow-2xl ${
-                practicedToday 
-                  ? 'bg-emerald-600 hover:bg-emerald-500 shadow-emerald-900/40' 
-                  : 'bg-primary hover:bg-blue-600 shadow-primary/40'
-              }`}
+              onClick={() => router.push("/practice?mode=voice")}
+              className="group relative flex w-full items-center gap-5 overflow-hidden rounded-3xl p-6 bg-slate-900 border border-slate-800 hover:border-blue-500/50 transition-all shadow-xl text-left"
             >
-              {/* Inner glow effect */}
-              <div className="absolute inset-0 bg-gradient-to-tr from-white/10 to-transparent opacity-0 group-hover:opacity-100 transition-opacity"></div>
-              
-              <span className="mr-4 material-symbols-outlined text-4xl group-hover:scale-110 transition-transform">mic</span>
-              <div className="text-left leading-tight">
-                <span className="block">{practicedToday ? "Practicar" : "Comenzar"}</span>
-                <span className="text-[10px] uppercase tracking-[0.2em] opacity-60">Sesión de hoy</span>
+              <div className="size-14 rounded-2xl bg-blue-600/10 flex items-center justify-center text-blue-500 group-hover:scale-110 transition-transform">
+                <span className="material-symbols-outlined text-3xl font-bold">mic</span>
               </div>
+              <div className="flex-1">
+                <div className="flex items-center gap-2 mb-0.5">
+                   <span className="text-[10px] font-black uppercase tracking-[0.2em] text-blue-400">Nivel 1</span>
+                   <span className="text-[10px] bg-blue-500/10 text-blue-400 px-2 py-0.5 rounded-full font-bold">Starter</span>
+                </div>
+                <h3 className="text-white text-lg font-bold">Analizador Vocal</h3>
+                <p className="text-slate-500 text-xs font-medium">Tono, ritmo y muletillas.</p>
+              </div>
+              <span className="material-symbols-outlined text-slate-700 group-hover:text-blue-500 group-hover:translate-x-1 transition-all">arrow_forward</span>
+            </button>
+
+            {/* 2. ELITE PRESENCE (Video + Audio) */}
+            <button
+              onClick={() => router.push("/practice")}
+              className="group relative flex w-full items-center gap-5 overflow-hidden rounded-3xl p-6 bg-gradient-to-br from-blue-600 to-indigo-700 hover:from-blue-500 hover:to-indigo-600 transition-all shadow-2xl shadow-blue-500/20 text-left border border-white/10"
+            >
+              <div className="size-14 rounded-2xl bg-white/10 flex items-center justify-center text-white group-hover:scale-110 transition-transform shadow-inner">
+                <span className="material-symbols-outlined text-3xl font-bold">videocam</span>
+              </div>
+              <div className="flex-1">
+                <div className="flex items-center gap-2 mb-0.5">
+                   <span className="text-[10px] font-black uppercase tracking-[0.2em] text-blue-100/60">Nivel 2</span>
+                   <span className="text-[10px] bg-white/20 text-white px-2 py-0.5 rounded-full font-bold">Elite</span>
+                </div>
+                <h3 className="text-white text-lg font-bold">Entrenamiento Elite</h3>
+                <p className="text-blue-100/60 text-xs font-medium">Gestos, mirada y postura.</p>
+              </div>
+              {/* Premium Glow Effect */}
+              <div className="absolute top-0 right-0 p-4 opacity-10">
+                 <span className="material-symbols-outlined text-6xl">stars</span>
+              </div>
+              <span className="material-symbols-outlined text-white/40 group-hover:text-white group-hover:translate-x-1 transition-all">arrow_forward</span>
             </button>
           </div>
 

@@ -5,11 +5,24 @@
 @layer base {
   html, body {
     @apply h-full overflow-x-hidden;
-    height: 100%;
-    height: -webkit-fill-available;
+    /* Evitar el rebote en iOS y asegurar altura completa */
+    height: 100dvh; 
     margin: 0;
     padding: 0;
     overscroll-behavior: none;
+    -webkit-tap-highlight-color: transparent;
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+  }
+
+  /* Mejorar la legibilidad en pantallas pequeñas */
+  html {
+    font-size: 16px;
+  }
+  @media (max-width: 360px) {
+    html {
+      font-size: 14px;
+    }
   }
 }
 
@@ -51,5 +64,28 @@
   }
   .pb-safe {
     padding-bottom: env(safe-area-inset-bottom);
+  }
+
+  .mobile-container {
+    @apply w-full max-w-md mx-auto px-6 relative;
+  }
+
+  /* Custom animations for premium interactions */
+  .animate-scan {
+    animation: scan 3s linear infinite;
+  }
+
+  @keyframes scan {
+    0% { transform: translateY(-100%); }
+    100% { transform: translateY(200%); }
+  }
+
+  @keyframes fade-in-up {
+    from { opacity: 0; transform: translateY(20px); }
+    to { opacity: 1; transform: translateY(0); }
+  }
+
+  .animate-fade-in-up {
+    animation: fade-in-up 0.8s cubic-bezier(0.16, 1, 0.3, 1) forwards;
   }
 }

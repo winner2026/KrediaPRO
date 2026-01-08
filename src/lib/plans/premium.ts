@@ -11,9 +11,9 @@ import { Plan } from "@/types/Plan";
 export const PREMIUM_PLAN: Plan = {
   type: "PREMIUM",
   features: {
-    maxAnalyses: -1, // -1 = unlimited
+    maxAnalyses: -1,
     maxAnalysesPerWeek: -1,
-    maxAnalysesPerMonth: 100, // Política de Uso Justo (Rentabilidad)
+    maxAnalysesPerMonth: 250, // Aumentado para percepción "Ilimitada" (Costo < $5 en plan de $29)
     hasHistory: true,
     hasHistoryLimit: -1,
     hasReRecord: true,

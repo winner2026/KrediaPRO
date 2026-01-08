@@ -12,7 +12,8 @@ const NavigationBar = () => {
                      pathname?.includes('/practice') || 
                      pathname?.includes('/results') || 
                      pathname?.includes('/auth/') || 
-                     pathname === '/waitlist';
+                     pathname === '/waitlist' ||
+                     pathname === '/offer';
 
   if (isExcluded) {
     return null;

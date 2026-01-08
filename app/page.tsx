@@ -4,11 +4,12 @@ import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import Image from "next/image";
 
-type Step = "hero" | "role" | "goal" | "capture";
+type Step = "hero" | "role" | "goal" | "voice-check" | "capture";
 
 export default function LandingPage() {
   const router = useRouter();
   const [step, setStep] = useState<Step>("hero");
+  const [billingCycle, setBillingCycle] = useState<"weekly" | "monthly">("monthly");
 
   // Redirigir si ya está logueado
   useEffect(() => {
@@ -29,7 +30,11 @@ export default function LandingPage() {
   const handleNext = (key: string, value: string) => {
     setFormData(prev => ({ ...prev, [key]: value }));
     if (key === "role") setStep("goal");
-    if (key === "goal") setStep("capture");
+    if (key === "goal") setStep("voice-check");
+  };
+
+  const handleVoiceComplete = () => {
+    setStep("capture");
   };
 
   const handleRegister = async (e: React.FormEvent) => {
@@ -69,7 +74,7 @@ export default function LandingPage() {
 
   if (step === "hero") {
     return (
-      <main className="min-h-screen bg-[#101922] font-display flex flex-col relative overflow-hidden">
+      <main className="min-h-[100dvh] bg-[#101922] font-display flex flex-col relative overflow-hidden">
         {/* Background Gradients */}
         <div className="absolute top-0 left-0 w-full h-full overflow-hidden pointer-events-none">
           <div className="absolute top-[-20%] left-[-10%] w-[600px] h-[600px] bg-blue-600/20 rounded-full blur-[120px]" />
@@ -77,23 +82,23 @@ export default function LandingPage() {
         </div>
 
         {/* Navbar */}
-        <nav className="relative z-10 px-6 py-6 flex justify-between items-center">
+        <nav className="relative z-10 px-6 py-6 flex justify-between items-center max-w-7xl mx-auto w-full">
           <div className="text-xl font-bold text-white tracking-tight">
             Oratoria<span className="text-blue-500">Efectiva</span>
           </div>
-          <button onClick={() => router.push("/auth/login")} className="text-sm text-gray-400 hover:text-white transition-colors">
-            Ya tengo cuenta
+          <button onClick={() => router.push("/auth/login")} className="text-base text-gray-300 hover:text-white transition-colors font-bold tracking-wide">
+            Iniciar Sesión
           </button>
         </nav>
 
         {/* Content */}
-        <div className="flex-1 flex flex-col items-center justify-center text-center px-4 relative z-10">
-          <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-blue-500/10 border border-blue-500/20 text-blue-400 text-xs font-bold uppercase tracking-wider mb-6 animate-fade-in">
+        <div className="flex-1 flex flex-col items-center justify-center text-center px-6 relative z-10">
+          <div className="inline-flex items-center gap-2 px-3 py-1.5 rounded-full bg-blue-500/10 border border-blue-500/20 text-blue-400 text-[10px] md:text-xs font-bold uppercase tracking-widest mb-6 animate-fade-in shadow-lg shadow-blue-500/5">
             <span className="w-2 h-2 rounded-full bg-blue-500 animate-pulse" />
             IA-Powered Coaching
           </div>
           
-          <h1 className="text-5xl md:text-7xl font-bold text-white mb-6 leading-tight max-w-4xl">
+          <h1 className="text-4xl sm:text-5xl md:text-7xl font-bold text-white mb-6 leading-[1.1] max-w-4xl tracking-tight">
             Domina el arte de <br />
             <span className="text-transparent bg-clip-text bg-gradient-to-r from-blue-400 to-purple-400">hablar en público</span>
           </h1>
@@ -104,13 +109,96 @@ export default function LandingPage() {
 
           <button 
             onClick={() => setStep("role")}
-            className="group relative px-8 py-4 bg-white text-[#101922] font-bold text-lg rounded-full hover:scale-105 transition-all duration-300 shadow-[0_0_40px_-10px_rgba(255,255,255,0.3)]"
+            className="group relative px-10 py-5 bg-white text-[#101922] font-black text-xl rounded-full hover:scale-110 transition-all duration-300 shadow-[0_0_50px_-10px_rgba(255,255,255,0.6)] hover:shadow-[0_0_80px_-10px_rgba(255,255,255,0.8)] z-20"
           >
-            Comenzar Evaluación Gratuita
-            <span className="inline-block ml-2 transition-transform group-hover:translate-x-1">→</span>
+            Iniciar Diagnóstico Inteligente
+            <span className="inline-block ml-2 transition-transform group-hover:translate-x-1 text-blue-600">→</span>
           </button>
           
-          <p className="mt-4 text-xs text-gray-500">No requiere tarjeta de crédito • 3 análisis gratis</p>
+
+          <p className="mt-4 text-xs text-gray-500">No requiere tarjeta de crédito • Análisis de voz incluido</p>
+          
+          {/* PRICING SECTION */}
+          <div className="mt-32 w-full max-w-6xl animate-fade-in pb-20">
+             <div className="text-center mb-10">
+               <h2 className="text-3xl font-bold text-white mb-4">Planes Flexibles</h2>
+               <p className="text-slate-400">Elige la velocidad de tu transformación.</p>
+             </div>
+
+             {/* Toggle */}
+             <div className="flex justify-center mb-12">
+               <div className="inline-flex bg-background-dark p-1 rounded-full border border-gray-800">
+                  <button 
+                    onClick={() => setBillingCycle("weekly")}
+                    className={`px-6 py-2 rounded-full text-sm font-bold transition-all ${billingCycle === 'weekly' ? 'bg-surface-dark text-white shadow-lg border border-gray-700' : 'text-gray-400 hover:text-white'}`}
+                  >
+                    Semanal
+                  </button>
+                  <button 
+                    onClick={() => setBillingCycle("monthly")}
+                    className={`px-6 py-2 rounded-full text-sm font-bold transition-all ${billingCycle === 'monthly' ? 'bg-primary text-white shadow-lg shadow-primary/30' : 'text-gray-400 hover:text-white'}`}
+                  >
+                    Mensual (Ahorra 25%)
+                  </button>
+               </div>
+             </div>
+
+             <div className="grid md:grid-cols-2 gap-8 px-4">
+                {/* CARD 1: VOZ DE PODER */}
+                <div className="bg-surface-dark border border-gray-800 rounded-3xl p-8 hover:border-primary/50 transition-all group shadow-xl">
+                   <div className="mb-6">
+                      <span className="text-primary text-xs font-bold uppercase tracking-widest">Opción 01</span>
+                      <h3 className="text-2xl font-black text-white mt-2">Voz de Poder</h3>
+                      <p className="text-gray-400 text-sm mt-2">Dominio total de tu dicción y seguridad. Sin cámaras.</p>
+                   </div>
+                   
+                   <div className="bg-background-dark/50 rounded-2xl p-6 mb-6 border border-gray-800/50">
+                      <div className="flex items-baseline gap-1">
+                         <span className="text-4xl font-black text-white">${billingCycle === 'weekly' ? '4' : '12'}</span>
+                         <span className="text-sm text-gray-500 font-bold uppercase">/{billingCycle === 'weekly' ? 'sem' : 'mes'}</span>
+                      </div>
+                      <p className="text-xs text-primary mt-2 font-bold">
+                        {billingCycle === 'weekly' ? '50 Análisis / semana' : '100 Análisis / mes + Prioridad'}
+                      </p>
+                   </div>
+
+                   <button 
+                     onClick={() => router.push(`/auth/register?plan=${billingCycle === 'weekly' ? 'VOICE_WEEKLY' : 'VOICE_MONTHLY'}`)}
+                     className="w-full py-4 bg-primary hover:bg-blue-600 text-white font-bold rounded-xl transition-all shadow-lg shadow-primary/20 uppercase text-xs tracking-widest"
+                   >
+                     Empezar Ahora
+                   </button>
+                </div>
+
+                {/* CARD 2: PRESENCIA DE IMPACTO */}
+                <div className="bg-surface-dark border border-purple-500/30 rounded-3xl p-8 hover:border-purple-500/80 transition-all group relative overflow-hidden shadow-2xl shadow-purple-900/10">
+                   <div className="absolute top-0 right-0 bg-purple-600 text-white text-[9px] px-3 py-1 font-bold uppercase rounded-bl-xl shadow-lg">Recomendado</div>
+                   <div className="mb-6">
+                      <span className="text-purple-400 text-xs font-bold uppercase tracking-widest">Opción 02</span>
+                      <h3 className="text-2xl font-black text-white mt-2">Presencia de Impacto</h3>
+                      <p className="text-gray-400 text-sm mt-2">Comunicación 360°: Voz + Lenguaje Corporal y Gestos.</p>
+                   </div>
+                   
+                   <div className="bg-background-dark/50 rounded-2xl p-6 mb-6 border border-gray-800/50">
+                      <div className="flex items-baseline gap-1">
+                         <span className="text-4xl font-black text-white">${billingCycle === 'weekly' ? '9' : '29'}</span>
+                         <span className="text-sm text-gray-500 font-bold uppercase">/{billingCycle === 'weekly' ? 'sem' : 'mes'}</span>
+                      </div>
+                      <p className="text-xs text-purple-400 mt-2 font-bold">
+                        {billingCycle === 'weekly' ? '70 Análisis (Video+Voz)' : '250 Análisis + Coach IA 24/7'}
+                      </p>
+                   </div>
+
+                   <button 
+                     onClick={() => router.push(`/auth/register?plan=${billingCycle === 'weekly' ? 'STARTER' : 'PREMIUM'}`)}
+                     className="w-full py-4 bg-gradient-to-r from-purple-600 to-indigo-600 hover:scale-[1.02] text-white font-bold rounded-xl transition-all shadow-lg shadow-purple-900/40 uppercase text-xs tracking-widest"
+                   >
+                     Obtener Acceso Total
+                   </button>
+                </div>
+             </div>
+          </div>
+
         </div>
       </main>
     );
@@ -146,6 +234,50 @@ export default function LandingPage() {
           <OptionButton icon="record_voice_over" label="Muletillas (eh, estem...)" active={formData.goal === "fillers"} onClick={() => handleNext("goal", "fillers")} />
           <OptionButton icon="speed" label="Hablo muy rápido" active={formData.goal === "speed"} onClick={() => handleNext("goal", "speed")} />
           <OptionButton icon="psychology" label="No sé estructurar mis ideas" active={formData.goal === "structure"} onClick={() => handleNext("goal", "structure")} />
+        </div>
+      </QuizLayout>
+    );
+  }
+
+  if (step === "voice-check") {
+    return (
+      <QuizLayout 
+        title="Escuchemos tu voz" 
+        subtitle="Analizaremos tu tono, ritmo y claridad en 10 segundos."
+        progress={80}
+        onBack={() => setStep("goal")}
+      >
+        <div className="w-full flex flex-col items-center">
+            {/* Aquí integraremos un mini-grabador premium */}
+            <div className="w-full bg-slate-900/50 border border-slate-700 rounded-[32px] p-10 flex flex-col items-center text-center gap-6 animate-fade-in relative overflow-hidden">
+               {/* Background effect */}
+               <div className="absolute top-0 left-0 w-full h-1 bg-gradient-to-r from-blue-500 via-purple-500 to-blue-500 opacity-30"></div>
+               
+               <div className="size-28 bg-blue-600/10 rounded-full flex items-center justify-center border-2 border-blue-500/20 shadow-[0_0_40px_-5px_rgba(59,130,246,0.3)] mb-2 relative group">
+                 <div className="absolute inset-0 bg-blue-500/5 rounded-full animate-ping"></div>
+                 <span className="material-symbols-outlined text-5xl text-blue-500 relative z-10 transition-transform group-hover:scale-110">mic</span>
+               </div>
+               
+               <div className="space-y-3">
+                  <h4 className="text-white font-black text-2xl tracking-tighter uppercase italic text-transparent bg-clip-text bg-gradient-to-r from-blue-400 to-purple-400">Neural Voice Check</h4>
+                  <p className="text-slate-400 text-sm leading-relaxed max-w-[240px] mx-auto">
+                    Habla de forma natural. Nuestra IA identificará tus muletillas y patrones de seguridad.
+                  </p>
+               </div>
+               
+               <button 
+                onClick={handleVoiceComplete}
+                className="w-full mt-4 px-10 py-5 bg-gradient-to-r from-blue-600 to-blue-500 hover:from-blue-500 hover:to-blue-400 text-white font-black rounded-2xl transition-all shadow-xl shadow-blue-600/20 active:scale-[0.98] flex items-center justify-center gap-3 uppercase tracking-widest text-xs"
+               >
+                 INICIAR ANÁLISIS VOCAL
+                 <span className="material-symbols-outlined text-sm">arrow_forward</span>
+               </button>
+               
+               <p className="text-[10px] text-slate-500 font-bold uppercase tracking-[0.2em] flex items-center gap-2">
+                 <span className="w-1.5 h-1.5 rounded-full bg-emerald-500"></span>
+                 Solo Audio • Privacidad Protegida
+               </p>
+            </div>
         </div>
       </QuizLayout>
     );

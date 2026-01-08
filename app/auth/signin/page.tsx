@@ -62,14 +62,14 @@ export default function SignInPage() {
   };
 
   return (
-    <main className="min-h-screen bg-background-dark text-white font-display flex flex-col items-center justify-center p-6 relative overflow-hidden">
+    <main className="min-h-[100dvh] bg-background-dark text-white font-display flex flex-col items-center justify-center p-6 relative overflow-hidden pt-safe">
       {/* Background Decor */}
       <div className="absolute top-0 left-0 w-full h-full overflow-hidden pointer-events-none z-0">
         <div className="absolute top-1/4 -left-32 w-96 h-96 bg-primary/20 rounded-full blur-[100px]" />
         <div className="absolute bottom-1/4 -right-32 w-96 h-96 bg-purple-500/20 rounded-full blur-[100px]" />
       </div>
 
-      <div className="w-full max-w-md bg-surface-dark border border-[#3b4754] rounded-2xl p-8 z-10 shadow-2xl">
+      <div className="mobile-container bg-surface-dark border border-[#3b4754] rounded-2xl p-8 z-10 shadow-2xl">
         <div className="flex flex-col items-center gap-2 mb-8 text-center">
           <div className="mb-4 text-center">
             <h1 className="text-3xl font-bold tracking-tight uppercase text-white mb-2">

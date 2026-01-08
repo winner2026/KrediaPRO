@@ -16,8 +16,8 @@ export default function HistoryView({ videos, books, sessions }: HistoryViewProp
   const [email, setEmail] = useState("");
 
   return (
-    <main className="min-h-screen bg-background-light dark:bg-background-dark font-display antialiased text-gray-900 dark:text-white flex justify-center">
-        <div className="relative w-full max-w-md bg-background-light dark:bg-background-dark flex flex-col min-h-screen shadow-xl pb-24">
+    <main className="min-h-[100dvh] bg-background-light dark:bg-background-dark font-display antialiased text-gray-900 dark:text-white flex justify-center">
+        <div className="relative mobile-container bg-background-light dark:bg-background-dark flex flex-col min-h-[100dvh] shadow-xl pb-24 px-0">
             
             {/* Top App Bar */}
             <header className="sticky top-0 z-50 flex items-center justify-between p-4 bg-background-light/95 dark:bg-background-dark/95 backdrop-blur-md border-b border-gray-200 dark:border-gray-800">

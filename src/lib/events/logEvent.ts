@@ -39,6 +39,8 @@ export type EventName =
   | "mic_error"
   | "exercise_started"
   | "result_shared"
+  | "voice_test_started"
+  | "voice_test_completed"
   | "history_viewed";
 
 export type EventMetadata = {

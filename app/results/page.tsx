@@ -1,6 +1,7 @@
 "use client";
 
 import { useRouter } from "next/navigation";
+import Link from "next/link";
 import { useEffect, useState } from "react";
 import { logEvent } from "@/lib/events/logEvent";
 import { recordPractice } from "@/lib/streaks/streakSystem";
@@ -89,7 +90,7 @@ export default function ResultsPage() {
   const postura = result.postureMetrics?.postureScore || 0;
 
   return (
-    <main className="min-h-screen bg-[#050505] text-white font-display overflow-x-hidden antialiased flex justify-center selection:bg-blue-500/30">
+    <main className="min-h-[100dvh] bg-[#050505] text-white font-display overflow-x-hidden antialiased flex justify-center selection:bg-blue-500/30">
       
       {/* 🌌 DYNAMIC BACKGROUND */}
       <div className="fixed inset-0 z-0">
@@ -98,7 +99,7 @@ export default function ResultsPage() {
         <div className="absolute inset-0 bg-[url('/grid.svg')] opacity-[0.03] pointer-events-none" />
       </div>
 
-      <div className="relative z-10 w-full max-w-md bg-transparent flex flex-col min-h-screen">
+      <div className="relative z-10 mobile-container flex flex-col min-h-[100dvh] px-0">
         
         {/* Header (Glassmorphism) */}
         <div className="flex items-center p-4 justify-between sticky top-0 z-50 bg-[#050505]/40 backdrop-blur-xl border-b border-white/5">
@@ -227,7 +228,7 @@ export default function ResultsPage() {
             </section>
 
             {/* CUERPO Y PRESENCIA */}
-            {result.postureMetrics && (
+            {result.postureMetrics ? (
               <section id="detailed-body" className="space-y-4">
                 <h3 className="text-xs font-bold text-purple-400 uppercase tracking-widest pl-1">Cuerpo & Presencia</h3>
                 <div className="bg-white/[0.02] rounded-[24px] border border-white/5 p-5 space-y-4 backdrop-blur-sm">
@@ -243,6 +244,31 @@ export default function ResultsPage() {
                     desc="Movimiento de manos para ilustrar ideas." 
                     status={ result.postureMetrics.gesturesUsage === 'optimal' ? 'optimo' : 'bajo' }
                   />
+                </div>
+              </section>
+            ) : (
+              <section id="detailed-body" className="space-y-4 animate-fade-in">
+                <h3 className="text-xs font-bold text-slate-500 uppercase tracking-widest pl-1">Cuerpo & Presencia</h3>
+                <div className="bg-gradient-to-br from-white/[0.03] to-purple-500/[0.05] rounded-[24px] border border-white/5 p-8 flex flex-col items-center text-center gap-4 backdrop-blur-md relative overflow-hidden group">
+                  {/* Decorative background circle */}
+                  <div className="absolute -top-10 -right-10 size-32 bg-purple-500/10 rounded-full blur-3xl group-hover:bg-purple-500/20 transition-all duration-700"></div>
+                  
+                  <div className="size-14 bg-purple-500/20 rounded-full flex items-center justify-center text-purple-400 mb-1 border border-purple-500/30">
+                    <span className="material-symbols-outlined text-3xl">lock</span>
+                  </div>
+                  
+                  <div className="space-y-2">
+                    <h4 className="text-white font-black text-lg">Análisis de Postura Bloqueado</h4>
+                    <p className="text-gray-400 text-xs leading-relaxed max-w-[240px] mx-auto">
+                      Has realizado un <b>Test de Voz Flash</b>. Para analizar tu contacto visual y gestos, inicia una Sesión Completa.
+                    </p>
+                  </div>
+                  
+                  <Link href="/practice" className="w-full mt-2">
+                    <button className="w-full py-4 bg-purple-600 hover:bg-purple-500 text-white text-[10px] font-black rounded-2xl transition-all shadow-lg shadow-purple-600/20 tracking-widest uppercase">
+                      PROBAR ANÁLISIS DE VIDEO
+                    </button>
+                  </Link>
                 </div>
               </section>
             )}

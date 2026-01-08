@@ -21,20 +21,16 @@ const handler = NextAuth({
         if (!credentials?.email || !credentials?.password) return null;
         
         try {
-          // Dynamic imports to avoid build-time issues
-          const { db } = await import("@/infrastructure/db/client");
+          const { prisma } = await import("@/infrastructure/db/client");
           const bcrypt = await import("bcryptjs");
           
-          const res = await db.query(
-            "SELECT id, email, name, image, password_hash FROM users WHERE email = $1",
-            [credentials.email]
-          );
+          const user = await prisma.user.findUnique({
+            where: { email: credentials.email }
+          });
           
-          const user = res.rows[0];
+          if (!user || !user.passwordHash) return null;
           
-          if (!user || !user.password_hash) return null;
-          
-          const isValid = await bcrypt.compare(credentials.password, user.password_hash);
+          const isValid = await bcrypt.compare(credentials.password, user.passwordHash);
           
           if (!isValid) return null;
           
@@ -52,33 +48,39 @@ const handler = NextAuth({
     })
   ],
   pages: {
-    signIn: "/auth/signin",
+    signIn: "/auth/login",
   },
   callbacks: {
+    async session({ session, token }) {
+      if (session.user) {
+        (session.user as any).id = token.sub;
+      }
+      return session;
+    },
     async signIn({ user, account, profile }) {
-      // Credentials login doesn't need external profile sync
       if (account?.provider === "credentials") return true;
 
       if (account?.provider === "google") {
         try {
-          const { db } = await import("@/infrastructure/db/client");
+          const { prisma } = await import("@/infrastructure/db/client");
           
-          const googleProfile = profile as { sub?: string; email?: string; name?: string; picture?: string } | undefined;
-          const userId = user.id || googleProfile?.sub || "";
-          const userEmail = googleProfile?.email || user.email || "";
-          const userName = googleProfile?.name || user.name || "";
-          const userImage = googleProfile?.picture || user.image || "";
+          const userEmail = user.email || "";
+          const userName = user.name || "";
+          const userImage = user.image || "";
 
-          if (userId && userEmail) {
-            await db.query(`
-              INSERT INTO users (id, email, name, image, last_login)
-              VALUES ($1, $2, $3, $4, NOW())
-              ON CONFLICT (id) DO UPDATE SET
-                email = EXCLUDED.email,
-                name = EXCLUDED.name,
-                image = EXCLUDED.image,
-                last_login = NOW();
-            `, [userId, userEmail, userName, userImage]);
+          if (userEmail) {
+            await prisma.user.upsert({
+              where: { email: userEmail },
+              update: {
+                name: userName,
+                image: userImage,
+              },
+              create: {
+                email: userEmail,
+                name: userName,
+                image: userImage,
+              }
+            });
           }
         } catch (error) {
           console.error("Error in signIn callback:", error);

@@ -2,7 +2,7 @@
  * Plan types for Free and Premium tiers
  */
 
-export type PlanType = "FREE" | "STARTER" | "PREMIUM" | "COACHING";
+export type PlanType = "FREE" | "STARTER" | "PREMIUM" | "COACHING" | "VOICE_WEEKLY" | "VOICE_MONTHLY";
 
 export type PlanFeatures = {
   maxAnalyses: number; // -1 = unlimited (Premium)

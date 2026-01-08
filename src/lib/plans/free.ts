@@ -39,7 +39,7 @@ export const PREMIUM_PLAN: Plan = {
   type: "PREMIUM",
   features: {
     maxAnalysesPerWeek: -1, // Ilimitado
-    maxAnalysesPerMonth: 100, // Límite de rentabilidad
+    maxAnalysesPerMonth: 100, // Límite solicitado por el usuario
     maxAnalyses: -1,
     hasHistory: true,
     hasHistoryLimit: -1, // Sin límite

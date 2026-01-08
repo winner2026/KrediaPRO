@@ -37,7 +37,18 @@ export async function GET(req: NextRequest) {
       SELECT count(*)::int as count FROM events WHERE event = 'result_shared'
     ` as { count: number }[];
 
-    // 6. Calcular % de Conversión
+
+    // 6. Promedio de uso por Plan
+    const avgUsageByPlan = await prisma.$queryRaw`
+      SELECT 
+        plan_type as plan, 
+        CAST(AVG(total_analyses) AS DECIMAL(10,1)) as avg_usage,
+        COUNT(*) as count
+      FROM usage
+      GROUP BY plan_type
+    `;
+
+    // 7. Calcular % de Conversión
     const conversionRate = totalUsers > 0 ? (premiumUsers / totalUsers) * 100 : 0;
     const activationRate = totalUsers > 0 ? (activeUsers / totalUsers) * 100 : 0;
 
@@ -50,6 +61,7 @@ export async function GET(req: NextRequest) {
       resultsShared: resultsShared[0]?.count || 0,
       conversionRate: `${conversionRate.toFixed(2)}%`,
       activationRate: `${activationRate.toFixed(2)}%`,
+      avgUsageByPlan,
       timestamp: new Date().toISOString()
     });
   } catch (error) {

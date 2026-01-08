@@ -67,7 +67,7 @@ export async function POST(req: NextRequest) {
         console.log(`[ANALYSIS] 🚫 LIMIT REACHED (${usageCheck.reason}):`, fingerprint);
         
         const messages = {
-          FREE_LIMIT_REACHED: 'Has alcanzado tu límite gratuito semanal (3 análisis). ¡Pásate a Premium para seguir practicando!',
+          FREE_LIMIT_REACHED: 'Has alcanzado tu límite gratuito (3 análisis). ¡Pásate a Premium para seguir practicando!',
           STARTER_LIMIT_REACHED: 'Has agotado tus 10 análisis del plan Starter. Es hora de subir a Premium.',
           PREMIUM_LIMIT_REACHED: 'Has alcanzado el límite de uso justo de 100 análisis este mes. El acceso se reseteará el día 1.',
           DB_ERROR: 'Error de servidor'
@@ -139,6 +139,7 @@ export async function POST(req: NextRequest) {
 
     // Análisis real con OpenAI
     console.log('[ANALYSIS] 🔄 Starting real analysis...');
+    const startTime = Date.now(); // ⏱️ Inicio del cronómetro
 
     // Importar dinámicamente para no cargar dependencias pesadas si falló validación previa
     const { analyzeVoiceUseCase } = await import('@/application/analyzeVoice/analyzeVoiceUseCase');
@@ -150,6 +151,15 @@ export async function POST(req: NextRequest) {
       audioBuffer,
       userId: undefined,
     });
+
+    const duration = (Date.now() - startTime) / 1000; // Duración en segundos
+    console.log(`[PERFORMANCE] Analysis took ${duration.toFixed(2)}s`);
+
+    // ⚠️ ALERTA DE RENDIMIENTO
+    if (duration > 8) {
+      console.warn(`[WARNING] Slow analysis detected (${duration.toFixed(2)}s). Close to Vercel Hobby limit (10s). Consider upgrading to Pro if this persists.`);
+      // Aquí podrías guardar este evento en una tabla 'events' para verlo en el dashboard
+    }
 
     // 📊 INCREMENTAR USO (Safe)
     console.log('[ANALYSIS] 🔄 Incrementing usage...');
@@ -166,6 +176,10 @@ export async function POST(req: NextRequest) {
     console.log('[ANALYSIS] ✓ Analysis complete!');
     return NextResponse.json({
       success: true,
+      performance: {
+        durationSeconds: duration,
+        isSlow: duration > 8
+      },
       data: {
         transcription: result.transcription,
         transcriptionWithSilences: result.transcriptionWithSilences,

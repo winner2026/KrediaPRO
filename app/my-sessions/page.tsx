@@ -26,6 +26,13 @@ interface Stats {
   evolution: { date: string; score: number; level: string }[];
 }
 
+interface Usage {
+  current: number;
+  limit: number;
+  resetDate?: string;
+  isLimitReached: boolean;
+}
+
 const levelColors = {
   LOW: 'bg-red-500',
   MEDIUM: 'bg-amber-500',
@@ -41,6 +48,7 @@ const levelLabels = {
 export default function MySessionsPage() {
   const [sessions, setSessions] = useState<Session[]>([]);
   const [stats, setStats] = useState<Stats | null>(null);
+  const [usage, setUsage] = useState<Usage | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [selectedSession, setSelectedSession] = useState<Session | null>(null);
@@ -55,6 +63,7 @@ export default function MySessionsPage() {
         if (data.success) {
           setSessions(data.data.sessions);
           setStats(data.data.stats);
+          setUsage(data.data.usage);
         } else {
           setError(data.error || 'Error desconocido');
         }
@@ -88,7 +97,7 @@ export default function MySessionsPage() {
   }
 
   return (
-    <div className="min-h-screen bg-slate-950 text-white pb-24">
+    <div className="min-h-[100dvh] bg-slate-950 text-white pb-24 font-display">
       {/* Header */}
       <header className="fixed top-0 w-full z-40 bg-slate-950/80 backdrop-blur-md border-b border-slate-800">
         <div className="max-w-2xl mx-auto px-6 h-16 flex items-center justify-between">
@@ -100,7 +109,7 @@ export default function MySessionsPage() {
         </div>
       </header>
 
-      <main className="pt-24 px-6 max-w-2xl mx-auto space-y-8 animate-fade-in">
+      <main className="pt-24 mobile-container space-y-8 animate-fade-in">
         
         {error && (
           <div className="bg-red-900/50 border border-red-500 rounded-xl p-4 text-center">
@@ -137,6 +146,44 @@ export default function MySessionsPage() {
                 <p className="text-4xl font-black text-blue-400">{stats.avgScore}</p>
               </div>
             </div>
+
+            {/* Plan Usage Card */}
+            {usage && (
+              <div className="bg-slate-900 rounded-2xl p-6 border border-slate-800">
+                <div className="flex justify-between items-center mb-2">
+                   <h3 className="text-lg font-bold">Tu Actividad</h3>
+                   {usage.limit === -1 
+                     ? <span className="text-xs bg-emerald-500/20 text-emerald-400 px-2 py-1 rounded font-bold uppercase">Ilimitado</span>
+                     : <span className="text-xs text-slate-400">Renueva: {usage.resetDate ? new Date(usage.resetDate).toLocaleDateString() : 'Pronto'}</span>
+                   }
+                </div>
+                
+                {usage.limit !== -1 ? (
+                  <div className="space-y-2">
+                    <div className="flex justify-between text-sm">
+                       <span className="text-slate-400">Análisis realizados</span>
+                       <span className="font-mono text-white">{usage.current}</span>
+                    </div>
+                    {/* Barra visual sutil para feedback, sin números explícitos */}
+                    <div className="h-1.5 bg-slate-800 rounded-full overflow-hidden mt-2">
+                       <div 
+                         className={`h-full transition-all duration-1000 ${
+                           usage.isLimitReached ? 'bg-red-500' : 'bg-blue-500'
+                         }`}
+                         style={{ width: `${Math.min((usage.current / usage.limit) * 100, 100)}%` }}
+                       />
+                    </div>
+                    {usage.isLimitReached && (
+                      <p className="text-xs text-red-400 mt-2 font-bold">
+                        Has alcanzado tu límite de uso justo. <Link href="/upgrade" className="underline">Ver opciones</Link>
+                      </p>
+                    )}
+                  </div>
+                ) : (
+                  <p className="text-emerald-400 text-sm">¡Tienes acceso total! Sigue practicando.</p>
+                )}
+              </div>
+            )}
 
             {/* Authority Distribution */}
             <div className="bg-slate-900 rounded-2xl p-6 border border-slate-800">

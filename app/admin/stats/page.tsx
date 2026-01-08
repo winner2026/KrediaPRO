@@ -12,6 +12,7 @@ interface Stats {
   technicalErrors: number;
   exerciseStarts: number;
   resultsShared: number;
+  avgUsageByPlan: any[];
 }
 
 export default function AdminStatsPage() {
@@ -39,7 +40,7 @@ export default function AdminStatsPage() {
   );
 
   return (
-    <main className="min-h-screen bg-slate-950 text-white p-6 md:p-12 font-display relative">
+    <main className="min-h-[100dvh] bg-slate-950 text-white p-6 md:p-12 font-display relative pt-safe">
       <div className="max-w-4xl mx-auto space-y-12">
         <header className="flex justify-between items-center">
           <div>
@@ -183,6 +184,82 @@ export default function AdminStatsPage() {
             />
           </div>
         </section>
+
+        {/* 4. RENTABILIDAD POR PLAN (CONSUMO) */}
+        {stats?.avgUsageByPlan && (stats.avgUsageByPlan as any[]).length > 0 && (
+          <section className="space-y-4">
+            <div className="flex items-center gap-2 mb-2">
+              <span className="material-symbols-outlined text-emerald-400">monetization_on</span>
+              <h2 className="text-sm font-bold uppercase tracking-widest text-slate-500">Rentabilidad (Uso vs Precio)</h2>
+            </div>
+            <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-4">
+              {(stats.avgUsageByPlan as any[]).map((plan: any) => {
+                // Definir límites para calcular la "salud" del margen
+                const limits: Record<string, number> = {
+                  'FREE': 3,
+                  'VOICE_WEEKLY': 55,
+                  'VOICE_MONTHLY': 120,
+                  'STARTER': 75,
+                  'PREMIUM': 300
+                };
+                
+                const limit = limits[plan.plan] || 100;
+                const usage = Number(plan.avg_usage);
+                const percentage = Math.min((usage / limit) * 100, 100);
+                
+                // Rentabilidad es inversa al uso:
+                // < 30% uso = Marginazo (Verde)
+                // < 70% uso = Saludable (Amarillo)
+                // > 70% uso = Margen Apretado (Naranja/Rojo)
+                let healthColor = 'bg-emerald-500';
+                let healthText = 'Excelente';
+                let textColor = 'text-emerald-400';
+                
+                if (percentage > 70) {
+                  healthColor = 'bg-red-500';
+                  healthText = 'Crítico';
+                  textColor = 'text-red-400';
+                } else if (percentage > 30) {
+                  healthColor = 'bg-amber-500';
+                  healthText = 'Saludable';
+                  textColor = 'text-amber-400';
+                }
+
+                return (
+                  <div key={plan.plan} className="bg-slate-900 border border-slate-800 p-6 rounded-2xl relative overflow-hidden group hover:border-slate-600 transition-all">
+                    <div className="flex justify-between items-start mb-4">
+                      <div>
+                         <p className="text-xs font-bold uppercase text-slate-500">{plan.plan}</p>
+                         <p className="text-[10px] text-slate-600">Base: {Number(plan.count)} usuarios</p>
+                      </div>
+                      <span className={`text-[10px] font-bold px-2 py-1 rounded border bg-slate-950 ${textColor} border-slate-700`}>
+                        {healthText}
+                      </span>
+                    </div>
+
+                    <div className="flex items-baseline gap-1 mb-2">
+                      <p className="text-3xl font-black text-white">{plan.avg_usage}</p>
+                      <span className="text-xs text-slate-500">/ {limit} máx</span>
+                    </div>
+
+                    {/* Barra de Consumo */}
+                    <div className="space-y-1">
+                      <div className="h-2 bg-slate-800 rounded-full overflow-hidden">
+                        <div 
+                           className={`h-full ${healthColor} transition-all duration-1000`}
+                           style={{ width: `${percentage}%` }}
+                        />
+                      </div>
+                      <p className="text-[10px] text-right text-slate-500">
+                        {percentage.toFixed(0)}% del cupo usado
+                      </p>
+                    </div>
+                  </div>
+                );
+              })}
+            </div>
+          </section>
+        )}
 
       </div>
     </main>

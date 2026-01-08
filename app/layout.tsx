@@ -4,7 +4,14 @@ import "./globals.css";
 export const metadata = {
   title: "Oratoria Efectiva",
   description: "Mejora tu forma de hablar y comunica con autoridad",
-  viewport: "width=device-width, initial-scale=1, viewport-fit=cover",
+  viewport: {
+    width: "device-width",
+    initialScale: 1,
+    maximumScale: 1,
+    userScalable: false,
+    viewportFit: "cover",
+  },
+  themeColor: "#020617", // Slate-950 depth
 };
 
 import { Providers } from "./providers";
