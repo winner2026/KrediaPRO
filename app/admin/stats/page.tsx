@@ -40,7 +40,7 @@ export default function AdminStatsPage() {
   );
 
   return (
-    <main className="min-h-[100dvh] bg-slate-950 text-white p-6 md:p-12 font-display relative pt-safe">
+    <main className="min-h-[100dvh] bg-slate-950 text-white p-6 md:p-12 pb-32 font-display relative pt-safe overflow-x-hidden">
       <div className="max-w-4xl mx-auto space-y-12">
         <header className="flex justify-between items-center">
           <div>
