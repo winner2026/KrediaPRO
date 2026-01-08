@@ -212,6 +212,16 @@ export default function UpgradePage() {
            </Link>
         </div>
 
+        <div className="mt-12 text-center text-[10px] text-slate-500 max-w-lg mx-auto leading-relaxed">
+          <p>
+            * El índice de autoridad se calcula algorítmicamente y no sustituye el consejo profesional. 
+          </p>
+          <p className="mt-2">
+            ** Política de Devolución: El Pase Semanal es un producto digital de consumo inmediato. 
+            Al adquirirlo, renuncias al derecho de desistimiento una vez que hayas realizado tu primer análisis con créditos de pago.
+            <br/>Las suscripciones mensuales (Voz Pro) tienen garantía de satisfacción de 7 días.
+          </p>
+        </div>
       </div>
     </main>
   );

@@ -16,40 +16,95 @@ interface Stats {
 }
 
 export default function AdminStatsPage() {
-  const [stats, setStats] = useState<Stats | null>(null);
+  const [stats, setStats] = useState<any>(null);
   const [loading, setLoading] = useState(true);
   const [explanation, setExplanation] = useState<{title: string, text: string} | null>(null);
+  const [isAuthenticated, setIsAuthenticated] = useState(false);
+  const [inputKey, setInputKey] = useState("");
 
   useEffect(() => {
-    fetch("/api/admin/stats")
-      .then(res => res.json())
-      .then(data => {
-        setStats(data);
-        setLoading(false);
-      })
-      .catch(err => {
-        console.error(err);
-        setLoading(false);
-      });
+    const savedKey = localStorage.getItem("admin_secret_key");
+    if (savedKey) {
+       loadMetrics(savedKey);
+    } else {
+       setLoading(false);
+    }
   }, []);
 
-  if (loading) return (
-    <div className="min-h-screen bg-slate-950 flex items-center justify-center text-white">
-      <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-white"></div>
-    </div>
-  );
+  const loadMetrics = async (key: string) => {
+    setLoading(true);
+    try {
+      const res = await fetch('/api/admin/stats', {
+         headers: {
+            'x-admin-key': key
+         }
+      });
+      
+      if (res.status === 401) {
+          alert("Clave incorrecta o expirada");
+          localStorage.removeItem("admin_secret_key");
+          setIsAuthenticated(false);
+      } else if (res.ok) {
+          const data = await res.json();
+          setStats(data);
+          setIsAuthenticated(true);
+      }
+    } catch (e) {
+      console.error(e);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const handleLogin = (e: React.FormEvent) => {
+      e.preventDefault();
+      localStorage.setItem("admin_secret_key", inputKey);
+      loadMetrics(inputKey);
+  };
+
+  if (!isAuthenticated && !loading) {
+      return (
+          <div className="min-h-screen bg-slate-950 flex items-center justify-center p-4">
+              <form onSubmit={handleLogin} className="bg-slate-900 p-8 rounded-2xl border border-slate-800 w-full max-w-sm">
+                  <h2 className="text-xl font-bold text-white mb-6">Acceso Restringido</h2>
+                  <input 
+                    type="password" 
+                    value={inputKey}
+                    onChange={(e) => setInputKey(e.target.value)}
+                    placeholder="Admin Secret Key"
+                    className="w-full bg-slate-950 border border-slate-700 rounded-lg px-4 py-3 text-white mb-4"
+                  />
+                  <button type="submit" className="w-full bg-blue-600 hover:bg-blue-500 text-white font-bold py-3 rounded-lg">
+                      Entrar
+                  </button>
+              </form>
+          </div>
+      );
+  }
+
+  if (loading) return <div className="p-10 text-center text-slate-500">Cargando métricas...</div>;
+  if (!stats) return null;
 
   return (
-    <main className="min-h-[100dvh] bg-slate-950 text-white p-6 md:p-12 pb-32 font-display relative pt-safe overflow-x-hidden">
-      <div className="max-w-4xl mx-auto space-y-12">
-        <header className="flex justify-between items-center">
+    <main className="min-h-screen bg-slate-950 text-white font-display pb-32 overflow-x-hidden">
+      <div className="max-w-6xl mx-auto p-6 md:p-12">
+        
+        <header className="flex items-center justify-between mb-12">
           <div>
-            <h1 className="text-3xl font-black">Panel de Crecimiento</h1>
-            <p className="text-slate-400">Estado de salud del negocio en tiempo real</p>
+            <h1 className="text-3xl font-bold mb-2">Startup Dashboard</h1>
+            <p className="text-slate-400">Métricas clave para validación Lean</p>
           </div>
-          <Link href="/listen">
-            <button className="px-4 py-2 bg-slate-800 rounded-lg text-sm hover:bg-slate-700 transition-colors">Volver</button>
-          </Link>
+          <div className="flex gap-2">
+             <button onClick={() => {
+                 localStorage.removeItem("admin_secret_key");
+                 window.location.reload();
+             }} className="px-4 py-2 bg-slate-800 rounded-lg text-xs font-bold text-red-400">
+                 Salir
+             </button>
+             <div className="px-4 py-2 bg-green-500/10 text-green-400 rounded-lg text-xs font-bold uppercase tracking-wider">
+               Live Data
+             </div>
+          </div>
         </header>
 
         {/* Modal de Explicación */}

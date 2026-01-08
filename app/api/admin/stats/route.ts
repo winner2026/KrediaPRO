@@ -1,11 +1,20 @@
 export const runtime = "nodejs";
 
-import { NextResponse } from 'next/server';
+import { NextResponse, NextRequest } from 'next/server';
 import { prisma } from '@/infrastructure/db/client';
 
-export async function GET() {
+export async function GET(req: NextRequest) {
   try {
-    // 1. Basic Counts
+    // 🔒 ADMIN SECURITY GATE
+    const adminKey = req.headers.get("x-admin-key");
+    const secret = process.env.ADMIN_SECRET_KEY;
+
+    if (!secret || adminKey !== secret) {
+       console.error("[ADMIN] Intento de acceso no autorizado");
+       return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+    }
+
+    // 1. Fetch Basic Metrics
     const totalUsers = await prisma.user.count();
     const totalSessions = await prisma.voiceSession.count();
 

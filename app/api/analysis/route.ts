@@ -41,11 +41,42 @@ export async function POST(req: NextRequest) {
     }
 
     // 🔐 GENERAR FINGERPRINT ROBUSTO
+    // 🔐 GENERAR FINGERPRINT ROBUSTO
     const ip = getClientIP(req.headers, (req as { ip?: string }).ip);
     const userAgent = normalizeUserAgent(req.headers.get('user-agent'));
     const fingerprint = generateFingerprint(userId, ip, userAgent);
 
-    console.log('[ANALYSIS] ✓ Audio file:', audioFile.name, audioFile.size, 'bytes');
+    // 🛡️ RATE LIMITING (VELOCITY CHECK) - Escudo Financiero para Usuarios Registrados
+    // Anónimos ya están limitados a 3 totales por el checkUsage posterior.
+    if (userId) {
+        const oneHourAgo = new Date(Date.now() - 60 * 60 * 1000);
+        
+        const recentSessions = await prisma.voiceSession.count({
+          where: {
+            userId: userId,
+            createdAt: { gte: oneHourAgo }
+          }
+        });
+
+        if (recentSessions >= 15) { // Damos un poco más de margen a registrados (15/hora)
+          console.warn(`[SECURITY] Rate Limit Exceeded for User ${userId}`);
+          return NextResponse.json(
+            { error: 'Estás analizando muy rápido. Tómate un respiro.' },
+            { status: 429 }
+          );
+        }
+    }
+    
+    // 🔒 SECURTY CHECK: FILE SIZE LIMIT (ANTIHACKER)
+    // 60s of WebM Opus audio usually < 1MB. We set 3MB limit as safety buffer.
+    const MAX_SIZE_BYTES = 3 * 1024 * 1024; // 3MB
+    if (audioFile.size > MAX_SIZE_BYTES) {
+        console.error(`[SECURITY] Archivo rechazado por exceso de tamaño: ${(audioFile.size / 1024 / 1024).toFixed(2)}MB`);
+        return NextResponse.json(
+            { error: 'El audio excede el límite de 60 segundos permitido.' },
+            { status: 413 } // HTTP 413 Payload Too Large
+        );
+    }
 
     if (audioFile.size === 0) {
       return NextResponse.json({ error: 'Audio vacío' }, { status: 400 });
