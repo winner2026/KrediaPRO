@@ -426,8 +426,8 @@ export default function SmartPiano({ onClose, isStandalone = false }: { onClose?
                                     </Link>
                                 )}
                     {/* Piano Keys Container */}
-                     <div className="flex-1 bg-[#101418] relative overflow-x-auto custom-scrollbar flex items-start sm:items-center p-2 sm:p-4 snap-x snap-mandatory">
-                          <div className="flex relative h-48 sm:h-64 select-none mx-auto min-w-max landscape:h-[calc(100vh-140px)]">
+                     <div className="flex-1 bg-[#101418] relative overflow-x-auto custom-scrollbar flex items-start sm:items-center py-4 snap-x snap-mandatory">
+                          <div className="flex relative h-48 sm:h-64 select-none min-w-max px-[25vw] sm:px-0 landscape:h-[calc(100vh-140px)]">
                               {NOTES.map((n, i) => {
                                   const isSafe = safeRange && i >= safeRange[0] && i <= safeRange[1];
                                   const isActive = activeNote === n.note;
