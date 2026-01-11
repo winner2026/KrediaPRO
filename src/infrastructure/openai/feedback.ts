@@ -4,6 +4,12 @@ import OpenAI from "openai";
 export type DynamicFeedbackInput = {
   transcript: string;
   metrics: VoiceMetrics;
+  exerciseContext?: {
+    id: string;
+    title: string;
+    goal: string;
+    metrics: string[];
+  };
 };
 
 export type DynamicFeedbackOutput = {
@@ -43,6 +49,17 @@ DATOS DUROS (MÉTRICAS):
 - Entonación Descendente: ${input.metrics.fallingIntonationScore ?? 'N/A'}% (Alto=Autoridad).
 - Muletillas: ${input.metrics.fillerCount}.
 - Frases Largas: ${input.metrics.longSentences}.
+
+${input.exerciseContext ? `
+CONTEXTO DEL EJERCICIO (CRÍTICO - PRIORIDAD MÁXIMA):
+- El usuario está realizando el ejercicio: "${input.exerciseContext.title}".
+- OBJETIVO PRINCIPAL: ${input.exerciseContext.goal}.
+- MÉTRICAS CLAVE A OBSERVAR: ${input.exerciseContext.metrics.join(", ")}.
+
+IMPORTANTE: Evalúa si el usuario CUMPLIÓ este objetivo específico.
+- Si el objetivo era "pausas", ignora si la entonación fue plana, juzga las pausas.
+- Si el objetivo era "articulación", castiga severamente si no se entiende.
+` : 'CONTEXTO: Discurso libre (Freestyle). Evalúa oratoria general.'}
 
 TAREA 1: DIAGNÓSTICO DE ENTREGA
 - Evalúa seguridad y claridad basándote en las métricas.

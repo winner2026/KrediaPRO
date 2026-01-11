@@ -1,11 +1,13 @@
 /**
  * PROTOCOLO DE 30 DÍAS: BIO-CALIBRACIÓN MENSUAL ("SANTIAGO")
  * 
- * Estructura:
- * - Título Técnico: Lenguaje de alto rendimiento.
- * - Bio-Hack: Ejercicio físico corto (2 mins max).
- * - Ciencia: Justificación neurobiológica.
+ * Sistema de gating por plan:
+ * - FREE: 7 días (HARDWARE)
+ * - STARTER: 21 días (HARDWARE + SOFTWARE + SYSTEM)
+ * - PREMIUM: 30 días (Protocolo completo)
  */
+
+import { PlanType, PLAN_CONFIGS, migrateLegacyPlan } from "@/types/Plan";
 
 export interface DailyProtocol {
   day: number;
@@ -13,6 +15,15 @@ export interface DailyProtocol {
   title: string;
   action: string;
   science: string;
+}
+
+export interface ProtocolAccess {
+  protocol: DailyProtocol;
+  isLocked: boolean;
+  unlockPlan?: PlanType;
+  unlockPlanName?: string;
+  daysUntilUnlock?: number;
+  completionPercentage: number;
 }
 
 export const THIRTY_DAY_PROTOCOL: DailyProtocol[] = [
@@ -235,14 +246,78 @@ export const THIRTY_DAY_PROTOCOL: DailyProtocol[] = [
   }
 ];
 
-export function getDailyProtocol(): DailyProtocol {
-  // Lógica simple: Un procolo por día del mes (1-30)
-  // En producción, esto debería basarse en el "día de usuario" (días desde registro)
-  // Para MVP, usamos día del mes.
-  const dayOfMonth = new Date().getDate();
-  const index = (dayOfMonth - 1) % THIRTY_DAY_PROTOCOL.length;
-  return THIRTY_DAY_PROTOCOL[index];
+/**
+ * Obtiene el protocolo del día con lógica de gating por plan
+ */
+export function getDailyProtocol(
+  userPlan: string = 'FREE',
+  daysSinceStart?: number
+): ProtocolAccess {
+  // Migrar planes legacy
+  const planType = migrateLegacyPlan(userPlan) as PlanType;
+  const config = PLAN_CONFIGS[planType];
+  
+  // Si no se proporciona daysSinceStart, usar día del mes (MVP)
+  const currentDay = daysSinceStart ?? new Date().getDate();
+  
+  // Calcular índice del protocolo (ciclo de 30 días)
+  const protocolIndex = ((currentDay - 1) % THIRTY_DAY_PROTOCOL.length);
+  const protocol = THIRTY_DAY_PROTOCOL[protocolIndex];
+  
+  // Verificar si el usuario tiene acceso a este día
+  const maxDay = config.protocolDays;
+  const isLocked = currentDay > maxDay;
+  
+  // Calcular plan sugerido para desbloquear
+  let unlockPlan: PlanType | undefined;
+  let unlockPlanName: string | undefined;
+  
+  if (isLocked) {
+    if (planType === 'FREE') {
+      unlockPlan = currentDay <= 21 ? 'STARTER' : 'PREMIUM';
+      unlockPlanName = currentDay <= 21 ? 'Hábito de Alto Rendimiento' : 'Presencia Ejecutiva';
+    } else if (planType === 'STARTER') {
+      unlockPlan = 'PREMIUM';
+      unlockPlanName = 'Presencia Ejecutiva';
+    }
+  }
+  
+  // Calcular días hasta desbloqueo
+  const daysUntilUnlock = isLocked ? currentDay - maxDay : undefined;
+  
+  // Calcular porcentaje de completación
+  const completionPercentage = Math.min(100, Math.round((currentDay / maxDay) * 100));
+  
+  return {
+    protocol,
+    isLocked,
+    unlockPlan,
+    unlockPlanName,
+    daysUntilUnlock,
+    completionPercentage
+  };
 }
 
-// Mantener compatibilidad con llamadas legacy si las hay
+/**
+ * Obtiene estadísticas de progreso del usuario
+ */
+export function getProtocolStats(userPlan: string, currentDay: number) {
+  const planType = migrateLegacyPlan(userPlan) as PlanType;
+  const config = PLAN_CONFIGS[planType];
+  const maxDay = config.protocolDays;
+  
+  const completed = Math.min(currentDay, maxDay);
+  const remaining = Math.max(0, maxDay - currentDay);
+  const isComplete = currentDay >= maxDay;
+  
+  return {
+    completed,
+    remaining,
+    total: maxDay,
+    isComplete,
+    nextMilestone: isComplete ? null : maxDay
+  };
+}
+
+// Mantener compatibilidad con llamadas legacy
 export const DAILY_TIPS = THIRTY_DAY_PROTOCOL.map(p => `${p.title}: ${p.action}`);

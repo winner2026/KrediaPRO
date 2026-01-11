@@ -1,9 +1,6 @@
 // src/lib/usage/checkUsage.ts
-import { db } from "@/infrastructure/db/client";
-import { PlanType } from "@/types/Plan";
-import { FREE_PLAN } from "@/lib/plans/free";
-import { PREMIUM_PLAN } from "@/lib/plans/premium";
-import { STARTER_VIDEO_PLAN, VOICE_MONTHLY_PLAN, VOICE_WEEKLY_PLAN } from "@/lib/plans/tierDefinitions";
+import { prisma } from "@/infrastructure/db/client";
+import { PlanType, PLAN_CONFIGS, migrateLegacyPlan } from "@/types/Plan";
 
 export type UsageCheckResult = {
   allowed: boolean;
@@ -15,161 +12,89 @@ export type UsageCheckResult = {
 
 export async function checkUsage(userId: string): Promise<UsageCheckResult> {
   try {
-    const result = await db.query(
-      `SELECT 
-        total_analyses, 
-        weekly_analyses, 
-        monthly_analyses,
-        week_start,
-        month_start,
-        plan_type 
-      FROM usage 
-      WHERE user_id = $1`,
-      [userId]
-    );
+    // Get user's plan
+    const user = await prisma.user.findUnique({
+      where: { id: userId },
+      select: { plan: true }
+    });
 
-    if (result.rows.length === 0) {
-      // Nuevo usuario, permitimos
-      return {
-        allowed: true,
-        currentUsage: 0,
-        maxAllowed: 3, // Default free limit
-      };
-    }
+    const rawPlan = user?.plan || "FREE";
+    const planType = migrateLegacyPlan(rawPlan) as PlanType;
+    const config = PLAN_CONFIGS[planType];
 
-    const usage = result.rows[0];
-    const planType = (usage.plan_type || "FREE") as PlanType;
-    const now = new Date();
+    // Check TOTAL limit (for FREE plan)
+    if (config.maxAnalysesTotal !== -1) {
+      const totalUsage = await prisma.voiceSession.count({
+        where: { userId }
+      });
 
-    // 1. LÓGICA PARA FREE (Límite TOTAL de 3 análisis)
-    if (planType === "FREE") {
-      const totalUsage = usage.total_analyses || 0;
-      const max = FREE_PLAN.features.maxAnalyses; // Límite total
-      
-      if (totalUsage >= max) {
+      if (totalUsage >= config.maxAnalysesTotal) {
         return {
           allowed: false,
           reason: "FREE_LIMIT_REACHED",
           currentUsage: totalUsage,
-          maxAllowed: max
+          maxAllowed: config.maxAnalysesTotal
         };
       }
-      return { allowed: true, currentUsage: totalUsage, maxAllowed: max };
+
+      return {
+        allowed: true,
+        currentUsage: totalUsage,
+        maxAllowed: config.maxAnalysesTotal
+      };
     }
 
-    // 2. LÓGICA PARA VOICE_WEEKLY (Semanal)
-    if (planType === "VOICE_WEEKLY") {
-      const weekStart = new Date(usage.week_start);
-      const currentWeekStart = getWeekStart(now);
-      let weeklyUsage = usage.weekly_analyses || 0;
+    // Check MONTHLY limit (for STARTER and PREMIUM)
+    if (config.maxAnalysesPerMonth !== -1) {
+      const monthStart = getMonthStart(new Date());
+      
+      const monthlyUsage = await prisma.voiceSession.count({
+        where: {
+          userId,
+          createdAt: { gte: monthStart }
+        }
+      });
 
-      if (weekStart < currentWeekStart) weeklyUsage = 0;
-
-      const max = VOICE_WEEKLY_PLAN.features.maxAnalysesPerWeek;
-      if (weeklyUsage >= max) {
-         return {
-            allowed: false,
-            reason: "PREMIUM_LIMIT_REACHED",
-            currentUsage: weeklyUsage,
-            maxAllowed: max,
-            resetsAt: getNextMonday(now).toISOString()
-         };
-      }
-      return { allowed: true, currentUsage: weeklyUsage, maxAllowed: max };
-    }
-
-    // 3. LÓGICA PARA VOICE_MONTHLY
-    if (planType === "VOICE_MONTHLY") {
-      const monthStart = new Date(usage.month_start);
-      const currentMonthStart = getMonthStart(now);
-      let monthlyUsage = usage.monthly_analyses || 0;
-
-      if (monthStart < currentMonthStart) monthlyUsage = 0;
-
-      const max = VOICE_MONTHLY_PLAN.features.maxAnalysesPerMonth;
-      if (monthlyUsage >= max) {
+      if (monthlyUsage >= config.maxAnalysesPerMonth) {
         return {
           allowed: false,
-          reason: "PREMIUM_LIMIT_REACHED",
+          reason: planType === "STARTER" ? "STARTER_LIMIT_REACHED" : "PREMIUM_LIMIT_REACHED",
           currentUsage: monthlyUsage,
-          maxAllowed: max,
-          resetsAt: getNextMonthStart(now).toISOString()
+          maxAllowed: config.maxAnalysesPerMonth,
+          resetsAt: getNextMonthStart(new Date()).toISOString()
         };
       }
-      return { allowed: true, currentUsage: monthlyUsage, maxAllowed: max };
+
+      return {
+        allowed: true,
+        currentUsage: monthlyUsage,
+        maxAllowed: config.maxAnalysesPerMonth
+      };
     }
 
-    // 4. LÓGICA PARA STARTER (Presencia de Impacto Semanal)
-    if (planType === "STARTER") {
-      const weekStart = new Date(usage.week_start);
-      const currentWeekStart = getWeekStart(now);
-      let weeklyUsage = usage.weekly_analyses || 0;
-
-      if (weekStart < currentWeekStart) weeklyUsage = 0;
-
-      const max = STARTER_VIDEO_PLAN.features.maxAnalysesPerWeek;
-      if (weeklyUsage >= max) {
-         return {
-            allowed: false,
-            reason: "STARTER_LIMIT_REACHED",
-            currentUsage: weeklyUsage,
-            maxAllowed: max,
-            resetsAt: getNextMonday(now).toISOString()
-         };
-      }
-      return { allowed: true, currentUsage: weeklyUsage, maxAllowed: max };
-    }
-
-    // 5. LÓGICA PARA PREMIUM/ELITE (Mensual)
-    if (planType === "PREMIUM") {
-      const monthStart = new Date(usage.month_start);
-      const currentMonthStart = getMonthStart(now);
-      let monthlyUsage = usage.monthly_analyses || 0;
-      if (monthStart < currentMonthStart) monthlyUsage = 0;
-
-      const max = PREMIUM_PLAN.features.maxAnalysesPerMonth;
-      if (monthlyUsage >= max) {
-        return {
-          allowed: false,
-          reason: "PREMIUM_LIMIT_REACHED",
-          currentUsage: monthlyUsage,
-          maxAllowed: max,
-          resetsAt: getNextMonthStart(now).toISOString()
-        };
-      }
-      return { allowed: true, currentUsage: monthlyUsage, maxAllowed: max };
-    }
-
-    // Por defecto permitimos si el plan no está mapeado
-    return { allowed: true, currentUsage: 0, maxAllowed: -1 };
+    // Default: allow (shouldn't reach here with current config)
+    return {
+      allowed: true,
+      currentUsage: 0,
+      maxAllowed: -1
+    };
 
   } catch (error) {
     console.error("[CHECK_USAGE] Error:", error);
-    return { allowed: true, currentUsage: 0, maxAllowed: -1, reason: "DB_ERROR" };
+    // Fail-open: allow usage if DB error
+    return {
+      allowed: true,
+      currentUsage: 0,
+      maxAllowed: -1,
+      reason: "DB_ERROR"
+    };
   }
 }
 
-function getWeekStart(date: Date): Date {
-  const d = new Date(date);
-  const day = d.getUTCDay();
-  const diff = d.getUTCDate() - day + (day === 0 ? -6 : 1);
-  d.setUTCDate(diff);
-  d.setUTCHours(0, 0, 0, 0);
-  return d;
-}
-
+// Helper functions
 function getMonthStart(date: Date): Date {
   const d = new Date(date);
   d.setUTCDate(1);
-  d.setUTCHours(0, 0, 0, 0);
-  return d;
-}
-
-function getNextMonday(date: Date): Date {
-  const d = new Date(date);
-  const day = d.getUTCDay();
-  const diff = day === 0 ? 1 : 8 - day;
-  d.setUTCDate(d.getUTCDate() + diff);
   d.setUTCHours(0, 0, 0, 0);
   return d;
 }

@@ -1,0 +1,519 @@
+"use client";
+
+import { useState, useEffect, useRef } from 'react';
+import * as Tone from 'tone';
+import Link from 'next/link';
+import Script from 'next/script';
+
+// NOTES DATA: A1 to A3 (Deep Male Range)
+const NOTES = [
+    { note: "A1", freq: 55.00, color: "white" },
+    { note: "A#1", freq: 58.27, color: "black" },
+    { note: "B1", freq: 61.74, color: "white" },
+
+    { note: "C2", freq: 65.41, color: "white" },
+    { note: "C#2", freq: 69.30, color: "black" },
+    { note: "D2", freq: 73.42, color: "white" },
+    { note: "D#2", freq: 77.78, color: "black" },
+    { note: "E2", freq: 82.41, color: "white" },
+    { note: "F2", freq: 87.31, color: "white" },
+    { note: "F#2", freq: 92.50, color: "black" },
+    { note: "G2", freq: 98.00, color: "white" },
+    { note: "G#2", freq: 103.83, color: "black" },
+    { note: "A2", freq: 110.00, color: "white" },
+    { note: "A#2", freq: 116.54, color: "black" },
+    { note: "B2", freq: 123.47, color: "white" },
+
+    { note: "C3", freq: 130.81, color: "white" },
+    { note: "C#3", freq: 138.59, color: "black" },
+    { note: "D3", freq: 146.83, color: "white" },
+    { note: "D#3", freq: 155.56, color: "black" },
+    { note: "E3", freq: 164.81, color: "white" },
+    { note: "F3", freq: 174.61, color: "white" },
+    { note: "F#3", freq: 185.00, color: "black" },
+    { note: "G3", freq: 196.00, color: "white" },
+    { note: "G#3", freq: 207.65, color: "black" },
+    { note: "A3", freq: 220.00, color: "white" }
+];
+
+export default function SmartPiano({ onClose, isStandalone = false }: { onClose?: () => void, isStandalone?: boolean }) {
+    const [isToneReady, setIsToneReady] = useState(false);
+    const [calibrating, setCalibrating] = useState(false);
+    
+    // Calibration State
+    const [instantPitch, setInstantPitch] = useState<number | null>(null);
+    const [instantNoteName, setInstantNoteName] = useState<string>("--");
+    const [debugInfo, setDebugInfo] = useState<{ rms: number, clarity: number } | null>(null);
+    
+    // Final results
+    const [userFundamental, setUserFundamental] = useState<number | null>(null); // Hz
+    const [detectedNoteIndex, setDetectedNoteIndex] = useState<number | null>(null);
+    const [safeRange, setSafeRange] = useState<[number, number] | null>(null); // [minIndex, maxIndex]
+    
+    const [activeNote, setActiveNote] = useState<string | null>(null);
+    const [suggestion, setSuggestion] = useState("Toca una nota y haz 'Mmm'...");
+    
+    const [isModelLoaded, setIsModelLoaded] = useState(false);
+    const pitchEstimatorRef = useRef<any>(null);
+
+    // State Ref for Loop Condition (Fixes Stale Closure)
+    const isCalibratingRef = useRef(false);
+
+    // Audio Refs
+    const pianoRef = useRef<Tone.PolySynth | null>(null);
+    const reverbRef = useRef<Tone.Reverb | null>(null);
+    
+    // Analysis Refs
+    const analyserRef = useRef<AnalyserNode | null>(null);
+    const micStreamRef = useRef<MediaStream | null>(null);
+    const audioContextRef = useRef<AudioContext | null>(null); 
+    const animationFrameRef = useRef<number>(0);
+    const keyRefs = useRef<(HTMLDivElement | null)[]>([]);
+    
+    // Direct DOM State Tracking (Stale closure fix)
+    const lastDetectedIndexRef = useRef<number | null>(null);
+    // Smoothing Buffer
+    const pitchBufferRef = useRef<number[]>([]);
+
+    const SUGGESTIONS = [
+        "Haz un 'Lip Trill' (Brrr) con la nota.",
+        "Usa una 'M' resonante: Mmmmmm...",
+        "Di 'NG' como en 'Sing' manteniendo el tono.",
+        "Sube 3 notas y baja: Do-Re-Mi-Re-Do.",
+        "Haz 'Uuu' suavemente como un búho.",
+        "Di 'Ga-Ga-Ga' para relajar la mandíbula."
+    ];
+
+    const nextSuggestion = () => {
+        const idx = Math.floor(Math.random() * SUGGESTIONS.length);
+        setSuggestion(SUGGESTIONS[idx]);
+    };
+
+    // Initialize Tone.js
+    useEffect(() => {
+        const initTone = async () => {
+             // Create Reverb
+            const reverb = new Tone.Reverb({
+                decay: 2.5,
+                preDelay: 0.1,
+                wet: 0.3
+            }).toDestination();
+            await reverb.generate();
+            reverbRef.current = reverb;
+
+            // Create EQ: Natural Grand Piano (Subtle adjustments)
+            const eq = new Tone.EQ3({
+                low: 3, 
+                mid: 0,
+                high: 5, // Clarity without harshness
+                lowFrequency: 200, 
+                highFrequency: 2500
+            }).connect(reverb);
+
+            // REAL SAMPLES: Salamander Grand Piano (closest to "Steinway/Straviauss")
+            // This replaces synthesis with actual recorded piano strings
+            const piano = new Tone.Sampler({
+                urls: {
+                    "A0": "A0.mp3", "C1": "C1.mp3", "D#1": "Ds1.mp3", "F#1": "Fs1.mp3",
+                    "A1": "A1.mp3", "C2": "C2.mp3", "D#2": "Ds2.mp3", "F#2": "Fs2.mp3",
+                    "A2": "A2.mp3", "C3": "C3.mp3", "D#3": "Ds3.mp3", "F#3": "Fs3.mp3",
+                    "A3": "A3.mp3", "C4": "C4.mp3", "D#4": "Ds4.mp3", "F#4": "Fs4.mp3",
+                    "A4": "A4.mp3", "C5": "C5.mp3", "D#5": "Ds5.mp3", "F#5": "Fs5.mp3",
+                    "A5": "A5.mp3", "C6": "C6.mp3", "D#6": "Ds6.mp3", "F#6": "Fs6.mp3",
+                    "A6": "A6.mp3", "C7": "C7.mp3", "D#7": "Ds7.mp3", "F#7": "Fs7.mp3",
+                    "A7": "A7.mp3", "C8": "C8.mp3"
+                },
+                release: 1,
+                volume: -4,
+                baseUrl: "https://tonejs.github.io/audio/salamander/"
+            }).connect(eq);
+            
+            // Wait for samples to load before enabling
+            await Tone.loaded(); 
+            pianoRef.current = piano as any; // Cast to fix TS mismatch with old PolySynth ref
+            setIsToneReady(true);
+        };
+        
+        // Start on interaction
+        const handleStart = async () => {
+            await Tone.start();
+            if (!pianoRef.current) initTone();
+        };
+        
+        window.addEventListener('mousedown', handleStart);
+        window.addEventListener('keydown', handleStart);
+        return () => {
+            window.removeEventListener('mousedown', handleStart);
+            window.removeEventListener('keydown', handleStart);
+        };
+    }, []);
+
+    // Play Tone
+    const playTone = (freq: number, note: string) => {
+        if (!isToneReady || !pianoRef.current) return;
+        
+        setActiveNote(note);
+        if (Math.random() > 0.7) nextSuggestion();
+        
+        // Trigger Tone.js
+        pianoRef.current.triggerAttackRelease(note, "8n");
+        
+        setTimeout(() => setActiveNote(null), 300);
+    };
+
+    // 🎤 CALIBRATION
+    // ML5 Pitch Detection Loop
+    const startPitchLoop = () => {
+        if (!pitchEstimatorRef.current) return;
+
+        pitchEstimatorRef.current.getPitch((err: any, frequency: number) => {
+            // RESTRICTED RANGE: A1 (55Hz) to A3 (220Hz)
+            if (frequency && frequency > 50 && frequency < 230) {
+                 // Update Debug
+                 setDebugInfo({ rms: 0, clarity: 1 }); // Mock values for UI compatibility
+
+                 // Smooth & Process Logic (Reused from before but simpler)
+                 setInstantPitch(frequency);
+                 
+                 // Visualize
+                 const buff = pitchBufferRef.current;
+                 buff.push(frequency);
+                 if (buff.length > 5) buff.shift();
+                 const sorted = [...buff].sort((a,b)=>a-b);
+                 const smoothed = sorted[Math.floor(sorted.length/2)];
+
+                 let closestDist = Infinity;
+                 let closestIndex = -1;
+                 NOTES.forEach((n, idx) => {
+                    const dist = Math.abs(n.freq - smoothed);
+                    if (dist < closestDist) {
+                        closestDist = dist;
+                        closestIndex = idx;
+                    }
+                 });
+
+                 if (closestIndex !== -1 && closestDist < 8) { // Tolerance in Hz
+                     const noteName = NOTES[closestIndex].note;
+                     setDetectedNoteIndex(closestIndex);
+                     setInstantNoteName(noteName);
+                     lastDetectedIndexRef.current = closestIndex; // For calibration end
+                     
+                     // Declarative UI handles highlighting now based on 'detectedNoteIndex'
+                     
+                     // Auto-scroll
+                     const keyElement = keyRefs.current[closestIndex];
+                     if (keyElement) {
+                         keyElement.scrollIntoView({ behavior: 'smooth', block: 'center', inline: 'center' });
+                     }
+                 }
+            } else {
+                setInstantPitch(0);
+                setInstantNoteName("-");
+                // Clear UI
+                keyRefs.current.forEach((el, idx) => {
+                     if (el) {
+                          el.style.backgroundColor = NOTES[idx].color === 'black' ? 'black' : 'white';
+                          el.style.transform = 'none';
+                     }
+                });
+            }
+
+            // Loop if still calibrating
+            if (isCalibratingRef.current) {
+                startPitchLoop();
+            }
+        });
+    };
+
+    const startCalibration = async () => {
+         try {
+            const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
+            micStreamRef.current = stream;
+            
+            const audioCtx = new (window.AudioContext || (window as any).webkitAudioContext)();
+            audioContextRef.current = audioCtx;
+            
+            // Init ML5 Pitch Detection
+            const modelUrl = 'https://cdn.jsdelivr.net/gh/ml5js/ml5-data-and-models/models/pitch-detection/crepe/';
+            
+            setCalibrating(true); 
+            
+            // Check if ml5 is loaded
+            if (!(window as any).ml5) {
+                alert("AI Model Loading... Please wait a moment and try again.");
+                return;
+            }
+
+            (window as any).ml5.pitchDetection(modelUrl, audioCtx, stream, (err: any, model: any) => {
+                if (err) {
+                    console.error("ML5 Error", err);
+                    alert("Error loading AI Model");
+                    return;
+                }
+                pitchEstimatorRef.current = model;
+                setIsModelLoaded(true);
+                
+                // Start Loop
+                isCalibratingRef.current = true;
+                setCalibrating(true);
+                
+                // Reset State
+                setUserFundamental(null);
+                setDetectedNoteIndex(null); 
+                pitchBufferRef.current = [];
+                
+                startPitchLoop();
+
+                // Auto-stop after 5 seconds (Exact user request)
+                setTimeout(stopCalibration, 5000);
+            });
+
+        } catch (err) {
+            console.error(err);
+            alert("No se pudo acceder al micrófono.");
+        }
+    };
+
+
+    
+    const stopCalibration = () => {
+        setCalibrating(false);
+        isCalibratingRef.current = false;
+        if (animationFrameRef.current) cancelAnimationFrame(animationFrameRef.current);
+        if (micStreamRef.current) micStreamRef.current.getTracks().forEach(t => t.stop());
+        if (audioContextRef.current) audioContextRef.current.close();
+        
+        // Finalize Range based on the LAST DETECTED stable note (Ref)
+        const finalIndex = lastDetectedIndexRef.current;
+        
+        if (finalIndex !== null) {
+             // Ensure it's saved in State
+             setDetectedNoteIndex(finalIndex);
+             
+             // Calculate Range
+            const min = Math.max(0, finalIndex - 3);
+            const max = Math.min(NOTES.length - 1, finalIndex + 5);
+            setSafeRange([min, max]);
+
+            // Final Center Force - TWICE to handle potential layout shifts
+            setTimeout(() => {
+                const keyElement = keyRefs.current[finalIndex];
+                if (keyElement) {
+                    keyElement.scrollIntoView({ behavior: 'auto', block: 'center', inline: 'center' }); // Auto for instant/snap
+                }
+            }, 50);
+            
+            setTimeout(() => {
+                const keyElement = keyRefs.current[finalIndex];
+                if (keyElement) {
+                    keyElement.scrollIntoView({ behavior: 'smooth', block: 'center', inline: 'center' });
+                }
+            }, 300);
+        }
+    };
+    
+
+
+
+    return (
+        <div className={isStandalone ? "w-full min-h-screen flex flex-col items-center justify-center bg-black" : "fixed inset-0 z-50 flex items-center justify-center bg-black/90 backdrop-blur-md p-4 animate-fade-in"}>
+            
+            {/* FORCE TAILWIND CLASSES (Hidden) */}
+            <div className="hidden ring-4 ring-green-500 z-50 bg-green-500 text-black"></div>
+            
+            {/* DEBUG UI */}
+            {debugInfo && (
+                <div className="fixed top-2 left-2 z-[100] bg-black/80 text-[10px] text-green-400 font-mono p-2 rounded pointer-events-none">
+                    <p>RMS: {debugInfo.rms.toFixed(4)}</p>
+                    <p>Clarity: {debugInfo.clarity.toFixed(2)}</p>
+                    <p>Freq Cap: 600Hz</p>
+                </div>
+            )}
+            
+            <div className={`bg-[#1a242d] border border-slate-700 w-full ${isStandalone ? 'max-w-5xl h-[85vh]' : 'max-w-4xl'} rounded-3xl overflow-hidden shadow-2xl flex flex-col`}>
+                
+                {/* Header */}
+                <div className="bg-[#283039] p-4 flex justify-between items-center border-b border-slate-700">
+                    <div className="flex items-center gap-3">
+                        <div className="size-10 rounded-xl bg-blue-500/20 flex items-center justify-center text-blue-400">
+                             <span className="material-symbols-outlined">piano</span>
+                        </div>
+                        <div>
+                             <h2 className="text-white font-bold text-lg leading-tight">Calentamiento Vocal</h2>
+                             <p className="text-slate-400 text-xs">Tone.js Engine • Classical FM</p>
+                        </div>
+                    </div>
+                    {!isStandalone && onClose && (
+                        <button onClick={onClose} className="p-2 hover:bg-white/10 rounded-full text-slate-400 hover:text-white transition-colors">
+                            <span className="material-symbols-outlined">close</span>
+                        </button>
+                    )}
+                </div>
+
+                <div className="flex-1 flex flex-col h-auto">
+                    
+                    {/* Controls & Feedback */}
+                    <div className="w-full p-6 border-b border-slate-700 bg-[#161b22] flex flex-col gap-6">
+                        
+                        {!safeRange ? (
+                            <div className="bg-blue-900/10 border border-blue-500/20 rounded-2xl p-5 text-center flex-1 flex flex-col justify-center">
+                                <span className="material-symbols-outlined text-5xl text-blue-400 mb-4 mx-auto">graphic_eq</span>
+                                <h3 className="text-white font-bold mb-2 text-xl">Detector de Rango</h3>
+                                <p className="text-slate-400 text-sm mb-6 leading-relaxed">
+                                    Encuentra tu centro tonal.
+                                    <br/>
+                                    <span className="text-white font-bold">Instrucción:</span> Sostén una nota cómoda "Aaaa".
+                                </p>
+                                
+                                {calibrating ? (
+                                    <div className="flex flex-col items-center gap-4 animate-fade-in">
+                                        <div className="w-20 h-20 rounded-full border-4 border-blue-500/30 flex items-center justify-center relative">
+                                            <div className="absolute inset-0 bg-blue-500/10 animate-ping rounded-full"></div>
+                                            <span className="text-2xl font-bold text-white font-mono">
+                                                {instantNoteName}
+                                            </span>
+                                        </div>
+                                        <p className="text-blue-400 text-sm font-bold animate-pulse uppercase tracking-widest">
+                                            Escuchando...
+                                        </p>
+                                        <p className="text-xs text-slate-500 font-mono">
+                                            {instantPitch ? `${Math.round(instantPitch)} Hz` : "---"}
+                                        </p>
+                                    </div>
+                                ) : (
+                                    <button 
+                                        onClick={startCalibration}
+                                        className="w-full py-4 bg-blue-600 hover:bg-blue-500 text-white font-bold rounded-xl transition-all shadow-lg shadow-blue-500/20 active:scale-95 flex items-center justify-center gap-2"
+                                    >
+                                        <span className="material-symbols-outlined">mic</span>
+                                        Iniciar Calibración
+                                    </button>
+                                )}
+                            </div>
+                        ) : (
+                            <div className="flex flex-col h-full gap-4">
+                                <div className="bg-green-900/20 border border-green-500/30 rounded-2xl p-5 text-center animate-fade-in relative overflow-hidden">
+                                    <div className="absolute top-0 right-0 p-2 opacity-10">
+                                        <span className="material-symbols-outlined text-6xl">music_note</span>
+                                    </div>
+                                    <span className="material-symbols-outlined text-4xl text-green-400 mb-2">check_circle</span>
+                                    <h3 className="text-white font-bold mb-1">Rango Detectado</h3>
+                                    <p className="text-green-200 text-sm font-mono mb-1">
+                                        Tono: <span className="font-bold text-white text-lg">{NOTES[detectedNoteIndex!].note}</span>
+                                    </p>
+                                    
+                                    <button 
+                                        onClick={() => { 
+                                            // Reset everything
+                                            setSafeRange(null); 
+                                            setDetectedNoteIndex(null); 
+                                            lastDetectedIndexRef.current = null;
+                                        }}
+                                        className="mt-2 text-[10px] text-slate-500 hover:text-white underline uppercase tracking-wider"
+                                    >
+                                        Recalibrar
+                                    </button>
+                                </div>
+
+                                <div className="flex-1 rounded-2xl bg-gradient-to-br from-indigo-900/20 to-purple-900/20 border border-indigo-500/30 p-5 flex flex-col items-center justify-center text-center">
+                                    <span className="material-symbols-outlined text-3xl text-indigo-400 mb-2">lightbulb</span>
+                                    <h4 className="text-xs font-bold text-indigo-300 uppercase tracking-widest mb-2">Sugerencia</h4>
+                                    <p className="text-white font-medium text-lg leading-tight italic">
+                                        "{suggestion}"
+                                    </p>
+                                    <button onClick={nextSuggestion} className="mt-4 text-xs bg-white/10 hover:bg-white/20 px-3 py-1 rounded-full text-indigo-200 transition-colors">
+                                        Nueva sugerencia
+                                    </button>
+                                </div>
+
+                                {isStandalone && (
+                                    <Link href="/practice">
+                                        <button className="w-full py-4 bg-red-600 hover:bg-red-500 text-white font-bold rounded-xl transition-all shadow-lg shadow-red-500/20 flex items-center justify-center gap-2 group">
+                                            <span className="material-symbols-outlined group-hover:scale-110 transition-transform">mic</span>
+                                            GRABAR ANÁLISIS
+                                        </button>
+                                    </Link>
+                                )}
+                            </div>
+                        )}
+                    </div>
+
+                     {/* Piano Keys */}
+                     <div className="flex-1 bg-[#101418] relative overflow-x-auto custom-scrollbar flex items-center justify-center p-4">
+                          <div className="flex relative h-64 select-none">
+                              {NOTES.map((n, i) => {
+                                  const isSafe = safeRange && i >= safeRange[0] && i <= safeRange[1];
+                                  const isActive = activeNote === n.note;
+                                  const isDetected = detectedNoteIndex === i;
+
+                                  // Declarative Scale Logic
+                                  let isScaleMember = false;
+                                  if (detectedNoteIndex !== null) {
+                                      const dist = Math.abs(i - detectedNoteIndex);
+                                      isScaleMember = [0, 2, 4, 5, 7, 9, 11].includes(dist % 12);
+                                  }
+
+                                  if (n.color === "white") {
+                                      return (
+                                         <div 
+                                             key={n.note}
+                                             ref={el => { keyRefs.current[i] = el }}
+                                             onMouseDown={() => playTone(n.freq, n.note)}
+                                             style={{
+                                                 backgroundColor: isDetected ? '#15803d' : isScaleMember ? '#d1fae5' : isActive ? '#bfdbfe' : 'white',
+                                                 transform: isDetected ? 'scale(0.95)' : 'none',
+                                                 boxShadow: isDetected ? '0 0 15px #15803d' : 'none',
+                                                 borderColor: isDetected ? '#166534' : undefined
+                                             }}
+                                             className={`
+                                                 relative w-12 h-64 border border-slate-900 rounded-b-lg active:scale-[0.98] transition-all duration-100 flex items-end justify-center pb-4 cursor-pointer
+                                                 ${isSafe ? 'shadow-[inset_0_-20px_40px_rgba(34,197,94,0.3)]' : ''}
+                                                 ${isDetected ? 'z-50 text-white' : ''}
+                                             `}
+                                         >
+                                             <span className={`font-bold text-xs pointer-events-none ${isDetected ? "text-white" : "text-slate-400"}`}>{n.note}</span>
+                                             {isDetected && (
+                                                 <div className="absolute top-4 text-white text-[12px] font-black uppercase tracking-widest pointer-events-none whitespace-nowrap animate-fade-in [text-shadow:0px_1px_2px_rgba(0,0,0,0.5)]">
+                                                     TONO
+                                                 </div>
+                                             )}
+                                         </div>
+                                      );
+                                  } else {
+                                      return (
+                                         <div 
+                                             key={n.note}
+                                             ref={el => { keyRefs.current[i] = el }}
+                                             onMouseDown={() => playTone(n.freq, n.note)}
+                                             style={{
+                                                 backgroundColor: isDetected ? '#15803d' : isScaleMember ? '#065f46' : isActive ? '#334155' : 'black',
+                                                 transform: isDetected ? 'scale(0.95)' : 'none',
+                                                 boxShadow: isDetected ? '0 0 15px #15803d' : 'none',
+                                                 borderColor: isDetected ? '#166534' : undefined
+                                             }}
+                                             className={`
+                                                 w-8 h-40 -mx-4 z-20 rounded-b-lg border border-slate-800 active:scale-[0.98] transition-all duration-100 cursor-pointer flex items-end justify-center pb-2
+                                                 ${isSafe ? 'shadow-[inset_0_-20px_40px_rgba(34,197,94,0.5)]' : ''}
+                                                 ${isDetected ? 'z-50' : ''}
+                                             `}
+                                         >
+                                            <span className={`text-[10px] font-bold pointer-events-none ${isDetected ? "text-white" : "text-slate-600"}`}>{n.note}</span>
+                                            {isDetected && (
+                                                 <div className="absolute top-2 text-white text-[9px] font-black uppercase tracking-widest pointer-events-none whitespace-nowrap animate-fade-in [text-shadow:0px_1px_2px_rgba(0,0,0,0.5)] -rotate-90 origin-center translate-y-8">
+                                                     TONO
+                                                 </div>
+                                             )}
+                                         </div>
+                                      );
+                                  }
+                              })}
+                          </div>
+                     </div>
+
+                </div>
+            </div>
+            {/* ML5 Library - Force v0.12.2 for CREPE/PitchDetection support */}
+            <Script src="https://unpkg.com/ml5@0.12.2/dist/ml5.min.js" strategy="lazyOnload" />
+        </div>
+    );
+}

@@ -1,25 +1,18 @@
-import { Plan } from "@/types/Plan";
+import { Plan, PLAN_CONFIGS } from "@/types/Plan";
 
 /**
- * Premium Plan Definition
+ * Premium Plan Definition - v3.0 (Simplified)
  *
- * - Unlimited analyses
- * - Full history access
- * - Re-record capability
- * - Access to exercises
+ * REGLA: 250 análisis/mes (resetea cada 1° del mes)
+ * 
+ * Beneficios:
+ * - Análisis de voz + video
+ * - 30 días de protocolo completo
+ * - Métricas espectrales (Elite)
+ * - Métricas de postura ejecutiva
+ * - Cursos completos
  */
 export const PREMIUM_PLAN: Plan = {
   type: "PREMIUM",
-  features: {
-    maxAnalyses: -1,
-    maxAnalysesPerWeek: -1,
-    maxAnalysesPerMonth: 250, // Aumentado para percepción "Ilimitada" (Costo < $5 en plan de $29)
-    hasHistory: true,
-    hasHistoryLimit: -1,
-    hasReRecord: true,
-    hasExercises: true,
-    hasExercisesLimit: -1,
-    hasFullGym: true,
-    hasCourses: true,
-  },
+  features: PLAN_CONFIGS.PREMIUM
 };

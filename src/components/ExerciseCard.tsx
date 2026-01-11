@@ -10,6 +10,12 @@ interface ExerciseCardProps {
 
 const ExerciseCard: React.FC<ExerciseCardProps> = ({ exercise }) => {
   const [isExpanded, setIsExpanded] = useState(false);
+  const [isCompleted, setIsCompleted] = useState(false);
+
+  React.useEffect(() => {
+    const completed = JSON.parse(localStorage.getItem('completed_exercises') || '[]');
+    setIsCompleted(completed.includes(exercise.id));
+  }, [exercise.id]);
 
   const getDifficultyColor = (difficulty: string) => {
     switch (difficulty) {
@@ -27,8 +33,9 @@ const ExerciseCard: React.FC<ExerciseCardProps> = ({ exercise }) => {
       case 'INTONATION': return 'graphic_eq';
       case 'PROJECTION': return 'campaign';
       case 'MINDSET': return 'psychology';
-      case 'STAGE_PRESENCE': return 'visibility';
       case 'IMPROVISATION': return 'auto_fix_high';
+      case 'VOCABULARY': return 'menu_book';
+      case 'RELAXATION': return 'self_improvement';
       default: return 'fitness_center';
     }
   };
@@ -40,16 +47,26 @@ const ExerciseCard: React.FC<ExerciseCardProps> = ({ exercise }) => {
       <div className="p-6">
         <div className="flex justify-between items-start mb-4">
           <div className="flex items-center gap-3">
-            <div className="w-10 h-10 rounded-xl bg-slate-800 flex items-center justify-center text-blue-400 group-hover:scale-110 transition-transform">
-              <span className="material-symbols-outlined">{getCategoryIcon(exercise.category)}</span>
+            <div className={`w-10 h-10 rounded-xl flex items-center justify-center transition-transform group-hover:scale-110 ${isCompleted ? 'bg-green-500/20 text-green-400' : 'bg-slate-800 text-blue-400'}`}>
+              <span className="material-symbols-outlined">{isCompleted ? 'check_circle' : getCategoryIcon(exercise.category)}</span>
             </div>
             <div>
-              <h4 className="font-bold text-slate-100 group-hover:text-white transition-colors">
+              <h4 className="font-bold text-slate-100 group-hover:text-white transition-colors flex items-center gap-2">
                 {exercise.title}
+                {isCompleted && <span className="text-[10px] text-green-400 bg-green-500/10 px-1.5 py-0.5 rounded font-black tracking-wider uppercase">Hecho</span>}
               </h4>
-              <span className={`text-[10px] font-black px-2 py-0.5 rounded-full uppercase tracking-tighter ${getDifficultyColor(exercise.difficulty)}`}>
-                {exercise.difficulty}
-              </span>
+              
+              {/* FIXED BADGES CONTAINER */}
+              <div className="flex items-center gap-2 mt-1">
+                <span className={`text-[10px] font-black px-2 py-0.5 rounded-full uppercase tracking-tighter ${getDifficultyColor(exercise.difficulty)}`}>
+                  {exercise.difficulty}
+                </span>
+                <span className={`text-[10px] font-black px-2 py-0.5 rounded-full uppercase tracking-tighter flex items-center gap-1 ${exercise.requiredMode === 'VIDEO' ? 'text-purple-400 bg-purple-400/10' : 'text-cyan-400 bg-cyan-400/10'}`}>
+                    <span className="material-symbols-outlined text-[10px]">{exercise.requiredMode === 'VIDEO' ? 'videocam' : 'mic'}</span>
+                    {exercise.requiredMode === 'VIDEO' ? 'Cámara' : 'Voz'}
+                </span>
+              </div>
+
             </div>
           </div>
           <button 

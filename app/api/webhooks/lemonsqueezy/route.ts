@@ -101,15 +101,17 @@ export async function POST(req: NextRequest) {
     // We have "order_created" for Weekly.
     // We have "subscription_created" for Monthly.
     
+    // --- Handle Events ---
+
     if (event_name === "subscription_created" || event_name === "subscription_updated" || event_name === "subscription_resumed") {
       await handleSubscriptionChange(userId, payload.data);
     } 
     else if (event_name === "subscription_cancelled" || event_name === "subscription_expired") {
       await handleSubscriptionCancellation(payload.data);
     }
-    else if (event_name === "order_created") {
-      await handleOrderCreated(userId, payload.data);
-    }
+    // "order_created" is less relevant now as we shifted to subscriptions mostly, 
+    // but could be used for one-time purchases if we had them. 
+    // For now, we focus on subscription handling.
 
     return NextResponse.json({ received: true });
 
@@ -126,58 +128,80 @@ async function handleSubscriptionChange(userId: string | undefined, data: any) {
   const status = attributes.status; 
   const renewsAt = attributes.renews_at ? new Date(attributes.renews_at) : null;
   
-  // 🔍 Detectar Plan por Nombre (Heurística MVP)
-  // Lemon Squeezy envía 'variant_name' o 'product_name' en data.attributes (a veces requiere &include=product)
-  // Asumimos que el payload incluye nombre o usamos defaults seguros.
+  // 🔍 Detect Plan by Name (Heuristic)
   const productName = (attributes.product_name || attributes.variant_name || "").toLowerCase();
   
-  let appPlan: "PREMIUM" | "VOICE_MONTHLY" | "STARTER" = "VOICE_MONTHLY";
-  let creditsToAdd = 100;
+  // Default to STARTER if unknown (safest non-free assumption)
+  let appPlan: "STARTER" | "PREMIUM" = "STARTER";
 
-  if (productName.includes("elite") || productName.includes("ejecutiva")) {
+  if (productName.includes("ejecutiva") || productName.includes("elite") || productName.includes("premium")) {
       appPlan = "PREMIUM";
-      creditsToAdd = 250; // Soft cap mensual
-  } else if (productName.includes("hábito") || productName.includes("mensual")) {
-      appPlan = "VOICE_MONTHLY";
-      creditsToAdd = 100;
-  } else if (productName.includes("sprint") || productName.includes("semanal")) {
-      appPlan = "STARTER"; // Usamos STARTER para el Sprint
-      creditsToAdd = 70; // 70 por periodo
+  } else {
+      // Covers "Hábito", "Sprint", "Mensual", "Starter"
+      appPlan = "STARTER"; 
   }
 
   if (status === "active" || status === "on_trial") {
-    if (userId) {
+    
+    // We need a user ID. If not in custom_data, try to find by subscriptionId.
+    let targetUserId = userId;
+
+    if (!targetUserId) {
+        const existingUser = await prisma.user.findFirst({ 
+            where: { lemonSqueezySubscriptionId: subscriptionId } 
+        });
+        targetUserId = existingUser?.id;
+    }
+
+    if (targetUserId) {
+      // 1. Update User Plan
       await prisma.user.update({
-        where: { id: userId },
+        where: { id: targetUserId },
         data: {
           plan: appPlan,
-          // IMPORTANTE: En suscripción, reseteamos créditos o sumamos?
-          // Modelos de suscripción suelen resetear o acumular.
-          // Para evitar acumulación infinita de unused, reseteamos a la base + remanente?
-          // Simplificación: Incrementamos (acumulativo) para no enfadar al usuario.
-          credits: { increment: creditsToAdd }, 
           lemonSqueezyCustomerId: customerId,
           lemonSqueezySubscriptionId: subscriptionId,
           subscriptionStatus: status,
           subscriptionRenewsAt: renewsAt,
+          // We NO LONGER increment credits. We rely on Usage table limits.
         }
       });
-      console.log(`[WEBHOOK] User ${userId} subscribed to ${appPlan}. Added ${creditsToAdd} credits.`);
+
+      // 2. Update Usage Record (Reset Monthly Limits if it's a new cycle)
+      // We check if we need to reset based on `renewsAt` or just doing an upsert.
+      // Easiest robust way: Upsert Usage record ensuring planType is synced.
+      // If it's a renewal (subscription_updated), typically "renews_at" changes.
+      // Ideally, the system resets usage when `checkUsage` sees a new month.
+      // But updating planType here is crucial.
+      
+      const usage = await prisma.usage.findUnique({ where: { userId: targetUserId }});
+      
+      if (!usage) {
+          await prisma.usage.create({
+              data: {
+                  userId: targetUserId,
+                  fingerprint: targetUserId, // Fallback
+                  planType: appPlan,
+                  monthStart: new Date(),
+                  monthlyAnalyses: 0
+              }
+          });
+      } else {
+          await prisma.usage.update({
+              where: { userId: targetUserId },
+              data: {
+                  planType: appPlan,
+                  // We don't necessarily reset usage here because "subscription_updated" 
+                  // might happen for other reasons. checkUsage handles monthly reset based on dates.
+                  // However, if upgrading plan, user might expect instant access? 
+                  // Let's rely on CheckUsage logic for resetting.
+              }
+          });
+      }
+
+      console.log(`[WEBHOOK] User ${targetUserId} updated to ${appPlan}. Status: ${status}`);
     } else {
-        // Update by SubscriptionID (Renewal)
-        const user = await prisma.user.findFirst({ where: { lemonSqueezySubscriptionId: subscriptionId } });
-        if (user) {
-             await prisma.user.update({
-                where: { id: user.id },
-                data: {
-                    plan: appPlan, // Asegurar plan actualizado
-                    subscriptionStatus: status,
-                    subscriptionRenewsAt: renewsAt,
-                    credits: { increment: creditsToAdd }
-                }
-             });
-             console.log(`[WEBHOOK] Subscription renewed for user ${user.id} (${appPlan}). Added ${creditsToAdd} credits.`);
-        }
+        console.warn(`[WEBHOOK] Could not find user for subscription update. SubID: ${subscriptionId}`);
     }
   }
 }
@@ -186,35 +210,24 @@ async function handleSubscriptionCancellation(data: any) {
   const subscriptionId = data.id.toString();
   const status = data.attributes.status;
   
-  // Just update status. Don't remove credits effectively paid for.
   await prisma.user.updateMany({
     where: { lemonSqueezySubscriptionId: subscriptionId },
     data: {
       subscriptionStatus: status,
-      // We keep plan as is until it expires, logic handled by 'renewsAt' check in frontend potentially
-      // or we just downgrade to FREE if status is 'expired'.
+      // If expired, downgrade to FREE
       plan: status === 'expired' ? 'FREE' : undefined
     }
   });
+
+  // Downgrade usage planType if expired
+  if (status === 'expired') {
+      const user = await prisma.user.findFirst({ where: { lemonSqueezySubscriptionId: subscriptionId }});
+      if (user) {
+          await prisma.usage.update({
+              where: { userId: user.id },
+              data: { planType: 'FREE' }
+          });
+      }
+  }
 }
 
-async function handleOrderCreated(userId: string | undefined, data: any) {
-    const attributes = data.attributes;
-    // Si es un "One Time Payment" (Sprint Semanal vendido como producto simple, no suscripción)
-    
-    // Asumimos Sprint Semanal es lo único "no-sub" o sub de corto plazo?
-    // Si Sprint es sub semanal, caerá en handleSubscriptionChange.
-    // Si es lifetime deal o pack de créditos:
-    
-    const credits = 70; // Default pack
-    
-    if (userId) {
-        await prisma.user.update({
-            where: { id: userId },
-            data: {
-                credits: { increment: credits },
-            }
-        });
-        console.log(`[WEBHOOK] User ${userId} bought One-Time Pack. Added ${credits} credits.`);
-    }
-}

@@ -1,49 +1,29 @@
-import { Plan } from "@/types/Plan";
+/**
+ * Tier Definitions - v3.0 (Simplified to 3 Plans)
+ * 
+ * Legacy file - All plan definitions now centralized in @/types/Plan
+ * This file exports the same configs for backward compatibility
+ */
 
-export const VOICE_WEEKLY_PLAN: Plan = {
-  type: "VOICE_WEEKLY",
-  features: {
-    maxAnalyses: -1,
-    maxAnalysesPerWeek: 50,
-    maxAnalysesPerMonth: -1,
-    hasHistory: true,
-    hasHistoryLimit: -1,
-    hasReRecord: true,
-    hasExercises: true,
-    hasExercisesLimit: -1,
-    hasFullGym: true,
-    hasCourses: false,
-  }
+import { PLAN_CONFIGS } from "@/types/Plan";
+
+// Re-export for backward compatibility
+export const VOICE_WEEKLY_PLAN = {
+  type: "STARTER" as const,
+  features: PLAN_CONFIGS.STARTER
 };
 
-export const VOICE_MONTHLY_PLAN: Plan = {
-  type: "VOICE_MONTHLY",
-  features: {
-    maxAnalyses: -1,
-    maxAnalysesPerWeek: -1,
-    maxAnalysesPerMonth: 100,
-    hasHistory: true,
-    hasHistoryLimit: -1,
-    hasReRecord: true,
-    hasExercises: true,
-    hasExercisesLimit: -1,
-    hasFullGym: true,
-    hasCourses: false,
-  }
+export const VOICE_MONTHLY_PLAN = {
+  type: "STARTER" as const,
+  features: PLAN_CONFIGS.STARTER
 };
 
-export const STARTER_VIDEO_PLAN: Plan = {
-  type: "STARTER",
-  features: {
-    maxAnalyses: -1,
-    maxAnalysesPerWeek: 70,
-    maxAnalysesPerMonth: -1,
-    hasHistory: true,
-    hasHistoryLimit: -1,
-    hasReRecord: true,
-    hasExercises: true,
-    hasExercisesLimit: -1,
-    hasFullGym: true,
-    hasCourses: true,
-  }
+export const STARTER_VIDEO_PLAN = {
+  type: "STARTER" as const,
+  features: PLAN_CONFIGS.STARTER
 };
+
+// Note: These legacy exports map to the new simplified 3-tier system
+// VOICE_WEEKLY → STARTER
+// VOICE_MONTHLY → STARTER
+// STARTER_VIDEO → STARTER

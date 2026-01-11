@@ -23,7 +23,7 @@ export default function HistoryView({ videos, books, sessions }: HistoryViewProp
             <header className="sticky top-0 z-50 flex items-center justify-between p-4 bg-background-light/95 dark:bg-background-dark/95 backdrop-blur-md border-b border-gray-200 dark:border-gray-800">
                 <div className="flex items-center gap-3">
                     <button 
-                        onClick={() => router.push("/practice")}
+                        onClick={() => router.push("/practice?mode=video")}
                         className="flex size-10 items-center justify-center rounded-full hover:bg-gray-100 dark:hover:bg-gray-800 transition-colors text-gray-900 dark:text-white"
                     >
                          <span className="material-symbols-outlined">arrow_back</span>
@@ -92,7 +92,7 @@ export default function HistoryView({ videos, books, sessions }: HistoryViewProp
                             <span className="material-symbols-outlined text-4xl text-gray-300 dark:text-gray-600 mb-2">history</span>
                             <p className="text-sm text-gray-500 dark:text-gray-400">Aún no tienes sesiones grabadas.</p>
                             <button 
-                                onClick={() => router.push("/practice")}
+                                onClick={() => router.push("/practice?mode=video")}
                                 className="mt-4 text-xs font-bold text-primary hover:underline"
                             >
                                 ¡Empieza tu primera práctica!

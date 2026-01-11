@@ -34,25 +34,13 @@ type AnalysisResult = {
     fallingIntonationScore?: number;
     pitchRange?: number;
   };
-  postureMetrics?: {
-    postureScore: number;
-    shouldersLevel: "balanced" | "uneven";
-    headPosition: "centered" | "tilted_left" | "tilted_right";
-    eyeContactPercent: number;
-    gesturesUsage: "low" | "optimal" | "excessive";
-    nervousnessIndicators: {
-      closedFists: number;
-      handsHidden: number;
-      excessiveMovement: boolean;
-    };
-  };
+
   rephrase_optimized?: string;
   score_estructura?: number;
   durationSeconds?: number;
   diagnosis: string;
   score_seguridad?: number;
   score_claridad?: number;
-  score_postura?: number;
   strengths: string[];
   weaknesses: string[];
   decision: string;
@@ -76,6 +64,25 @@ export default function ResultsPage() {
       setResult(analysisResult);
       logEvent("analysis_viewed");
       
+      // 🏆 TRACKING DE PROGRESO (GA-MI-FI-CA-CIÓN)
+      // Si venimos de un ejercicio y el score es bueno (>70), lo marcamos como completado
+      // El ID del ejercicio se debió guardar al iniciar la práctica (lo haremos ahora).
+      // Nota: Como no tengo estado global persistente en cliente más allá de localStorage para MVP:
+      const currentExerciseId = localStorage.getItem('current_exercise_id'); // Guardado en PracticePage
+      
+      if (currentExerciseId && analysisResult.authorityScore.score >= 70) {
+          const completed = JSON.parse(localStorage.getItem('completed_exercises') || '[]');
+          if (!completed.includes(currentExerciseId)) {
+              completed.push(currentExerciseId);
+              localStorage.setItem('completed_exercises', JSON.stringify(completed));
+              
+              // 🎉 Efecto visual o log adicional podría ir aquí
+              console.log(`[GAMIFICATION] Exercise ${currentExerciseId} UNLOCKED!`);
+          }
+          // Limpiar el contexto para no marcarlo de nuevo en refresh
+          localStorage.removeItem('current_exercise_id');
+      }
+
       if (!streakUpdated) {
         recordPractice();
         setStreakUpdated(true);
@@ -87,10 +94,14 @@ export default function ResultsPage() {
 
   if (!result) return <div className="min-h-screen bg-[#050505] flex items-center justify-center text-gray-500">Cargando Coach...</div>;
 
-  const claridad = result.score_claridad || 50;
+  const claridad = result.score_claridad || 0;
   const autoridad = result.authorityScore.score || 0;
-  const postura = result.postureMetrics?.postureScore || 0;
-  const estructura = result.score_estructura || 60; // Default if missing
+  const estructura = result.score_estructura || 0;
+
+  // Calculate real reduction metrics
+  const originalWords = result.transcription ? result.transcription.split(' ').length : 0;
+  const optimizedWords = result.rephrase_optimized ? result.rephrase_optimized.split(' ').length : 0;
+  const reductionPercent = originalWords > 0 ? Math.round(((originalWords - optimizedWords) / originalWords) * 100) : 0;
 
   return (
     <main className="min-h-[100dvh] bg-[#050505] text-white font-display overflow-x-hidden antialiased flex justify-center selection:bg-blue-500/30">
@@ -137,7 +148,7 @@ export default function ResultsPage() {
                </div>
              </div>
 
-             <div className="grid grid-cols-3 gap-4 w-full max-w-[340px]">
+             <div className="grid grid-cols-2 gap-4 w-full max-w-[280px]">
                 <CircularProgress 
                   value={claridad}
                   size={90}
@@ -153,14 +164,6 @@ export default function ResultsPage() {
                   color="#f59e0b"
                   label="Estructura"
                   icon="architecture"
-                />
-                <CircularProgress 
-                  value={postura}
-                  size={90}
-                  strokeWidth={6}
-                  color="#a855f7"
-                  label="Corporal"
-                  icon="accessibility_new"
                 />
              </div>
           </div>
@@ -199,10 +202,11 @@ export default function ResultsPage() {
                     "{result.rephrase_optimized}"
                  </p>
                  
-                 <div className="mt-4 pt-4 border-t border-amber-500/20 flex gap-3 text-amber-200/50 text-xs">
-                    <span className="flex items-center gap-1"><span className="material-symbols-outlined text-sm">remove_circle</span> -40% Palabras</span>
-                    <span className="flex items-center gap-1"><span className="material-symbols-outlined text-sm">bolt</span> +80% Impacto</span>
-                 </div>
+                 {reductionPercent > 5 && (
+                    <div className="mt-4 pt-4 border-t border-amber-500/20 flex gap-3 text-amber-200/50 text-xs">
+                        <span className="flex items-center gap-1"><span className="material-symbols-outlined text-sm">remove_circle</span> -{reductionPercent}% Palabras ("Economía Verbal")</span>
+                    </div>
+                 )}
               </div>
             </div>
           )}
@@ -231,82 +235,163 @@ export default function ResultsPage() {
              </div>
           </div>
 
+          {/* 🆕 WARMUP CTA */}
+          <Link href="/warmup">
+             <div className="mb-12 group cursor-pointer">
+                 <div className="bg-gradient-to-r from-purple-900/40 to-blue-900/40 border border-purple-500/30 rounded-[28px] p-5 flex items-center justify-between hover:bg-white/5 transition-all">
+                    <div className="flex items-center gap-4">
+                        <div className="size-14 rounded-2xl bg-purple-500/20 flex items-center justify-center text-purple-400 group-hover:scale-110 transition-transform">
+                             <span className="material-symbols-outlined text-2xl">piano</span>
+                        </div>
+                        <div>
+                             <p className="text-[10px] font-bold text-purple-400 uppercase tracking-widest mb-1">Próximo paso</p>
+                             <h4 className="text-lg font-bold text-white">Ir al Gimnasio Vocal</h4>
+                             <p className="text-xs text-slate-400">Calienta tu voz y mejora tu rango.</p>
+                        </div>
+                    </div>
+                    <span className="material-symbols-outlined text-slate-500 group-hover:text-white transition-colors">arrow_forward_ios</span>
+                 </div>
+             </div>
+          </Link>
+
           {/* Technical Breakdown Title */}
           <h3 className="text-[10px] font-black text-slate-500 uppercase tracking-[0.3em] px-2 mb-6 text-center">Desglose Técnico</h3>
 
           {/* 4. Detailed Metrics Section */}
           <div className="space-y-8 mb-12">
             
-            {/* VOZ Y RITMO */}
+            {/* VOZ Y RITMO (Expandid0) */}
             <section id="detailed-voice" className="space-y-4">
-              <h3 className="text-xs font-bold text-blue-400 uppercase tracking-widest pl-1">Voz & Ritmo</h3>
-              <div className="bg-white/[0.02] rounded-[24px] border border-white/5 p-5 space-y-4 backdrop-blur-sm">
-                <MetricRow 
-                  label="Velocidad de habla" 
-                  value={`${result.metrics?.wordsPerMinute || 0} ppm`} 
-                  desc="Ideal: 140-160 palabras por minuto." 
-                  status={ (result.metrics?.wordsPerMinute || 0) > 170 ? 'exceso' : (result.metrics?.wordsPerMinute || 0) < 110 ? 'bajo' : 'optimo' }
-                />
-                <MetricRow 
-                  label="Pausas Estratégicas" 
-                  value={String(result.metrics?.strategicPauses || 0)} 
-                  desc="Silencios intencionados para enfatizar." 
-                  status={ (result.metrics?.strategicPauses || 0) > 0 ? 'optimo' : 'bajo' }
-                />
-                <MetricRow 
-                  label="Estabilidad de Energía" 
-                  value={`${Math.round((result.metrics?.energyStability || 0) * 100)}%`} 
-                  desc="Capacidad de mantener un volumen constante." 
-                  status={ (result.metrics?.energyStability || 0) > 0.7 ? 'optimo' : 'bajo' }
-                />
+              <h3 className="text-xs font-bold text-blue-400 uppercase tracking-widest pl-1 mb-2">Dinámica Vocal</h3>
+              <div className="bg-white/[0.02] rounded-[24px] border border-white/5 p-6 backdrop-blur-sm grid grid-cols-1 md:grid-cols-2 gap-6">
+                
+                {/* Columna 1: Velocidad */}
+                <div className="space-y-4">
+                    <MetricRow 
+                      label="Velocidad (Cadencia)" 
+                      value={`${result.metrics?.wordsPerMinute || 0} ppm`} 
+                      desc="Rango ejecutivo: 130-150 ppm." 
+                      status={ (result.metrics?.wordsPerMinute || 0) > 170 ? 'exceso' : (result.metrics?.wordsPerMinute || 0) < 110 ? 'bajo' : 'optimo' }
+                    />
+                    <MetricRow 
+                      label="Pausas Totales" 
+                      value={String(result.metrics?.pauseCount || 0)} 
+                      desc="Silencios detectados." 
+                      status='neutro'
+                    />
+                     <MetricRow 
+                      label="Pausas Estratégicas" 
+                      value={String(result.metrics?.strategicPauses || 0)} 
+                      desc="Silencios poderosos (>1s)." 
+                      status={ (result.metrics?.strategicPauses || 0) > 0 ? 'optimo' : 'bajo' }
+                    />
+                </div>
+
+                {/* Columna 2: Calidad */}
+                <div className="space-y-4">
+                    <MetricRow 
+                      label="Estabilidad de Volumen" 
+                      value={`${Math.round((result.metrics?.energyStability || 0) * 100)}%`} 
+                      desc="Control de proyección." 
+                      status={ (result.metrics?.energyStability || 0) > 0.7 ? 'optimo' : 'bajo' }
+                    />
+                    <MetricRow 
+                      label="Variación Tonal" 
+                      value={`${Math.round((result.metrics?.pitchVariation || 0.2) * 100)}%`} 
+                      desc="Evita la monotonía." 
+                      status={ (result.metrics?.pitchVariation || 0) > 0.15 ? 'optimo' : 'bajo' }
+                    />
+                    <MetricRow 
+                      label="Muletillas Detectadas" 
+                      value={String(result.metrics?.fillerCount || 0)} 
+                      desc='"Eh", "este", "bueno".' 
+                      status={ (result.metrics?.fillerCount || 0) === 0 ? 'optimo' : 'bajo' }
+                    />
+                </div>
               </div>
             </section>
 
-            {/* CUERPO Y PRESENCIA */}
-            {result.postureMetrics ? (
-              <section id="detailed-body" className="space-y-4">
-                <h3 className="text-xs font-bold text-purple-400 uppercase tracking-widest pl-1">Cuerpo & Presencia</h3>
-                <div className="bg-white/[0.02] rounded-[24px] border border-white/5 p-5 space-y-4 backdrop-blur-sm">
-                  <MetricRow 
-                    label="Contacto Visual" 
-                    value={`${Math.round(result.postureMetrics.eyeContactPercent)}%`} 
-                    desc="Tiempo mirando directamente a la cámara." 
-                    status={ result.postureMetrics.eyeContactPercent > 70 ? 'optimo' : 'bajo' }
-                  />
-                  <MetricRow 
-                    label="Nivel de Gestos" 
-                    value={result.postureMetrics.gesturesUsage === 'optimal' ? 'Dinámico' : result.postureMetrics.gesturesUsage === 'excessive' ? 'Exagerado' : 'Estático'} 
-                    desc="Movimiento de manos para ilustrar ideas." 
-                    status={ result.postureMetrics.gesturesUsage === 'optimal' ? 'optimo' : 'bajo' }
-                  />
-                </div>
-              </section>
-            ) : (
-              <section id="detailed-body" className="space-y-4 animate-fade-in">
-                <h3 className="text-xs font-bold text-slate-500 uppercase tracking-widest pl-1">Cuerpo & Presencia</h3>
-                <div className="bg-gradient-to-br from-white/[0.03] to-purple-500/[0.05] rounded-[24px] border border-white/5 p-8 flex flex-col items-center text-center gap-4 backdrop-blur-md relative overflow-hidden group">
-                  {/* Decorative background circle */}
-                  <div className="absolute -top-10 -right-10 size-32 bg-purple-500/10 rounded-full blur-3xl group-hover:bg-purple-500/20 transition-all duration-700"></div>
-                  
-                  <div className="size-14 bg-purple-500/20 rounded-full flex items-center justify-center text-purple-400 mb-1 border border-purple-500/30">
-                    <span className="material-symbols-outlined text-3xl">lock</span>
+             {/* ANÁLISIS ESPECTRAL (ELITE / PREMIUM) */}
+             {/* Si existen las métricas avanzadas (Premium), las mostramos. Si no, mostramos el Upsell. */}
+             {(result.metrics as any)?.nasalityScore !== undefined ? (
+                <section id="spectral-analysis" className="space-y-4 animate-fade-in">
+                  <div className="flex items-center gap-2 mb-2 pl-1">
+                      <span className="material-symbols-outlined text-amber-500 text-sm">workspace_premium</span>
+                      <h3 className="text-xs font-bold text-amber-500 uppercase tracking-widest">Análisis Espectral (Elite)</h3>
                   </div>
                   
-                  <div className="space-y-2">
-                    <h4 className="text-white font-black text-lg">Análisis de Postura Bloqueado</h4>
-                    <p className="text-gray-400 text-xs leading-relaxed max-w-[240px] mx-auto">
-                      Has realizado un <b>Test de Voz Flash</b>. Para analizar tu contacto visual y gestos, inicia una Sesión Completa.
-                    </p>
+                  <div className="bg-gradient-to-br from-amber-500/[0.03] to-transparent rounded-[24px] border border-amber-500/20 p-6 backdrop-blur-sm grid grid-cols-1 md:grid-cols-3 gap-6">
+                      
+                      {/* Nasalidad */}
+                      <div className="flex flex-col gap-2">
+                          <span className="text-[10px] font-bold text-slate-400 uppercase tracking-wide">Resonancia Nasal</span>
+                          <div className="relative h-2 bg-slate-800 rounded-full overflow-hidden">
+                              <div className="absolute top-0 left-0 h-full bg-amber-500 transition-all duration-1000" style={{ width: `${(result.metrics as any).nasalityScore || 30}%`}}></div>
+                          </div>
+                          <div className="flex justify-between text-[10px] text-slate-500 font-mono">
+                             <span>Baja</span>
+                             <span className="text-white">{(result.metrics as any).nasalityScore}%</span>
+                             <span>Alta</span>
+                          </div>
+                      </div>
+
+                      {/* Brillo */}
+                      <div className="flex flex-col gap-2">
+                          <span className="text-[10px] font-bold text-slate-400 uppercase tracking-wide">Brillo Vocal (Claridad)</span>
+                          <div className="relative h-2 bg-slate-800 rounded-full overflow-hidden">
+                              <div className="absolute top-0 left-0 h-full bg-blue-500 transition-all duration-1000" style={{ width: `${(result.metrics as any).brightnessScore || 70}%`}}></div>
+                          </div>
+                          <div className="flex justify-between text-[10px] text-slate-500 font-mono">
+                             <span>Opaco</span>
+                             <span className="text-white">{(result.metrics as any).brightnessScore}%</span>
+                             <span>Brillante</span>
+                          </div>
+                      </div>
+
+                      {/* Profundidad */}
+                      <div className="flex flex-col gap-2">
+                          <span className="text-[10px] font-bold text-slate-400 uppercase tracking-wide">Profundidad (Pecho)</span>
+                          <div className="relative h-2 bg-slate-800 rounded-full overflow-hidden">
+                              <div className="absolute top-0 left-0 h-full bg-emerald-500 transition-all duration-1000" style={{ width: `${(result.metrics as any).depthScore || 60}%`}}></div>
+                          </div>
+                          <div className="flex justify-between text-[10px] text-slate-500 font-mono">
+                             <span>Superficial</span>
+                             <span className="text-white">{(result.metrics as any).depthScore}%</span>
+                             <span>Profunda</span>
+                          </div>
+                      </div>
+
                   </div>
                   
-                  <Link href="/practice" className="w-full mt-2">
-                    <button className="w-full py-4 bg-purple-600 hover:bg-purple-500 text-white text-[10px] font-black rounded-2xl transition-all shadow-lg shadow-purple-600/20 tracking-widest uppercase">
-                      PROBAR ANÁLISIS DE VIDEO
-                    </button>
-                  </Link>
-                </div>
-              </section>
-            )}
+                  <div className="bg-white/[0.02] rounded-[24px] border border-white/5 p-4 flex gap-4 items-center">
+                      <span className="material-symbols-outlined text-gray-500">info</span>
+                      <p className="text-xs text-gray-400 leading-relaxed">
+                          La resonancia de pecho (Profundidad) &gt; 60% se correlaciona con mayor percepción de autoridad en roles de liderazgo.
+                      </p>
+                  </div>
+                </section>
+             ) : (
+                /* UPSELL SI ES FREE Y NO VE LA DATA */
+                <section id="spectral-locked" className="space-y-4 opacity-80 hover:opacity-100 transition-opacity">
+                   <div className="flex items-center gap-2 mb-2 pl-1 text-slate-600">
+                      <span className="material-symbols-outlined text-sm">lock</span>
+                      <h3 className="text-xs font-bold uppercase tracking-widest">Análisis Espectral (Bloqueado)</h3>
+                  </div>
+                   <div className="relative bg-white/[0.01] rounded-[24px] border border-dashed border-white/10 p-6 flex flex-col items-center text-center gap-3 overflow-hidden">
+                       <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/[0.02] to-transparent animate-shimmer pointer-events-none"></div>
+                       <p className="text-sm font-bold text-slate-300">Desbloquea la Bio-Métrica Avanzada</p>
+                       <p className="text-xs text-slate-500 max-w-sm">
+                           Obtén acceso a Nasalidad, Brillo Vocal, Profundidad y métricas de neuro-oratoria exclusivas del plan Elite.
+                       </p>
+                       <Link href="/upgrade" className="mt-2 text-[10px] font-black uppercase tracking-widest text-amber-500 hover:text-amber-400 border border-amber-500/30 px-4 py-2 rounded-full hover:bg-amber-500/10 transition-colors">
+                           Ver Planes
+                       </Link>
+                   </div>
+                </section>
+             )}
+
+
+
           </div>
 
           <div className="h-8"></div>
@@ -337,10 +422,10 @@ export default function ResultsPage() {
             
             <div className="grid grid-cols-2 gap-3">
               <button 
-                onClick={() => router.push("/practice")}
-                className="py-4 rounded-[20px] bg-white text-black font-bold text-sm hover:bg-gray-200 transition-all active:scale-[0.98]"
+                 onClick={() => router.push("/practice")}
+                 className="py-4 rounded-[20px] bg-white/5 border border-white/10 text-white font-bold text-sm hover:bg-white/10 transition-all active:scale-[0.98]"
               >
-                Grabar otra vez
+                 Grabar otra vez
               </button>
               <button 
                  onClick={() => router.push("/listen")}
@@ -358,7 +443,7 @@ export default function ResultsPage() {
   );
 }
 
-function MetricRow({ label, value, desc, status }: { label: string, value: string, desc: string, status?: 'optimo' | 'bajo' | 'exceso' }) {
+function MetricRow({ label, value, desc, status }: { label: string, value: string, desc: string, status?: 'optimo' | 'bajo' | 'exceso' | 'neutro' }) {
   const getStatusColor = () => {
     if (status === 'optimo') return 'text-emerald-400 bg-emerald-400/10 border-emerald-400/20';
     if (status === 'bajo') return 'text-rose-400 bg-rose-400/10 border-rose-400/20';

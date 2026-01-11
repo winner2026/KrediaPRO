@@ -125,7 +125,7 @@ export default function MySessionsPage() {
               Graba tu primera práctica para ver tu progreso aquí.
             </p>
             <Link 
-              href="/practice"
+              href="/practice?mode=video"
               className="inline-block bg-blue-600 hover:bg-blue-500 text-white font-bold py-3 px-8 rounded-full transition-all"
             >
               Grabar ahora
@@ -311,7 +311,7 @@ export default function MySessionsPage() {
         {sessions.length > 0 && (
           <div className="text-center pt-8 pb-4">
             <Link 
-              href="/practice"
+              href="/practice?mode=video"
               className="inline-flex items-center gap-2 bg-blue-600 hover:bg-blue-500 text-white font-bold py-4 px-8 rounded-full transition-all hover:scale-105"
             >
               <span className="material-symbols-outlined">mic</span>

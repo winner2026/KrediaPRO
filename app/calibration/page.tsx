@@ -1,20 +1,20 @@
 
 "use client";
 
-import { useState, useEffect, useRef } from "react";
+import { useState, useEffect, useRef, Suspense } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import Link from "next/link";
 import { Chrome } from "lucide-react";
 import { signIn } from "next-auth/react";
 
-type Step = "baseline-record" | "bio-hack" | "calibration-record" | "comparison" | "capture";
+type Step = "diagnosis" | "analysis" | "improvement" | "contrast" | "capture";
 
-export default function CalibrationPage() {
+function CalibrationContent() {
   const router = useRouter();
   const searchParams = useSearchParams();
   
   // Leemos el step de la URL, o usamos baseline por defecto
-  const currentStep = (searchParams.get("step") as Step) || "baseline-record";
+  const currentStep = (searchParams.get("step") as Step) || "diagnosis";
   
   // Audio State
   const [isRecording, setIsRecording] = useState(false);
@@ -95,11 +95,11 @@ export default function CalibrationPage() {
         const blob = new Blob(chunksRef.current, { type: 'audio/webm' });
         const metrics = await processAudioMetrics(blob);
 
-        if (currentStep === "baseline-record") {
+        if (currentStep === "diagnosis") {
            setAudioBlobBaseline(blob);
            setMetricsBaseline(metrics);
-           navigateToStep("bio-hack");
-        } else if (currentStep === "calibration-record") {
+           navigateToStep("analysis");
+        } else if (currentStep === "improvement") {
            setAudioBlobCalibration(blob);
            setMetricsCalibration(metrics);
            
@@ -111,7 +111,7 @@ export default function CalibrationPage() {
                   stability: Math.round(Math.max(5, stabDiff))
               });
            }
-           navigateToStep("comparison");
+           navigateToStep("contrast");
         }
       };
 
@@ -121,7 +121,7 @@ export default function CalibrationPage() {
 
       timerRef.current = setInterval(() => {
         setRecordingTime(prev => {
-          if (prev >= 10) { 
+          if (prev >= 15) { 
             stopRecording();
             return prev;
           }
@@ -135,20 +135,34 @@ export default function CalibrationPage() {
     }
   };
 
+
+  // --- AUDIO-ONLY BIO-HACK ENGINE ---
+  // No camera here. We infer needs from baseline audio.
+  
+  const [hackMessage, setHackMessage] = useState({
+      title: "Hemos detectado tensión en tu resonancia.",
+      instruction: "Baja los hombros, separa los dientes traseros y habla desde el pecho."
+  });
+
   useEffect(() => {
-    if (currentStep === "bio-hack") {
-      const interval = setInterval(() => {
-        setInterventionTime(prev => {
-          if (prev <= 1) {
-            clearInterval(interval);
-            return 0; 
-          }
-          return prev - 1;
-        });
-      }, 1000);
-      return () => clearInterval(interval);
+    if (metricsBaseline) {
+        // Dynamic Inference Logic
+        if (metricsBaseline.rms < 10) { // Umbral arbitrario de volumen bajo
+            setHackMessage({
+                title: "Tu proyección es baja.",
+                instruction: "Imagina que tu voz es una flecha que debe tocar la pared opuesta. ¡Lanza el aire!"
+            });
+        } else if (metricsBaseline.stability < 40) {
+            setHackMessage({
+                title: "Tu voz tiembla ligeramente.",
+                instruction: "Aprieta el abdomen (core) como si fueras a recibir un golpe. Eso estabilizará tu aire."
+            });
+        }
+        // Default: Resilience/Tension hack (already set)
     }
-  }, [currentStep]);
+  }, [metricsBaseline]);
+
+
 
   const handleSaveWithGoogle = async () => {
       setIsLoading(true);
@@ -156,17 +170,19 @@ export default function CalibrationPage() {
   };
 
 
-  if (currentStep === "baseline-record") {
+  // RENDER SECTIONS
+  if (currentStep === "diagnosis") {
+    // ... (Mismo código de baseline-record)
     return (
       <main className="min-h-screen bg-[#0A0F14] font-display flex flex-col items-center justify-center p-6 text-white text-center">
          <div className="max-w-md w-full">
-            <h2 className="text-2xl font-bold mb-2">Paso 1: Línea Base</h2>
-            <p className="text-gray-400 mb-8">Graba 10 segundos de tu presentación habitual.</p>
+            <h2 className="text-3xl font-bold mb-2 text-red-500">Diagnóstico Ácido</h2>
+            <p className="text-gray-400 mb-8 text-sm">Prueba de fuego: Tienes 15 segundos para convencer a la IA.</p>
             
             <div className="flex flex-col items-center gap-6">
                 {!isRecording ? (
-                    <button onClick={startRecording} className="size-32 rounded-full bg-[#161B22] border-2 border-[#30363d] hover:border-white transition-all flex items-center justify-center group active:scale-95">
-                        <span className="material-symbols-outlined text-4xl text-gray-400 group-hover:text-white">mic</span>
+                    <button onClick={startRecording} className="size-40 rounded-full bg-red-600/10 border-2 border-red-600/50 hover:bg-red-600 hover:border-red-500 transition-all flex items-center justify-center group active:scale-95 shadow-[0_0_40px_rgba(220,38,38,0.2)]">
+                        <span className="material-symbols-outlined text-5xl text-red-500 group-hover:text-white transition-colors">mic</span>
                     </button>
                 ) : (
                     <div className="flex flex-col items-center gap-4">
@@ -189,51 +205,58 @@ export default function CalibrationPage() {
     );
   }
 
-  if (currentStep === "bio-hack") {
+  if (currentStep === "analysis") {
+    // ANALISIS RÁPIDO (MOCK O BASADO EN RMS)
+    const authorityScore = metricsBaseline ? Math.min(100, Math.round(metricsBaseline.rms * 1.5)) : 50;
+    
     return (
       <main className="min-h-screen bg-[#05080a] font-display flex flex-col items-center justify-center p-6 text-white text-center">
          <div className="max-w-lg w-full relative">
-            <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-96 h-96 bg-blue-500/10 rounded-full blur-[80px] animate-pulse"></div>
+            <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-96 h-96 bg-red-600/10 rounded-full blur-[80px] animate-pulse"></div>
             
-            <div className="relative z-10">
-               <span className="text-blue-400 text-xs font-black uppercase tracking-[0.3em] mb-4 block">
-                  Intervención Biológica
+            <div className="relative z-10 animate-fade-in-up">
+               <span className="text-red-500 text-xs font-black uppercase tracking-[0.3em] mb-4 block">
+                  Resultado del Diagnóstico
                </span>
-               <h2 className="text-3xl md:text-4xl font-bold mb-6">
-                  Hemos detectado tensión en tu resonancia.
+               <h2 className="text-5xl md:text-7xl font-black mb-2 text-white tracking-tighter">
+                  {authorityScore}%
                </h2>
+               <p className="text-xl font-medium text-gray-400 mb-8">Nivel de Autoridad</p>
                
-               <div className="bg-[#111] border border-gray-800 p-8 rounded-2xl mb-8">
-                  <p className="text-xl text-gray-200 font-medium mb-4">
-                     "Baja los hombros, separa los dientes traseros y habla desde el pecho."
-                  </p>
-                  <div className="w-full bg-gray-900 h-1.5 rounded-full overflow-hidden">
-                     <div className="bg-blue-500 h-full transition-all duration-1000 ease-linear" style={{ width: `${(interventionTime / 30) * 100}%` }}></div>
+               <div className="bg-[#111] border border-red-900/30 p-8 rounded-2xl mb-8 shadow-2xl">
+                  <div className="flex items-center gap-3 mb-4 justify-center">
+                      <span className="material-symbols-outlined text-yellow-400">lightbulb</span>
+                      <span className="text-xs font-bold text-yellow-400 uppercase tracking-widest">Tip de IA</span>
                   </div>
-                  <p className="mt-2 text-right text-xs text-gray-500 font-mono">{interventionTime}s</p>
+                  <p className="text-2xl text-white font-bold mb-2">
+                     "{hackMessage.instruction}"
+                  </p>
+                  <p className="text-gray-500 text-sm">
+                     Detectamos {hackMessage.title.toLowerCase()}
+                  </p>
                </div>
                
-               {interventionTime === 0 && (
-                 <button 
-                  onClick={() => navigateToStep("calibration-record")}
-                  className="px-8 py-4 bg-blue-600 hover:bg-blue-500 text-white font-bold rounded-xl shadow-lg shadow-blue-500/20 active:scale-95 transition-all text-lg animate-fade-in-up"
+               <button 
+                  onClick={() => navigateToStep("improvement")}
+                  className="w-full py-5 bg-white text-black font-black text-lg rounded-xl shadow-[0_0_30px_rgba(255,255,255,0.2)] hover:scale-105 transition-all flex items-center justify-center gap-2"
                  >
-                   Continuar a Calibración
-                 </button>
-               )}
+                   <span className="material-symbols-outlined">restart_alt</span>
+                   Grabar otra vez (Aplicando Tip)
+               </button>
             </div>
          </div>
       </main>
     );
   }
 
-  if (currentStep === "calibration-record") {
-    return (
+  if (currentStep === "improvement") {
+     // ... (Mismo código de calibration-record)
+     return (
       <main className="min-h-screen bg-[#0A0F14] font-display flex flex-col items-center justify-center p-6 text-white text-center">
          <div className="max-w-md w-full">
-            <h2 className="text-2xl font-bold mb-2 text-blue-400">Paso 2: Calibración</h2>
+            <h2 className="text-2xl font-bold mb-2 text-blue-400">Paso 2: Aplicación</h2>
             <p className="text-gray-300 mb-8">
-               Ahora, <strong className="text-white">manteniendo la nueva postura</strong>, repite tu presentación.
+               Ahora, <strong className="text-white">aplicando el Tip</strong>, repite tu presentación.
             </p>
             
             <div className="flex flex-col items-center gap-6">
@@ -255,69 +278,90 @@ export default function CalibrationPage() {
     );
   }
 
-  if (currentStep === "comparison") {
+  if (currentStep === "contrast") {
     // Valores por defecto para fallback visual
     const projGain = improvement?.projection || 18;
     const stabGain = improvement?.stability || 12;
 
     return (
       <main className="min-h-screen bg-[#0A0F14] font-display flex flex-col items-center justify-center p-6 text-white">
-         <div className="max-w-2xl w-full">
-            <h2 className="text-3xl font-bold mb-2 text-center">Resultados de tu Calibración</h2>
-            <p className="text-gray-400 text-center mb-10">Análisis acústico en tiempo real.</p>
+         <div className="max-w-4xl w-full">
+            <h2 className="text-3xl md:text-5xl font-black mb-2 text-center text-transparent bg-clip-text bg-gradient-to-r from-blue-400 to-purple-400">
+               Evolución Instantánea
+            </h2>
+            <p className="text-gray-400 text-center mb-10 text-lg">Evidencia de tu capacidad de mejora en 30 segundos.</p>
             
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-12">
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-8 mb-12">
                {/* BEFORE CARD */}
-               <div className="bg-[#111] border border-gray-800 p-6 rounded-2xl opacity-60">
-                  <span className="text-xs font-bold text-red-500 uppercase tracking-widest mb-2 block">Antes (Línea Base)</span>
-                  <div className="h-12 flex items-center justify-center bg-gray-900 rounded-lg">
+               <div className="bg-[#111] border border-gray-800 p-8 rounded-3xl opacity-50 grayscale hover:grayscale-0 transition-all duration-500">
+                  <span className="text-xs font-bold text-gray-500 uppercase tracking-widest mb-4 block">Diagnóstico Inicial</span>
+                  <div className="h-24 flex items-center justify-center bg-gray-900 rounded-xl mb-6">
                      {audioBlobBaseline && (
-                       <audio controls src={URL.createObjectURL(audioBlobBaseline)} className="w-full h-8 opacity-50" />
+                       <audio controls src={URL.createObjectURL(audioBlobBaseline)} className="w-full px-4" />
                      )}
+                     {!audioBlobBaseline && <span className="text-gray-600 font-mono text-xs">Sin Audio</span>}
                   </div>
-                  <div className="mt-4 grid grid-cols-2 gap-2 text-xs text-gray-500">
-                     <div>Energía: <span className="text-gray-400 font-mono">{metricsBaseline?.rms.toFixed(1) || "--"}</span></div>
-                     <div>Estabilidad: <span className="text-gray-400 font-mono">{metricsBaseline?.stability.toFixed(1) || "--"}</span></div>
+                  <div className="space-y-4">
+                     <div className="flex justify-between text-sm">
+                        <span className="text-gray-500">Autoridad</span>
+                        <span className="font-mono text-gray-400">{metricsBaseline?.rms.toFixed(1) || "45.0"}</span>
+                     </div>
+                     <div className="w-full bg-gray-800 h-1.5 rounded-full">
+                        <div className="bg-gray-600 h-full rounded-full" style={{width: `${Math.min(100, (metricsBaseline?.rms || 0))}%`}}></div>
+                     </div>
                   </div>
                </div>
 
                {/* AFTER CARD */}
-               <div className="bg-blue-900/10 border border-blue-500/30 p-6 rounded-2xl relative shadow-xl">
-                  <div className="absolute top-0 right-0 bg-blue-500 text-white text-[10px] font-bold px-2 py-1 rounded-bl-lg rounded-tr-lg">OPTIMIZADO</div>
-                  <span className="text-xs font-bold text-blue-400 uppercase tracking-widest mb-2 block">Después (Calibrado)</span>
-                  <div className="h-12 flex items-center justify-center bg-blue-900/20 rounded-lg">
+               <div className="bg-gradient-to-b from-blue-900/20 to-purple-900/20 border border-blue-500/50 p-8 rounded-3xl relative shadow-[0_0_50px_rgba(59,130,246,0.15)] transform md:scale-105">
+                  <div className="absolute -top-3 -right-3 bg-gradient-to-r from-green-500 to-emerald-400 text-black text-xs font-black px-4 py-2 rounded-full uppercase tracking-wider shadow-lg transform rotate-3">
+                     Mejorado
+                  </div>
+                  <span className="text-xs font-bold text-blue-400 uppercase tracking-widest mb-4 block">Resultado Optimizado</span>
+                  <div className="h-24 flex items-center justify-center bg-blue-900/20 rounded-xl mb-6 border border-blue-500/10">
                      {audioBlobCalibration && (
-                       <audio controls src={URL.createObjectURL(audioBlobCalibration)} className="w-full h-8" />
+                       <audio controls src={URL.createObjectURL(audioBlobCalibration)} className="w-full px-4" />
                      )}
                   </div>
-                  <div className="mt-4 space-y-2">
-                      <p className="text-sm text-gray-300 flex justify-between">
-                         Proyección Vocal: <span className="text-green-400 font-bold">+{projGain}%</span>
-                      </p>
-                      <div className="w-full bg-gray-800 h-1 rounded-full overflow-hidden">
-                         <div className="bg-green-500 h-full" style={{width: `${Math.min(100, projGain*3)}%`}}></div>
+                  <div className="space-y-6">
+                      <div>
+                          <div className="flex justify-between items-end mb-2">
+                             <span className="text-gray-200 font-medium">Proyección Vocal</span>
+                             <span className="text-green-400 font-bold text-lg">+{projGain}%</span>
+                          </div>
+                          <div className="w-full bg-gray-800 h-2 rounded-full overflow-hidden">
+                             <div className="bg-green-500 h-full rounded-full shadow-[0_0_10px_#22c55e]" style={{width: `${Math.min(100, projGain * 2.5)}%`}}></div>
+                          </div>
                       </div>
                       
-                      <p className="text-sm text-gray-300 flex justify-between mt-2">
-                         Estabilidad Tonal: <span className="text-blue-400 font-bold">+{stabGain}%</span>
-                      </p>
-                      <div className="w-full bg-gray-800 h-1 rounded-full overflow-hidden">
-                         <div className="bg-blue-500 h-full" style={{width: `${Math.min(100, stabGain*3)}%`}}></div>
+                      <div>
+                          <div className="flex justify-between items-end mb-2">
+                             <span className="text-gray-200 font-medium">Estabilidad</span>
+                             <span className="text-blue-400 font-bold text-lg">+{stabGain}%</span>
+                          </div>
+                          <div className="w-full bg-gray-800 h-2 rounded-full overflow-hidden">
+                             <div className="bg-blue-500 h-full rounded-full shadow-[0_0_10px_#3b82f6]" style={{width: `${Math.min(100, stabGain * 2.5)}%`}}></div>
+                          </div>
                       </div>
                   </div>
                </div>
             </div>
 
-            <div className="flex flex-col items-center text-center">
-               <h3 className="text-xl font-bold mb-4">La matemática confirma el "Efecto Presencia".</h3>
-               <p className="text-gray-400 max-w-lg mb-8 text-sm">
-                  Tus métricas han mejorado instantáneamente. Formaliza tu acceso para guardar este progreso.
-               </p>
+            <div className="flex flex-col md:flex-row gap-4 items-center justify-center max-w-lg mx-auto">
+               <Link href="/warmup" className="w-full">
+                   <button 
+                     className="w-full px-8 py-4 bg-white text-black font-black text-lg rounded-xl hover:scale-105 transition-all shadow-xl flex items-center justify-center gap-2"
+                   >
+                     <span className="material-symbols-outlined">piano</span>
+                     Analizar Tono (Siguiente Paso)
+                   </button>
+               </Link>
+               
                <button 
                  onClick={() => navigateToStep("capture")}
-                 className="px-10 py-4 bg-white text-black font-black text-lg rounded-xl hover:scale-105 transition-all w-full md:w-auto"
+                 className="w-full px-8 py-4 bg-transparent border border-gray-700 text-gray-300 font-bold text-sm rounded-xl hover:bg-gray-900 transition-all"
                >
-                 Guardar Progreso
+                 Guardar Progreso y Salir
                </button>
             </div>
          </div>
@@ -356,4 +400,16 @@ export default function CalibrationPage() {
   }
 
   return null;
+}
+
+export default function CalibrationPage() {
+  return (
+    <Suspense fallback={
+      <div className="min-h-screen bg-[#0A0F14] flex items-center justify-center">
+        <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-blue-500"></div>
+      </div>
+    }>
+      <CalibrationContent />
+    </Suspense>
+  );
 }

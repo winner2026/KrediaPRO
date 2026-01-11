@@ -6,28 +6,51 @@ import { getOrCreateAnonymousUserId } from "@/lib/anonymousUser";
 import { logEvent } from "@/lib/events/logEvent";
 import Link from "next/link";
 import Script from "next/script";
-import { usePostureAnalysis, PostureMetrics } from "@/lib/posture/usePostureAnalysis";
 import AudioVisualizer from "@/components/AudioVisualizer";
 import AudioLevelMeter from "@/components/AudioLevelMeter";
 import { getRandomTip, VocalTip, getCategoryColor } from "@/lib/tips/vocalHygieneTips";
+import dynamic from "next/dynamic";
+
+const SmartPiano = dynamic(() => import("@/components/warmup/SmartPiano"), {
+    ssr: false,
+    loading: () => <div className="fixed inset-0 bg-black/80 z-[100] flex items-center justify-center text-white">Cargando Piano...</div>
+});
 
 // 🎯 CONTROL DE ABANDONO TEMPRANO
 const MIN_RECORDING_DURATION = 3; // segundos
 
 // 💰 CONTROL DE COSTOS - Límite máximo de grabación
-const MAX_RECORDING_DURATION = 60; // segundos (límite de Whisper)
+const MAX_RECORDING_DURATION = 30; // segundos (límite solicitado)
+
+// 🏋 IMPORTACIONES PARA EL CONTEXTO DEL EJERCICIO
+import { VOICE_EXERCISES, VoiceExercise } from "@/domain/training/VoiceExercises";
 
 function PracticeContent() {
   const router = useRouter();
   const searchParams = useSearchParams();
-  const isVoiceOnly = searchParams.get("mode") === "voice";
+  const mode = searchParams.get("mode");
+  const isVoiceOnly = mode === "voice";
+  const isVideoMode = mode === "video";
   const mediaRecorderRef = useRef<MediaRecorder | null>(null);
   const audioChunksRef = useRef<Blob[]>([]);
+
   const recordingStartTimeRef = useRef<number | null>(null);
   const autoStopTimerRef = useRef<NodeJS.Timeout | null>(null);
   const countdownIntervalRef = useRef<NodeJS.Timeout | null>(null);
-  const videoRef = useRef<HTMLVideoElement>(null);
-  const canvasRef = useRef<HTMLCanvasElement>(null);
+  const finalMetricsRef = useRef<any>(null); // Placeholder to avoid errors if referenced
+
+  // 📝 CONTEXTO DE EJERCICIO
+  const exerciseId = searchParams.get("exercise");
+  const currentExercise = exerciseId ? VOICE_EXERCISES.find(e => e.id === exerciseId) : null;
+
+  // 💾 STATE PERSISTENCE PARA RESULTADOS
+  useEffect(() => {
+    if (exerciseId) {
+        localStorage.setItem('current_exercise_id', exerciseId);
+    } else {
+        localStorage.removeItem('current_exercise_id');
+    }
+  }, [exerciseId]);
 
   const [isRecording, setIsRecording] = useState(false);
   const [audioBlob, setAudioBlob] = useState<Blob | null>(null);
@@ -37,32 +60,11 @@ function PracticeContent() {
   const [showIncognitoWarning, setShowIncognitoWarning] = useState(false);
   const [isCheckingIncognito, setIsCheckingIncognito] = useState(true);
   const [recordingTime, setRecordingTime] = useState(0);
-  const [cameraError, setCameraError] = useState<string | null>(null);
-  const [showPosturePreview, setShowPosturePreview] = useState(true);
-  const [recordingStream, setRecordingStream] = useState<MediaStream | null>(null);
-  const [loadingMessage, setLoadingMessage] = useState("Procesando audio...");
   const [currentTip, setCurrentTip] = useState<VocalTip | null>(null);
-  const [mediapipeReady, setMediapipeReady] = useState(false);
-  const mediapipeLoadedRef = useRef(0);
   const [showReview, setShowReview] = useState(false);
-  const [capturedMetrics, setCapturedMetrics] = useState<PostureMetrics | null>(null);
-
-  // 🆕 Hook de análisis de postura
-  const {
-    currentMetrics,
-    error: postureError,
-    initialize: initPosture,
-    startAnalysis: startPostureAnalysis,
-    stopAnalysis: stopPostureAnalysis,
-    isInitialized: isPostureReady,
-  } = usePostureAnalysis({ videoRef, canvasRef });
-
-  const handleMediapipeLoad = () => {
-    mediapipeLoadedRef.current += 1;
-    if (mediapipeLoadedRef.current >= 3) {
-      setMediapipeReady(true);
-    }
-  };
+  const [showPiano, setShowPiano] = useState(false);
+  const [recordingStream, setRecordingStream] = useState<MediaStream | null>(null);
+  const [isMicEnabled, setIsMicEnabled] = useState(false);
 
 
   // Detectar modo incógnito y generar userId
@@ -77,7 +79,7 @@ function PracticeContent() {
         return;
       }
 
-  const id = getOrCreateAnonymousUserId();
+      const id = getOrCreateAnonymousUserId();
       setUserId(id);
       setIsCheckingIncognito(false);
     };
@@ -85,100 +87,72 @@ function PracticeContent() {
     checkAccess();
   }, []);
 
-  // 🆕 Sincronizar el video con el stream de forma segura
+
+  const [loadingMessage, setLoadingMessage] = useState("Analizando...");
+
+  // 🎛️ MEDIA CONTROL TOGGLES
+  const toggleMic = () => {
+    if (recordingStream) {
+      const audioTracks = recordingStream.getAudioTracks();
+      audioTracks.forEach(track => {
+        track.enabled = !isMicEnabled;
+      });
+      setIsMicEnabled(!isMicEnabled);
+    }
+  };
+
+  // Inicializar audio cuando el componente carga
   useEffect(() => {
-    let isMounted = true;
-    
-    const playVideo = async () => {
-      if (videoRef.current && recordingStream && isMounted) {
-        // Solo actualizar si es diferente para evitar interrupciones
-        if (videoRef.current.srcObject !== recordingStream) {
-          videoRef.current.srcObject = recordingStream;
-          try {
-            await videoRef.current.play();
-          } catch (e) {
-            // Ignorar errores de interrupción si el componente se desmontó
-            if (isMounted && (e as Error).name !== 'AbortError') {
-              console.error("Error al reproducir video:", e);
-            }
-          }
-        }
-      }
-    };
-
-    playVideo();
-
-    return () => {
-      isMounted = false;
-    };
-  }, [recordingStream, isRecording, videoRef]);
-
-  // Inicializar cámara cuando el componente carga
-  useEffect(() => {
-    const initCamera = async () => {
+    const initAudio = async () => {
       try {
-        if (!isVoiceOnly) {
-          await initPosture();
-        }
-        
-        // Intentar obtener el stream que MediaPipe está usando para previsualización
-        if (!isVoiceOnly && videoRef.current?.srcObject) {
-          setRecordingStream(videoRef.current.srcObject as MediaStream);
-        } else {
-           const stream = await navigator.mediaDevices.getUserMedia({ 
+        const stream = await navigator.mediaDevices.getUserMedia({ 
             audio: {
               echoCancellation: true,
               noiseSuppression: true,
-              autoGainControl: true, // Esto ayuda a normalizar el volumen
-            },
-            video: isVoiceOnly ? false : { 
-              facingMode: "user" 
+              autoGainControl: true,
             }
-          });
-          setRecordingStream(stream);
-        }
+        });
+        
+        // 🔒 APLICAR ESTADO INICIAL (MUTEADO POR DEFAULT)
+        stream.getAudioTracks().forEach(track => track.enabled = false);
+
+        setRecordingStream(stream);
+
       } catch (err: any) {
-        console.error("Error initializing camera:", err);
-        setCameraError("No se pudo acceder a la cámara o micrófono");
+        console.error("Error initializing audio:", err);
         logEvent("camera_error", { 
           message: err.message, 
           name: err.name,
-          context: "initCamera" 
+          context: "initAudio" 
         });
       }
     };
 
     if (!isCheckingIncognito && !showIncognitoWarning) {
-      initCamera();
+      initAudio();
     }
-  }, [isCheckingIncognito, showIncognitoWarning, initPosture]);
+  }, [isCheckingIncognito, showIncognitoWarning]);
 
   const startRecording = async () => {
+
+
     try {
-      // Solicitar audio y video con alta calidad inicial
-      const stream = await navigator.mediaDevices.getUserMedia({ 
-        audio: {
-          echoCancellation: true,
-          noiseSuppression: true,
-          autoGainControl: true,
-        },
-        video: isVoiceOnly ? false : { 
-          facingMode: "user"
-        }
-      });
-
-      setRecordingStream(stream);
-
-      // Configurar video preview de forma segura
-      if (!isVoiceOnly && videoRef.current) {
-        videoRef.current.srcObject = stream;
-        videoRef.current.play().catch(e => console.error("Error start video:", e));
+      let stream = recordingStream;
+      if (!stream) {
+         stream = await navigator.mediaDevices.getUserMedia({ 
+            audio: {
+              echoCancellation: true,
+              noiseSuppression: true,
+              autoGainControl: true,
+            }
+         });
+         setRecordingStream(stream);
       }
 
-      // Iniciar análisis de postura
-      if (!isVoiceOnly) {
-        await startPostureAnalysis();
-      }
+      // 🔒 SINCRONIZAR ESTADO DE BOTONES CON EL NUEVO STREAM
+      stream.getAudioTracks().forEach(track => track.enabled = true);
+      // Ensure state matches reality
+      setIsMicEnabled(true);
 
       // Configurar grabación de audio optimizada
       let options: MediaRecorderOptions = { 
@@ -202,21 +176,20 @@ function PracticeContent() {
       recordingStartTimeRef.current = Date.now();
       setRecordingTime(0);
 
-      logEvent(isVoiceOnly ? "voice_test_started" : "recording_started_with_video");
+      logEvent("voice_test_started");
 
       countdownIntervalRef.current = setInterval(() => {
         setRecordingTime((prev) => prev + 1);
       }, 1000);
 
-      const currentMaxDuration = isVoiceOnly ? 15 : MAX_RECORDING_DURATION;
-
+      // Force stop at MAX_DURATION
       autoStopTimerRef.current = setTimeout(() => {
         if (countdownIntervalRef.current) {
           clearInterval(countdownIntervalRef.current);
         }
         stopRecording();
-        logEvent("recording_auto_stopped", { duration: currentMaxDuration });
-      }, currentMaxDuration * 1000);
+        logEvent("recording_auto_stopped", { duration: MAX_RECORDING_DURATION });
+      }, MAX_RECORDING_DURATION * 1000);
 
       mediaRecorder.ondataavailable = (event) => {
         if (event.data.size > 0) {
@@ -232,21 +205,17 @@ function PracticeContent() {
         const blob = new Blob(audioChunksRef.current, { type: "audio/webm" });
         const recordingDuration = recordingStartTimeRef.current ? (Date.now() - recordingStartTimeRef.current) / 1000 : 0;
 
-        // Recuperar métricas capturadas antes del cierre
-        const finalPostureMetrics = finalMetricsRef.current || stopPostureAnalysis();
-
         if (recordingDuration < MIN_RECORDING_DURATION) {
-          logEvent("recording_abandoned", { duration: recordingDuration, reason: "too_short" });
           alert("La grabación es muy corta. Habla al menos 3 segundos.");
           releaseMediaResources();
           setIsAnalyzing(false);
+          setIsRecording(false);
           return;
         }
         
         setAudioBlob(blob);
-        setCapturedMetrics(finalPostureMetrics);
         setShowReview(true);
-        // releaseMediaResources() ya fue llamado en stopRecording, pero aquí asegura limpieza si el stop fue por otra razón
+        // releaseMediaResources() ya fue llamado en stopRecording, pero aquí asegura limpieza
         releaseMediaResources();
       };
 
@@ -254,12 +223,7 @@ function PracticeContent() {
       setIsRecording(true);
     } catch (error: any) {
       console.error("Error accessing media devices:", error);
-      logEvent("camera_error", { 
-        message: error.message, 
-        name: error.name,
-        context: "startRecording" 
-      });
-      alert("No se pudo acceder al micrófono o cámara. Por favor, permite el acceso.");
+      alert("No se pudo acceder al micrófono. Por favor, permite el acceso.");
     }
   };
 
@@ -268,28 +232,14 @@ function PracticeContent() {
     if (recordingStream) {
       recordingStream.getTracks().forEach(track => {
         track.stop();
-        track.enabled = false;
       });
-      setRecordingStream(null);
-    }
-    if (videoRef.current) {
-      videoRef.current.srcObject = null;
+      setRecordingStream(null); 
     }
   };
 
-  const finalMetricsRef = useRef<PostureMetrics | null>(null);
 
-  // ... (otros refs)
 
-  // ... dentro de stopRecording
   const stopRecording = () => {
-    // 1. CAPTURAR PRIMERO LAS MÉTRICAS DE POSTURA (mientras todo sigue vivo)
-    try {
-        finalMetricsRef.current = stopPostureAnalysis();
-    } catch (e) {
-        console.error("Error capturing posture metrics:", e);
-    }
-
     if (autoStopTimerRef.current) {
       clearTimeout(autoStopTimerRef.current);
       autoStopTimerRef.current = null;
@@ -304,10 +254,12 @@ function PracticeContent() {
     
     setIsRecording(false);
     
-    releaseMediaResources();
+    // Do NOT release resources immediately here, let onstop handle it or user reset.
+    // If we release here, the 'onstop' event might fire with no stream tracks if needed (though we only need blob).
+    // Better to let onstop callback handle the flow to Review.
   };
 
-  const analyzeAudio = async (blob: Blob, uid: string | null, postureMetrics: PostureMetrics) => {
+  const analyzeAudio = async (blob: Blob, uid: string | null) => {
     if (!blob || !uid) return;
     
     setIsAnalyzing(true);
@@ -318,7 +270,6 @@ function PracticeContent() {
     const messages = [
       "Transcribiendo tu voz...",
       "Analizando entonación y pausas...",
-      "Evaluando lenguaje corporal...",
       "Calculando niveles de seguridad...",
       "Generando feedback personalizado..."
     ];
@@ -340,9 +291,20 @@ function PracticeContent() {
       const controller = new AbortController();
       const timeoutId = setTimeout(() => controller.abort(), 90000);
 
+      // 🛡️ Context encoding: Base64 or URI encode to avoid header issues with accents
+      const contextString = currentExercise ? JSON.stringify({
+          id: currentExercise.id,
+          title: currentExercise.title,
+          goal: currentExercise.benefit,
+          metrics: currentExercise.targetMetrics
+      }) : '';
+
       const response = await fetch("/api/analysis", {
         method: "POST",
         body: formData,
+        headers: {
+            'X-Exercise-Context': contextString ? encodeURIComponent(contextString) : ''
+        },
         signal: controller.signal,
       });
       
@@ -360,36 +322,9 @@ function PracticeContent() {
       const result = await response.json();
       const dataToSave = result.data || result;
       
-      // 🆕 Agregar métricas de postura al resultado (con fallback seguro)
-      const safePostureMetrics = postureMetrics || {
-          postureScore: 0,
-          shouldersLevel: "balanced",
-          headPosition: "centered",
-          eyeContactPercent: 0,
-          gesturesUsage: "none",
-          nervousnessIndicators: { closedFists: 0, handsHidden: 0, excessiveMovement: false },
-          hasTurtleNeck: false,
-          isArmsCrossed: false,
-          areHandsConnected: false
-      };
-
       const enhancedResult = {
         ...dataToSave,
-        postureMetrics: {
-          // Gated Estatus (Solo Elite)
-          hasTurtleNeck: (dataToSave.userPlan === "PREMIUM") ? safePostureMetrics.hasTurtleNeck : undefined,
-          isArmsCrossed: (dataToSave.userPlan === "PREMIUM") ? safePostureMetrics.isArmsCrossed : undefined,
-          areHandsConnected: (dataToSave.userPlan === "PREMIUM") ? safePostureMetrics.areHandsConnected : undefined,
-          postureScore: safePostureMetrics.postureScore,
-          shouldersLevel: safePostureMetrics.shouldersLevel,
-          headPosition: safePostureMetrics.headPosition,
-          eyeContactPercent: safePostureMetrics.eyeContactPercent,
-          gesturesUsage: safePostureMetrics.gesturesUsage,
-          nervousnessIndicators: safePostureMetrics.nervousnessIndicators,
-        },
-        score_postura: safePostureMetrics.postureScore,
-        // Forzar score si no viene del backend
-        score_general: dataToSave.score_general || Math.round((dataToSave.score_transcripcion + dataToSave.score_audio + (safePostureMetrics.postureScore || 50)) / 3) 
+        score_general: dataToSave.score_general || Math.round((dataToSave.score_transcripcion + dataToSave.score_audio) / 2) 
       };
       
       localStorage.setItem("voiceAnalysisResult", JSON.stringify(enhancedResult));
@@ -410,82 +345,29 @@ function PracticeContent() {
   };
 
   const handleStartAnalysis = () => {
-    if (audioBlob && capturedMetrics) {
+    if (audioBlob) {
       setShowReview(false);
       setIsAnalyzing(true);
-      analyzeAudio(audioBlob, userId, capturedMetrics);
+      analyzeAudio(audioBlob, userId);
     }
   };
 
   const handleResetRecording = () => {
     setAudioBlob(null);
     setShowReview(false);
-    setCapturedMetrics(null);
     setRecordingTime(0);
-    // Reiniciar preview de cámara
-    const initCamera = async () => {
-        try {
-          await initPosture();
-          if (videoRef.current?.srcObject) {
-            setRecordingStream(videoRef.current.srcObject as MediaStream);
-          } else {
-             const stream = await navigator.mediaDevices.getUserMedia({ 
-              audio: { echoCancellation: true, noiseSuppression: true, autoGainControl: true },
-              video: { facingMode: "user" }
-            });
-            setRecordingStream(stream);
-          }
-        } catch (err) {
-          console.error("Error re-initializing camera:", err);
-        }
-    };
-    initCamera();
+    // Reiniciar stream
+    startRecording(); // O simplemente dejar que el usuario pulse Grabar de nuevo
   };
 
-  // 🔊 Audio Alert for bad posture
-  const lastAlertTimeRef = useRef<number>(0);
-  const badPostureCountRef = useRef<number>(0);
-  
-  useEffect(() => {
-    if (isRecording && currentMetrics.isPersonDetected && currentMetrics.shouldersLevel !== 'balanced') {
-      badPostureCountRef.current += 1;
-      // Aproximadamente 5 segundos (asumiendo ~30fps -> 150 frames, o si el hook emite menos, ajustamos)
-      // Como currentMetrics viene de usePostureAnalysis que usa requestAnimationFrame, es rápido.
-      // Pongamos un umbral de frames o usemos un intervalo.
-      // usePostureAnalysis actualiza el estado, así que este effect corre frecuentemente.
-      if (badPostureCountRef.current > 100) { // ~3-4 segundos de mala postura continua
-        const now = Date.now();
-        if (now - lastAlertTimeRef.current > 10000) { // No repetir más de cada 10s
-          try {
-            const ctx = new (window.AudioContext || (window as any).webkitAudioContext)();
-            const osc = ctx.createOscillator();
-            const gain = ctx.createGain();
-            osc.connect(gain);
-            gain.connect(ctx.destination);
-            osc.type = 'sine';
-            osc.frequency.setValueAtTime(440, ctx.currentTime);
-            gain.gain.setValueAtTime(0, ctx.currentTime);
-            gain.gain.linearRampToValueAtTime(0.1, ctx.currentTime + 0.05);
-            gain.gain.linearRampToValueAtTime(0, ctx.currentTime + 0.3);
-            osc.start();
-            osc.stop(ctx.currentTime + 0.3);
-            lastAlertTimeRef.current = now;
-          } catch (e) {
-            console.warn("Audio alert failed", e);
-          }
-        }
-      }
-    } else {
-      badPostureCountRef.current = 0;
-    }
-  }, [isRecording, currentMetrics.shouldersLevel, currentMetrics.isPersonDetected]);
+
 
   if (isCheckingIncognito) {
     return (
       <main className="min-h-screen bg-[#101922] flex items-center justify-center text-white font-display">
         <div className="flex flex-col items-center gap-4">
           <div className="w-12 h-12 border-4 border-[#3b4754] border-t-primary rounded-full animate-spin"></div>
-          <p className="text-[#9dabb9]">Preparando...</p>
+          <p className="text-[#9dabb9]">Preparando entrenador...</p>
         </div>
       </main>
     );
@@ -554,7 +436,7 @@ function PracticeContent() {
         </div>
         <h2 className="text-2xl font-bold mb-2">¡Grabación completada!</h2>
         <p className="text-[#9dabb9] mb-8 max-w-xs mx-auto">
-          Tu video está listo para ser analizado por la Inteligencia Artificial.
+          Tu grabación está lista para ser analizada por la Inteligencia Artificial.
         </p>
 
         <div className="w-full max-w-xs space-y-4">
@@ -648,126 +530,70 @@ function PracticeContent() {
     <main className="fixed inset-0 bg-black font-display text-white overflow-hidden z-[999]">
       <div className="absolute inset-0 z-0 bg-black flex items-center justify-center overflow-hidden">
         
-        {/* 🎙️ MEDIDOR DE VOLUMEN (Vertical Extenso) */}
-        {recordingStream && (
+        {/* 🎙️ MEDIDOR DE VOLUMEN (Vertical Extenso) - SOLO EN VIDEO MODE */}
+        {!isVoiceOnly && recordingStream && (
           <div className="absolute left-4 md:left-72 top-1/4 bottom-1/4 w-10 md:w-12 z-[60] animate-fade-in flex flex-col items-center gap-2">
-             <div className="flex-1 w-full bg-black/60 backdrop-blur-xl rounded-full border border-white/20 p-2 flex flex-col items-center shadow-2xl">
+             <div className="flex-1 w-full bg-black/60 backdrop-blur-xl rounded-full border border-white/20 p-2 flex flex-col items-center shadow-2xl relative overflow-hidden">
+                {/* Visualizer Background */}
+                {!isMicEnabled && (
+                    <div className="absolute inset-0 z-10 bg-black/80 flex items-center justify-center">
+                        <span className="material-symbols-outlined text-red-500">mic_off</span>
+                    </div>
+                )}
                 <AudioLevelMeter stream={recordingStream} isActive={true} />
              </div>
-             <div className="size-8 rounded-full bg-black/60 backdrop-blur-xl border border-white/10 flex items-center justify-center">
-                <span className={`material-symbols-outlined text-sm ${isRecording ? 'text-red-500 animate-pulse' : 'text-blue-400'}`}>
-                  mic
-                </span>
-             </div>
-          </div>
-        )}
-
-        {/* PANEL LATERAL / SUPERIOR (Feedback en Vivo) */}
-        {!isVoiceOnly && isPostureReady && (
-          <div className={`absolute z-40 transition-all duration-700 ease-in-out no-scrollbar
-            ${isRecording 
-              ? 'top-20 left-4 right-4 flex flex-row justify-center gap-2 md:top-1/2 md:-translate-y-1/2 md:left-6 md:right-auto md:flex-col md:w-64' 
-              : 'top-20 left-4 right-4 flex flex-row overflow-x-auto gap-2 md:top-1/2 md:-translate-y-1/2 md:left-6 md:right-auto md:flex-col md:w-64 md:overflow-visible'
-            }`}
-          >
-
-            <div className="hidden md:flex items-center gap-2 mb-2 pl-1">
-              <h3 className="text-white/40 text-[10px] font-bold uppercase tracking-widest shadow-black drop-shadow-md">
-                {isRecording ? "Análisis en Tiempo Real" : "Verificación de Postura"}
-              </h3>
-              {isRecording && (
-                <div className="size-1.5 rounded-full bg-red-500 animate-pulse"></div>
-              )}
-            </div>
-
-            
-            {/* 1. Mirada/Cabeza */}
-            <div className={`p-2.5 md:p-4 rounded-xl md:rounded-2xl border backdrop-blur-md transition-all duration-500 ease-out flex-shrink-0 w-[105px] md:w-full ${
-              currentMetrics.isPersonDetected && currentMetrics.headPosition === 'centered' 
-                ? 'bg-green-500/20 border-green-500/50 shadow-[0_4px_15px_rgba(34,197,94,0.3)]' 
-                : 'bg-gray-900/60 border-gray-700/50 opacity-80'
-            }`}>
-              <div className="flex flex-col md:flex-row items-center md:items-start gap-1.5 md:gap-3 text-center md:text-left">
-                <div className={`size-8 md:size-9 rounded-full flex items-center justify-center transition-all duration-500 ease-out ${
-                  currentMetrics.isPersonDetected && currentMetrics.headPosition === 'centered' ? 'bg-green-500 text-black scale-105' : 'bg-gray-800 text-gray-500'
-                }`}>
-                  <span className="material-symbols-outlined text-base md:text-lg">visibility</span>
-                </div>
-                <div className="min-w-0">
-                  <p className={`text-[10px] md:text-xs font-bold uppercase tracking-wider truncate transition-colors duration-500 ${currentMetrics.isPersonDetected && currentMetrics.headPosition === 'centered' ? 'text-green-400' : 'text-gray-400'}`}>
-                    Mirada
-                  </p>
-                  <p className={`text-[8px] md:text-[10px] leading-tight transition-colors duration-500 ${currentMetrics.isPersonDetected && currentMetrics.headPosition === 'centered' ? 'text-green-200/70' : 'text-gray-500'}`}>
-                    {currentMetrics.isPersonDetected && currentMetrics.headPosition === 'centered' ? 'Centrada' : 'Centra'}
-                  </p>
-                </div>
-              </div>
-            </div>
-
-            {/* 2. Manos */}
-            <div className={`p-2.5 md:p-4 rounded-xl md:rounded-2xl border backdrop-blur-md transition-all duration-500 ease-out flex-shrink-0 w-[105px] md:w-full ${
-               currentMetrics.isPersonDetected && currentMetrics.gesturesUsage !== 'low'
-                ? currentMetrics.gesturesUsage === 'excessive' ? 'bg-orange-500/20 border-orange-500/50 shadow-[0_4px_15px_rgba(249,115,22,0.3)]' 
-                : 'bg-blue-500/20 border-blue-500/50 shadow-[0_4px_15px_rgba(59,130,246,0.3)]'
-                : 'bg-gray-900/60 border-gray-700/50 opacity-80'
-            }`}>
-              <div className="flex flex-col md:flex-row items-center md:items-start gap-1.5 md:gap-3 text-center md:text-left">
-                <div className={`size-8 md:size-9 rounded-full flex items-center justify-center transition-all duration-500 ease-out ${
-                   currentMetrics.isPersonDetected && currentMetrics.gesturesUsage !== 'low' 
-                   ? currentMetrics.gesturesUsage === 'excessive' ? 'bg-orange-500 text-white scale-105' : 'bg-blue-500 text-white scale-105' 
-                   : 'bg-gray-800 text-gray-500'
-                }`}>
-                  <span className="material-symbols-outlined text-base md:text-lg">sign_language</span>
-                </div>
-                <div className="min-w-0">
-                  <p className={`text-[10px] md:text-xs font-bold uppercase tracking-wider truncate transition-colors duration-500 ${ 
-                    currentMetrics.isPersonDetected && currentMetrics.gesturesUsage !== 'low' 
-                    ? currentMetrics.gesturesUsage === 'excessive' ? 'text-orange-400' : 'text-blue-400' 
-                    : 'text-gray-400'
-                  }`}>
-                    Gestos
-                  </p>
-                  <p className={`text-[8px] md:text-[10px] leading-tight transition-colors duration-500 ${ 
-                    currentMetrics.isPersonDetected && currentMetrics.gesturesUsage !== 'low' 
-                    ? currentMetrics.gesturesUsage === 'excessive' ? 'text-orange-200/70' : 'text-blue-200/70' 
-                    : 'text-gray-500'
-                  }`}>
-                    {currentMetrics.isPersonDetected 
-                        ? (currentMetrics.gesturesUsage === 'optimal' ? 'Dinámicos' : currentMetrics.gesturesUsage === 'excessive' ? 'Muchos' : 'Usa manos')
-                        : 'Usa manos'}
-                  </p>
-                </div>
-              </div>
-            </div>
-
-             {/* 3. Postura/Hombros */}
-             <div className={`p-2.5 md:p-4 rounded-xl md:rounded-2xl border backdrop-blur-md transition-all duration-500 ease-out flex-shrink-0 w-[105px] md:w-full ${
-               currentMetrics.isPersonDetected && currentMetrics.shouldersLevel === 'balanced' 
-                ? 'bg-purple-500/20 border-purple-500/50 shadow-[0_4px_15px_rgba(168,85,247,0.3)]' 
-                : 'bg-gray-900/60 border-gray-700/50 opacity-80'
-            }`}>
-              <div className="flex flex-col md:flex-row items-center md:items-start gap-1.5 md:gap-3 text-center md:text-left">
-                <div className={`size-8 md:size-9 rounded-full flex items-center justify-center transition-all duration-500 ease-out ${
-                   currentMetrics.isPersonDetected && currentMetrics.shouldersLevel === 'balanced' ? 'bg-purple-500 text-white scale-105' : 'bg-gray-800 text-gray-500'
-                }`}>
-                  <span className="material-symbols-outlined text-base md:text-lg">accessibility_new</span>
-                </div>
-                <div className="min-w-0">
-                  <p className={`text-[10px] md:text-xs font-bold uppercase tracking-wider truncate transition-colors duration-500 ${ currentMetrics.isPersonDetected && currentMetrics.shouldersLevel === 'balanced' ? 'text-purple-400' : 'text-gray-400'}`}>
-                    Postura
-                  </p>
-                  <p className={`text-[8px] md:text-[10px] leading-tight transition-colors duration-500 ${ currentMetrics.isPersonDetected && currentMetrics.shouldersLevel === 'balanced' ? 'text-purple-200/70' : 'text-gray-500'}`}>
-                    {currentMetrics.isPersonDetected && currentMetrics.shouldersLevel === 'balanced' ? 'Erguida' : 'Saca pecho'}
-                  </p>
-                </div>
-              </div>
-            </div>
+             
 
           </div>
         )}
 
-        {isVoiceOnly && (
-           <div className="absolute inset-0 flex flex-col items-center justify-center z-10 p-6 pl-20 md:p-6 text-center animate-fade-in overflow-hidden">
+        {/* PIANO MODAL */}
+        {showPiano && (
+            <SmartPiano onClose={() => setShowPiano(false)} />
+        )}
+
+        {/* 📋 TARJETA DE CONTEXTO DE EJERCICIO (Flotante) */}
+        {currentExercise && (
+            <div className={`absolute top-20 left-4 right-4 md:left-auto md:right-8 md:w-80 bg-slate-900/90 backdrop-blur-xl border border-blue-500/30 p-4 rounded-2xl z-50 transition-all duration-500 ${isRecording ? 'opacity-50 hover:opacity-100 translate-y-0' : 'translate-y-0 shadow-2xl shadow-blue-900/20'}`}>
+                <div className="flex items-start gap-3">
+                    <div className="size-10 rounded-xl bg-blue-500/20 flex items-center justify-center text-blue-400 flex-shrink-0">
+                        <span className="material-symbols-outlined">fitness_center</span>
+                    </div>
+                    <div>
+                        <h3 className="font-bold text-white text-sm leading-tight">{currentExercise.title}</h3>
+                        <p className="text-xs text-blue-200/60 font-medium mt-0.5">{currentExercise.category}</p>
+                    </div>
+                </div>
+                
+                {/* Pasos (Solo visibles si no se está grabando para no distraer, o colapsados) */}
+                {!isRecording && (
+                    <div className="mt-3 pt-3 border-t border-white/5 space-y-2">
+                        <p className="text-[10px] uppercase font-bold text-slate-500 tracking-widest">Tu Misión:</p>
+                        <p className="text-xs text-slate-300 leading-relaxed">
+                            {currentExercise.description}
+                        </p>
+                         <ul className="space-y-1.5 mt-2">
+                            {currentExercise.steps.slice(0, 3).map((step, idx) => (
+                                <li key={idx} className="flex gap-2 text-[11px] text-slate-400">
+                                    <span className="text-blue-500">•</span>
+                                    {step}
+                                </li>
+                            ))}
+                        </ul>
+                    </div>
+                )}
+                
+                {isRecording && (
+                     <div className="mt-2 text-xs text-center text-blue-300 font-medium animate-pulse">
+                        🎯 Enfócate en: {currentExercise.targetMetrics.join(", ")}
+                     </div>
+                )}
+            </div>
+        )}
+
+        {/* 🎧 AUDIO VISUALIZER CONTAINER */}
+        <div className="absolute inset-0 flex flex-col items-center justify-center z-10 p-6 pl-0 md:p-6 text-center animate-fade-in overflow-hidden">
+
               {/* Background Glows */}
               <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[500px] h-[500px] bg-blue-600/10 rounded-full blur-[120px] pointer-events-none" />
               <div className={`absolute bottom-0 right-0 w-[400px] h-[400px] bg-purple-600/5 rounded-full blur-[100px] pointer-events-none transition-opacity duration-1000 ${isRecording ? 'opacity-100' : 'opacity-0'}`} />
@@ -842,65 +668,7 @@ function PracticeContent() {
                   </div>
                 )}
               </div>
-           </div>
-        )}
-
-        {showPosturePreview && !isVoiceOnly && (
-          // Contenedor Pantalla Completa en Mobile, 16:9 en Desktop
-          <div className="absolute inset-0 z-0 md:relative md:w-full md:max-w-6xl md:h-auto md:aspect-video shadow-2xl bg-black overflow-hidden md:rounded-xl">
-                <video
-                  ref={videoRef}
-                  autoPlay
-                  playsInline
-                  muted
-                  className="absolute inset-0 w-full h-full object-cover md:object-contain transform -scale-x-100 bg-black" 
-                />
-                <canvas
-                  ref={canvasRef}
-                  className="absolute inset-0 w-full h-full object-cover md:object-contain transform -scale-x-100 pointer-events-none opacity-60 z-10"
-                />
-                
-                {/* Guía Visual */}
-                {!isRecording && (
-                    <div className="absolute inset-0 flex items-center justify-center opacity-40 pointer-events-none border border-white/10 m-6 rounded-2xl">
-                        <div className="absolute top-[20%] w-32 h-32 border-2 border-white/20 rounded-full border-dashed"></div>
-                        <p className="absolute bottom-[15%] text-white/60 text-xs font-medium text-center px-4 w-full bg-black/20 backdrop-blur-sm py-2">
-                           Alinea tu cuerpo en el centro <br/>
-                           <span className="text-yellow-400 text-[10px]">Distancia óptima: ~1 metro</span>
-                        </p>
-                    </div>
-                )}
-
-                {/* Loading State en el centro */}
-                {!isPostureReady && (
-                  <div className="absolute inset-0 flex flex-col items-center justify-center bg-black/80 z-20">
-                    <div className="w-10 h-10 border-4 border-white/20 border-t-white rounded-full animate-spin mb-4"></div>
-                    <p className="text-white font-medium">Cargando cámara...</p>
-                  </div>
-                )}
-
-                {/* Error State */}
-                {cameraError && (
-                  <div className="absolute inset-0 flex items-center justify-center bg-black/90 z-30 p-8 text-center">
-                    <span className="material-symbols-outlined text-4xl text-red-500 mb-2">videocam_off</span>
-                    <p className="text-white font-medium">{cameraError}</p>
-                    <button onClick={() => window.location.reload()} className="mt-4 px-4 py-2 bg-white/10 rounded-full text-sm hover:bg-white/20">
-                      Reintentar
-                    </button>
-                  </div>
-                )}
-
-                {/* Posture Error State */}
-                {postureError && !cameraError && (
-                  <div className="absolute bottom-4 left-1/2 -translate-x-1/2 z-30 px-4 py-2 bg-red-500/20 border border-red-500/40 rounded-full text-xs text-red-200 backdrop-blur-md">
-                    {postureError}
-                  </div>
-                )}
-                
-
-          </div>
-        )}
-      </div>
+        </div>
 
       {/* 🔝 Top UI Overlay */}
       <div className="absolute top-0 w-full z-10 flex items-center justify-between p-4 pt-safe bg-gradient-to-b from-black/80 to-transparent">
@@ -917,6 +685,17 @@ function PracticeContent() {
             {isRecording ? formatTime(recordingTime) : "LISTO"}
           </span>
         </div>
+
+        {/* Piano Toggle (Solo visible si no graba) */}
+        {!isRecording && (
+            <button 
+                onClick={() => setShowPiano(true)}
+                className="ml-4 size-10 rounded-xl bg-white/5 hover:bg-white/10 border border-white/10 flex items-center justify-center transition-all active:scale-95"
+                title="Abrir Piano de Calentamiento"
+            >
+                <span className="material-symbols-outlined text-blue-400">piano</span>
+            </button>
+        )}
 
         <div className="size-10"></div>
       </div>
@@ -959,19 +738,7 @@ function PracticeContent() {
           </button>
         )}
       </div>
-      {/* Carga robusta de librerías MediaPipe con Next.js Script */}
-      <Script 
-        src="https://cdn.jsdelivr.net/npm/@mediapipe/drawing_utils/drawing_utils.js" 
-        strategy="afterInteractive" 
-      />
-      <Script 
-        src="https://cdn.jsdelivr.net/npm/@mediapipe/holistic/holistic.js" 
-        strategy="afterInteractive" 
-      />
-      <Script 
-        src="https://cdn.jsdelivr.net/npm/@mediapipe/camera_utils/camera_utils.js" 
-        strategy="afterInteractive" 
-      />
+      </div>
     </main>
   );
 }

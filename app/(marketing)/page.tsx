@@ -14,7 +14,7 @@ export default function Home() {
         </div>
 
         <div className="flex justify-center">
-          <Link href="/practice" className="w-full max-w-md">
+          <Link href="/practice?mode=video" className="w-full max-w-md">
             <button
               type="button"
               className="w-full py-5 rounded-xl bg-gray-300 text-dark-950 font-bold text-2xl hover:bg-gray-200 transition-all duration-200 hover:scale-[1.02] active:scale-[0.98]"

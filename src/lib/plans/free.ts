@@ -1,52 +1,21 @@
-import { Plan } from "@/types/Plan";
+import { Plan, PLAN_CONFIGS } from "@/types/Plan";
 
 /**
- * Free Plan Definition - v2.0
+ * Free Plan Definition - v3.0 (Simplified)
  *
- * REGLA: 3 análisis POR SEMANA (se resetea cada lunes)
+ * REGLA: 3 análisis TOTALES (lifetime)
  * 
  * Beneficios:
- * - Suficiente para crear hábito
- * - Suficiente fricción para querer Premium
- * - Costo controlado: ~$0.06/usuario/mes
+ * - Suficiente para probar el producto
+ * - Crear urgencia de upgrade
+ * - Costo controlado: ~$0.03/usuario total
  * 
- * Premium desbloquea:
- * - Análisis ilimitados
- * - Historial completo
- * - Gimnasio completo
- * - Cursos
+ * STARTER desbloquea:
+ * - 100 análisis/mes
+ * - 21 días de protocolo
+ * - Cursos de oratoria
  */
 export const FREE_PLAN: Plan = {
   type: "FREE",
-  features: {
-    maxAnalysesPerWeek: 3, // Por semana, no total
-    maxAnalysesPerMonth: -1,
-    maxAnalyses: 3, // Compatibilidad con código existente
-    hasHistory: true, // Ahora sí tienen historial limitado
-    hasHistoryLimit: 3, // Solo últimas 3 sesiones
-    hasReRecord: false,
-    hasExercises: true, // Algunos ejercicios
-    hasExercisesLimit: 5, // Solo 5 ejercicios
-    hasFullGym: false,
-    hasCourses: false,
-  },
-};
-
-/**
- * Premium Plan Definition
- */
-export const PREMIUM_PLAN: Plan = {
-  type: "PREMIUM",
-  features: {
-    maxAnalysesPerWeek: -1, // Ilimitado
-    maxAnalysesPerMonth: 100, // Límite solicitado por el usuario
-    maxAnalyses: -1,
-    hasHistory: true,
-    hasHistoryLimit: -1, // Sin límite
-    hasReRecord: true,
-    hasExercises: true,
-    hasExercisesLimit: -1,
-    hasFullGym: true,
-    hasCourses: true,
-  },
+  features: PLAN_CONFIGS.FREE
 };

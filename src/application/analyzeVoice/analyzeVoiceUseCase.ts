@@ -6,6 +6,12 @@ import { AuthorityScore, buildAuthorityScore } from '../../domain/authority/Auth
 export type AnalyzeVoiceInput = {
   audioBuffer: Buffer;
   userId?: string;
+  exerciseContext?: {
+    id: string;
+    title: string;
+    goal: string;
+    metrics: string[];
+  };
 };
 
 export type AnalyzeVoiceResult = {
@@ -44,6 +50,7 @@ import { analyzeSpectralCharacteristics } from '../../infrastructure/audio/Spect
 
 export async function analyzeVoiceUseCase({
   audioBuffer,
+  exerciseContext
 }: AnalyzeVoiceInput): Promise<AnalyzeVoiceResult> {
   // 1. Transcribir con segmentos (incluye muletillas y pausas)
   console.log('[ANALYZE] Transcribing audio...');
@@ -96,6 +103,7 @@ export async function analyzeVoiceUseCase({
   const feedback = await generateDynamicFeedback({
     transcript: transcriptionResult.text,
     metrics,
+    exerciseContext
   });
 
   console.log('[ANALYZE] Analysis complete!');

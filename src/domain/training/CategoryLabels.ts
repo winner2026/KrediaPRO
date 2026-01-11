@@ -7,7 +7,7 @@ export const CATEGORY_LABELS: Record<string, string> = {
   'IMPROVISATION': 'Improvisación',
   'PROJECTION': 'Proyección',
   'RELAXATION': 'Relajación',
-  'STAGE_PRESENCE': 'Presencia'
+  'VOCABULARY': 'Vocabulario'
 };
 
 export const getCategoryLabel = (cat: string) => CATEGORY_LABELS[cat] || cat;
