@@ -160,10 +160,10 @@ export default function BreathingExercisePage() {
           <div className="absolute bottom-0 right-0 w-full h-1/2 bg-purple-900/10 blur-[100px]" />
       </div>
 
-      <div className="relative z-10 p-6 flex justify-between items-center">
+      <div className="relative z-10 px-6 py-4 flex justify-between items-center">
          <Link href="/gym" className="text-slate-500 hover:text-white transition-colors flex items-center gap-2">
             <span className="material-symbols-outlined">arrow_back</span>
-            <span className="text-sm font-bold uppercase tracking-widest">Salir</span>
+            <span className="text-sm font-bold uppercase tracking-widest hidden sm:inline">Salir</span>
          </Link>
          <div className="flex items-center gap-2 px-3 py-1 bg-white/5 rounded-full border border-white/10">
             <span className="material-symbols-outlined text-sm text-blue-400">air</span>
@@ -171,7 +171,7 @@ export default function BreathingExercisePage() {
          </div>
       </div>
 
-      <div className="flex-1 flex flex-col items-center justify-center p-6 text-center relative z-10">
+      <div className="flex-1 flex flex-col items-center justify-center mobile-container py-6 text-center relative z-10">
          
          {phase === "intro" && (
              <div className="max-w-md animate-fade-in space-y-8">
@@ -179,7 +179,7 @@ export default function BreathingExercisePage() {
                     <span className="text-[10px] font-black uppercase tracking-[0.2em] text-blue-400 border border-blue-500/20 px-3 py-1 rounded-full bg-blue-500/10">
                         Objetivo del Día
                     </span>
-                    <h1 className="text-4xl font-black tracking-tight text-white mb-2">
+                    <h1 className="text-3xl md:text-4xl font-black tracking-tight text-white mb-2">
                         Control de Aire
                     </h1>
                  </div>
@@ -214,7 +214,7 @@ export default function BreathingExercisePage() {
          {phase === "recording" && (
              <div className="w-full max-w-lg flex flex-col items-center gap-12">
                  
-                 <div className="relative size-64 flex items-center justify-center">
+                 <div className="relative size-48 md:size-64 flex items-center justify-center">
                      <div 
                         className={`absolute inset-0 rounded-full transition-all duration-100 ${isActive ? 'opacity-100' : 'opacity-20'}`}
                         style={{
@@ -225,10 +225,10 @@ export default function BreathingExercisePage() {
                         }}
                      />
                      <div className="relative z-10 text-center">
-                         <span className="text-7xl font-black font-mono tracking-tighter tabular-nums text-white drop-shadow-2xl">
+                         <span className="text-5xl md:text-7xl font-black font-mono tracking-tighter tabular-nums text-white drop-shadow-2xl">
                              {seconds.toFixed(1)}
                          </span>
-                         <span className="block text-xs font-bold uppercase tracking-[0.3em] text-blue-400 mt-2">
+                         <span className="block text-[10px] font-bold uppercase tracking-[0.3em] text-blue-400 mt-2">
                              Segundos
                          </span>
                      </div>

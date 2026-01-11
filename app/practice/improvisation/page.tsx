@@ -187,7 +187,7 @@ export default function ImprovisationPage() {
   };
 
   return (
-    <div className={`min-h-screen font-display flex flex-col items-center justify-center p-6 relative overflow-hidden transition-colors duration-500 ${
+    <div className={`min-h-screen font-display flex flex-col items-center justify-center p-6 relative overflow-x-hidden transition-colors duration-500 ${
         phase === 'speaking' && silencePanic > 50 ? 'bg-red-950' : 'bg-slate-950'
     }`}>
         
@@ -200,11 +200,11 @@ export default function ImprovisationPage() {
         <div className="absolute top-6 left-6 z-20">
              <Link href="/gym" onClick={stopAudio} className="flex items-center gap-2 text-slate-500 hover:text-white transition-colors">
                 <span className="material-symbols-outlined">arrow_back</span>
-                <span className="text-xs font-bold uppercase tracking-widest">Salir</span>
+                <span className="text-xs font-bold uppercase tracking-widest hidden sm:inline">Salir</span>
              </Link>
         </div>
 
-        <div className="relative z-10 w-full max-w-lg text-center">
+        <div className="relative z-10 w-full mobile-container text-center">
             
             {phase === 'intro' && (
                 <div className="space-y-8 animate-fade-in">
@@ -230,8 +230,8 @@ export default function ImprovisationPage() {
             {phase === 'countdown' && (
                 <div className="animate-bounce-in">
                     <p className="text-sm text-slate-400 uppercase tracking-widest mb-4">El tema es...</p>
-                    <h2 className="text-5xl font-black text-white mb-8 leading-tight">{topic}</h2>
-                    <div className="text-9xl font-black text-amber-500">{feedback}</div>
+                    <h2 className="text-3xl md:text-5xl font-black text-white mb-8 leading-tight px-4">{topic}</h2>
+                    <div className="text-7xl md:text-9xl font-black text-amber-500">{feedback}</div>
                 </div>
             )}
 

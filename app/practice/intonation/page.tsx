@@ -394,9 +394,9 @@ export default function IntonationPage() {
                   
                   {/* Label */}
                   <div className="text-center space-y-2">
-                      <div className="text-3xl">{scoreData.emoji}</div>
-                      <h2 className={`text-xl font-black ${scoreData.color}`}>{scoreData.label}</h2>
-                      <p className="text-slate-400 text-sm">
+                      <div className="text-2xl md:text-3xl">{scoreData.emoji}</div>
+                      <h2 className={`text-lg md:text-xl font-black ${scoreData.color}`}>{scoreData.label}</h2>
+                      <p className="text-slate-400 text-[11px] md:text-sm leading-relaxed px-2">
                           {finalStats.overallScore >= 70 
                               ? "¡Tu entonación es atrapante! Varías el tono, usas pausas y enfatizas bien."
                               : finalStats.overallScore >= 50
@@ -487,15 +487,15 @@ export default function IntonationPage() {
       );
   }
 
-  // --- MAIN VIEW ---
-  return (
-    <div className="min-h-screen bg-slate-950 font-display text-white p-6 flex flex-col items-center">
+   // --- MAIN VIEW ---
+   return (
+    <div className="min-h-screen bg-slate-950 font-display text-white relative overflow-x-hidden pb-12">
        
         {/* Header */}
-        <div className="w-full max-w-4xl flex items-center justify-between mb-8">
+        <div className="w-full max-w-lg mx-auto flex items-center justify-between px-6 py-6 border-b border-white/5 bg-slate-950/50 backdrop-blur-xl sticky top-0 z-30">
              <Link href="/gym" onClick={stopListening} className="flex items-center gap-2 text-slate-500 hover:text-white transition-colors">
                 <span className="material-symbols-outlined">arrow_back</span>
-                <span className="text-xs font-bold uppercase tracking-widest">Salir</span>
+                <span className="text-xs font-bold uppercase tracking-widest hidden sm:inline">Salir</span>
              </Link>
              <div className="flex items-center gap-2">
                  {phase === 'active' && (
@@ -504,33 +504,35 @@ export default function IntonationPage() {
                      </div>
                  )}
                  <div className={`size-3 rounded-full ${isListening ? 'bg-red-500 animate-pulse' : 'bg-slate-700'}`} />
-                 <span className="text-xs font-bold uppercase text-slate-500">Live Monitor</span>
+                 <span className="text-[10px] font-bold uppercase text-slate-500">Live</span>
              </div>
         </div>
         
-        <div className="text-center space-y-4 mb-8">
-             <h1 className="text-4xl font-black text-transparent bg-clip-text bg-gradient-to-r from-amber-200 to-yellow-500">
-                Afinador de Voz
-             </h1>
-             <p className="text-slate-400 max-w-md mx-auto">
-                {phase === 'idle' 
-                    ? "Visualiza la entonación natural de tu voz mientras hablas con normalidad."
-                    : "Habla como si contaras algo interesante a un amigo. Sé natural."}
-             </p>
-        </div>
+        <div className="mobile-container pt-8 flex flex-col items-center">
+            
+            <div className="text-center space-y-4 mb-8">
+                 <h1 className="text-3xl md:text-4xl font-black text-transparent bg-clip-text bg-gradient-to-r from-amber-200 to-yellow-500">
+                    Afinador de Voz
+                 </h1>
+                 <p className="text-slate-400 text-xs md:text-sm max-w-md mx-auto">
+                    {phase === 'idle' 
+                        ? "Visualiza la entonación natural de tu voz mientras hablas con normalidad."
+                        : "Habla como si contaras algo interesante a un amigo. Sé natural."}
+                 </p>
+            </div>
 
         {/* Visualizer Container */}
-        <div className="relative w-full max-w-4xl h-[400px] bg-slate-900 rounded-3xl border border-white/10 shadow-2xl overflow-hidden">
+        <div className="relative w-full h-[250px] md:h-[400px] bg-slate-900 rounded-3xl border border-white/10 shadow-2xl overflow-hidden">
              
              {/* Overlay Content */}
              {phase === 'idle' && (
                  <div className="absolute inset-0 flex items-center justify-center bg-transparent z-10">
                       <button 
                         onClick={startExercise}
-                        className="px-8 py-4 bg-white text-black font-black rounded-full hover:scale-105 transition-transform flex items-center gap-2 shadow-xl"
+                        className="px-6 py-3 md:px-8 md:py-4 bg-white text-black font-black text-sm md:text-base rounded-full hover:scale-105 transition-transform flex items-center gap-2 shadow-xl"
                       >
                          <span className="material-symbols-outlined">mic</span>
-                         INICIAR EJERCICIO ({EXERCISE_DURATION}s)
+                         INICIAR ({EXERCISE_DURATION}s)
                       </button>
                  </div>
              )}
@@ -562,6 +564,7 @@ export default function IntonationPage() {
             </div>
         )}
 
+        </div>
     </div>
   );
 }

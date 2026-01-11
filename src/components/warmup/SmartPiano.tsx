@@ -316,7 +316,7 @@ export default function SmartPiano({ onClose, isStandalone = false }: { onClose?
 
 
     return (
-        <div className={isStandalone ? "w-full min-h-screen flex flex-col items-center justify-center bg-black" : "fixed inset-0 z-50 flex items-center justify-center bg-black/90 backdrop-blur-md p-4 animate-fade-in"}>
+        <div className={isStandalone ? "w-full min-h-[100dvh] flex flex-col items-center justify-center bg-black" : "fixed inset-0 z-50 flex items-center justify-center bg-black/90 backdrop-blur-md sm:p-4 animate-fade-in"}>
             
             {/* FORCE TAILWIND CLASSES (Hidden) */}
             <div className="hidden ring-4 ring-green-500 z-50 bg-green-500 text-black"></div>
@@ -330,7 +330,7 @@ export default function SmartPiano({ onClose, isStandalone = false }: { onClose?
                 </div>
             )}
             
-            <div className={`bg-[#1a242d] border border-slate-700 w-full ${isStandalone ? 'max-w-5xl h-[85vh]' : 'max-w-4xl'} rounded-3xl overflow-hidden shadow-2xl flex flex-col`}>
+            <div className={`bg-[#1a242d] border border-slate-700 w-full ${isStandalone ? 'max-w-5xl h-[100dvh] sm:h-[85vh]' : 'max-w-4xl h-full sm:h-auto'} sm:rounded-3xl overflow-hidden shadow-2xl flex flex-col`}>
                 
                 {/* Header */}
                 <div className="bg-[#283039] p-4 flex justify-between items-center border-b border-slate-700">
@@ -415,16 +415,16 @@ export default function SmartPiano({ onClose, isStandalone = false }: { onClose?
                                     </button>
                                 </div>
 
-                                <div className="flex-1 rounded-2xl bg-gradient-to-br from-indigo-900/20 to-purple-900/20 border border-indigo-500/30 p-5 flex flex-col items-center justify-center text-center">
-                                    <span className="material-symbols-outlined text-3xl text-indigo-400 mb-2">lightbulb</span>
-                                    <h4 className="text-xs font-bold text-indigo-300 uppercase tracking-widest mb-2">Sugerencia</h4>
-                                    <p className="text-white font-medium text-lg leading-tight italic">
-                                        "{suggestion}"
-                                    </p>
-                                    <button onClick={nextSuggestion} className="mt-4 text-xs bg-white/10 hover:bg-white/20 px-3 py-1 rounded-full text-indigo-200 transition-colors">
-                                        Nueva sugerencia
-                                    </button>
-                                </div>
+                                 <div className="flex-1 rounded-2xl bg-gradient-to-br from-indigo-900/20 to-purple-900/20 border border-indigo-500/30 p-4 sm:p-5 flex flex-col items-center justify-center text-center">
+                                     <span className="material-symbols-outlined text-3xl text-indigo-400 mb-2">lightbulb</span>
+                                     <h4 className="text-xs font-bold text-indigo-300 uppercase tracking-widest mb-2">Sugerencia</h4>
+                                     <p className="text-white font-medium text-sm sm:text-lg leading-tight italic">
+                                         "{suggestion}"
+                                     </p>
+                                     <button onClick={nextSuggestion} className="mt-4 text-xs bg-white/10 hover:bg-white/20 px-3 py-1 rounded-full text-indigo-200 transition-colors">
+                                         Nueva sugerencia
+                                     </button>
+                                 </div>
 
                                 {isStandalone && (
                                     <Link href="/practice">
@@ -437,10 +437,10 @@ export default function SmartPiano({ onClose, isStandalone = false }: { onClose?
                             </div>
                         )}
                     </div>
-
-                     {/* Piano Keys */}
-                     <div className="flex-1 bg-[#101418] relative overflow-x-auto custom-scrollbar flex items-center justify-center p-4">
-                          <div className="flex relative h-64 select-none">
+ 
+                     {/* Piano Keys Container */}
+                     <div className="flex-1 bg-[#101418] relative overflow-x-auto custom-scrollbar flex items-center p-4 snap-x snap-mandatory">
+                          <div className="flex relative h-56 sm:h-64 select-none mx-auto min-w-max">
                               {NOTES.map((n, i) => {
                                   const isSafe = safeRange && i >= safeRange[0] && i <= safeRange[1];
                                   const isActive = activeNote === n.note;
@@ -455,48 +455,54 @@ export default function SmartPiano({ onClose, isStandalone = false }: { onClose?
 
                                   if (n.color === "white") {
                                       return (
-                                         <div 
-                                             key={n.note}
-                                             ref={el => { keyRefs.current[i] = el }}
-                                             onMouseDown={() => playTone(n.freq, n.note)}
-                                             style={{
-                                                 backgroundColor: isDetected ? '#15803d' : isScaleMember ? '#d1fae5' : isActive ? '#bfdbfe' : 'white',
-                                                 transform: isDetected ? 'scale(0.95)' : 'none',
-                                                 boxShadow: isDetected ? '0 0 15px #15803d' : 'none',
-                                                 borderColor: isDetected ? '#166534' : undefined
-                                             }}
-                                             className={`
-                                                 relative w-12 h-64 border border-slate-900 rounded-b-lg active:scale-[0.98] transition-all duration-100 flex items-end justify-center pb-4 cursor-pointer
-                                                 ${isSafe ? 'shadow-[inset_0_-20px_40px_rgba(34,197,94,0.3)]' : ''}
-                                                 ${isDetected ? 'z-50 text-white' : ''}
-                                             `}
-                                         >
+                                          <div 
+                                              key={n.note}
+                                              ref={el => { keyRefs.current[i] = el }}
+                                              onPointerDown={(e) => {
+                                                  e.preventDefault();
+                                                  playTone(n.freq, n.note);
+                                              }}
+                                              style={{
+                                                  backgroundColor: isDetected ? '#15803d' : isScaleMember ? '#d1fae5' : isActive ? '#bfdbfe' : 'white',
+                                                  transform: isDetected ? 'scale(0.95)' : 'none',
+                                                  boxShadow: isDetected ? '0 0 15px #15803d' : 'none',
+                                                  borderColor: isDetected ? '#166534' : undefined
+                                              }}
+                                              className={`
+                                                  relative w-14 sm:w-12 h-56 sm:h-64 border border-slate-900 rounded-b-lg active:scale-[0.98] transition-all duration-100 flex items-end justify-center pb-4 cursor-pointer touch-none snap-center
+                                                  ${isSafe ? 'shadow-[inset_0_-20px_40px_rgba(34,197,94,0.3)]' : ''}
+                                                  ${isDetected ? 'z-50 text-white' : ''}
+                                              `}
+                                          >
                                              <span className={`font-bold text-xs pointer-events-none ${isDetected ? "text-white" : "text-slate-400"}`}>{n.note}</span>
                                              {isDetected && (
                                                  <div className="absolute top-4 text-white text-[12px] font-black uppercase tracking-widest pointer-events-none whitespace-nowrap animate-fade-in [text-shadow:0px_1px_2px_rgba(0,0,0,0.5)]">
                                                      TONO
                                                  </div>
                                              )}
-                                         </div>
+                                          </div>
                                       );
                                   } else {
                                       return (
-                                         <div 
-                                             key={n.note}
-                                             ref={el => { keyRefs.current[i] = el }}
-                                             onMouseDown={() => playTone(n.freq, n.note)}
-                                             style={{
-                                                 backgroundColor: isDetected ? '#15803d' : isScaleMember ? '#065f46' : isActive ? '#334155' : 'black',
-                                                 transform: isDetected ? 'scale(0.95)' : 'none',
-                                                 boxShadow: isDetected ? '0 0 15px #15803d' : 'none',
-                                                 borderColor: isDetected ? '#166534' : undefined
-                                             }}
-                                             className={`
-                                                 w-8 h-40 -mx-4 z-20 rounded-b-lg border border-slate-800 active:scale-[0.98] transition-all duration-100 cursor-pointer flex items-end justify-center pb-2
-                                                 ${isSafe ? 'shadow-[inset_0_-20px_40px_rgba(34,197,94,0.5)]' : ''}
-                                                 ${isDetected ? 'z-50' : ''}
-                                             `}
-                                         >
+                                          <div 
+                                              key={n.note}
+                                              ref={el => { keyRefs.current[i] = el }}
+                                              onPointerDown={(e) => {
+                                                e.preventDefault();
+                                                playTone(n.freq, n.note);
+                                              }}
+                                              style={{
+                                                  backgroundColor: isDetected ? '#15803d' : isScaleMember ? '#065f46' : isActive ? '#334155' : 'black',
+                                                  transform: isDetected ? 'scale(0.95)' : 'none',
+                                                  boxShadow: isDetected ? '0 0 15px #15803d' : 'none',
+                                                  borderColor: isDetected ? '#166534' : undefined
+                                              }}
+                                              className={`
+                                                  w-8 h-32 sm:h-40 -mx-4 z-20 rounded-b-lg border border-slate-800 active:scale-[0.98] transition-all duration-100 cursor-pointer flex items-end justify-center pb-2 touch-none snap-center
+                                                  ${isSafe ? 'shadow-[inset_0_-20px_40px_rgba(34,197,94,0.5)]' : ''}
+                                                  ${isDetected ? 'z-50' : ''}
+                                              `}
+                                          >
                                             <span className={`text-[10px] font-bold pointer-events-none ${isDetected ? "text-white" : "text-slate-600"}`}>{n.note}</span>
                                             {isDetected && (
                                                  <div className="absolute top-2 text-white text-[9px] font-black uppercase tracking-widest pointer-events-none whitespace-nowrap animate-fade-in [text-shadow:0px_1px_2px_rgba(0,0,0,0.5)] -rotate-90 origin-center translate-y-8">

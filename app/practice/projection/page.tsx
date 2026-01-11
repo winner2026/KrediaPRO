@@ -198,12 +198,12 @@ export default function ProjectionPage() {
   
   const zone = getZoneInfo(currentLevel);
 
-  // --- RESULTS VIEW ---
-  if (phase === 'results' && finalStats) {
-      const scoreData = getScoreLabel(finalScore);
-      return (
-          <div className="min-h-screen bg-slate-950 font-display text-white p-6 flex flex-col items-center justify-center">
-              <div className="max-w-md w-full space-y-8 animate-fade-in">
+   // --- RESULTS VIEW ---
+   if (phase === 'results' && finalStats) {
+       const scoreData = getScoreLabel(finalScore);
+       return (
+           <div className="min-h-screen bg-slate-950 font-display text-white p-6 flex flex-col items-center justify-center overflow-y-auto pt-12 pb-24">
+               <div className="mobile-container space-y-8 animate-fade-in">
                   
                   {/* Score Circle */}
                   <div className="relative mx-auto size-48">
@@ -299,9 +299,9 @@ export default function ProjectionPage() {
       );
   }
 
-  // --- MAIN VIEW ---
-  return (
-    <div className="min-h-screen bg-slate-950 font-display text-white p-6 flex flex-col items-center justify-center relative overflow-hidden">
+   // --- MAIN VIEW ---
+   return (
+    <div className="min-h-screen bg-slate-950 font-display text-white relative overflow-x-hidden pb-12">
        
         {/* Ambient Bg - Reacts to volume */}
         <div 
@@ -310,28 +310,27 @@ export default function ProjectionPage() {
         />
 
         {/* Header */}
-        <div className="absolute top-6 left-6 z-20">
+        <div className="w-full flex items-center justify-between px-6 py-6 border-b border-white/5 bg-slate-950/50 backdrop-blur-xl sticky top-0 z-30">
              <Link href="/gym" onClick={stopListening} className="flex items-center gap-2 text-slate-500 hover:text-white transition-colors">
                 <span className="material-symbols-outlined">arrow_back</span>
-                <span className="text-xs font-bold uppercase tracking-widest">Salir</span>
+                <span className="text-xs font-bold uppercase tracking-widest hidden sm:inline">Salir</span>
              </Link>
+             
+             {phase === 'active' && (
+                <div className="flex items-center gap-2 px-4 py-1.5 rounded-full bg-amber-500/20 border border-amber-500/30">
+                    <span className="material-symbols-outlined text-amber-400 text-sm">timer</span>
+                    <span className="text-amber-400 font-mono font-bold">{timeLeft}s</span>
+                </div>
+            )}
+            
+            <div className={`size-3 rounded-full ${isListening ? 'bg-red-500 animate-pulse' : 'bg-slate-700'}`} />
         </div>
         
-        {/* Timer (when active) */}
-        {phase === 'active' && (
-            <div className="absolute top-6 right-6 z-20">
-                <div className="flex items-center gap-2 px-4 py-2 rounded-full bg-amber-500/20 border border-amber-500/30">
-                    <span className="material-symbols-outlined text-amber-400">timer</span>
-                    <span className="text-amber-400 font-mono font-bold text-xl">{timeLeft}s</span>
-                </div>
-            </div>
-        )}
-        
-        <div className="text-center space-y-4 mb-12 relative z-10 animate-fade-in">
-             <h1 className="text-4xl font-black text-transparent bg-clip-text bg-gradient-to-r from-amber-500 to-orange-600">
+        <div className="mobile-container pt-8 text-center space-y-4 mb-12 relative z-10 animate-fade-in px-6">
+             <h1 className="text-3xl md:text-4xl font-black text-transparent bg-clip-text bg-gradient-to-r from-amber-500 to-orange-600">
                 Dinamómetro Vocal
              </h1>
-             <p className="text-slate-400 max-w-sm mx-auto">
+             <p className="text-slate-400 text-xs md:text-sm max-w-sm mx-auto">
                 {phase === 'idle' 
                     ? "Controla tu potencia. Tu objetivo es mantener la barra en la zona verde-amarilla sin llegar al rojo."
                     : "¡Proyecta tu voz! Mantén un volumen constante y evita los extremos."}
@@ -342,7 +341,7 @@ export default function ProjectionPage() {
         <div className="relative z-10 w-full max-w-xs flex flex-col items-center gap-8">
             
             {/* Main Bar */}
-            <div className={`w-24 h-96 bg-slate-900 rounded-full p-2 border border-white/10 relative overflow-hidden shadow-2xl ${phase !== 'active' ? 'grayscale opacity-50' : ''}`}>
+            <div className={`w-20 md:w-24 h-[300px] md:h-96 bg-slate-900 rounded-full p-2 border border-white/10 relative overflow-hidden shadow-2xl ${phase !== 'active' ? 'grayscale opacity-50' : ''}`}>
                 {/* Zone Markers */}
                 <div className="absolute inset-0 flex flex-col justify-between p-4 pointer-events-none z-20">
                     <div className="w-full h-[1px] bg-red-500/50" /> {/* 90% */}

@@ -307,60 +307,54 @@ export default function ArticulationPage() {
   };
 
   return (
-    <div className="min-h-screen bg-slate-950 text-white font-display flex flex-col items-center justify-center p-6 relative overflow-hidden">
+    <div className="min-h-screen bg-slate-950 text-white font-display relative overflow-x-hidden pb-12">
         
         <div className="absolute inset-0 pointer-events-none">
-            <div className={`absolute top-0 right-0 w-full h-full bg-blue-900/10 transition-opactiy duration-700 ${isListening ? 'opacity-50' : 'opacity-20'}`} />
+            <div className={`absolute top-0 right-0 w-full h-full bg-blue-900/10 transition-opacity duration-700 ${isListening ? 'opacity-50' : 'opacity-20'}`} />
             <div className="absolute bottom-0 left-0 w-2/3 h-2/3 bg-purple-900/10 blur-[100px]" />
         </div>
 
-        <div className="absolute top-6 left-6 z-20">
+        <div className="relative z-20 flex justify-between items-center px-6 py-6 max-w-lg mx-auto">
              <Link href="/gym" className="flex items-center gap-2 text-slate-500 hover:text-white transition-colors">
                 <span className="material-symbols-outlined">arrow_back</span>
-                <span className="text-xs font-bold uppercase tracking-widest">Salir</span>
+                <span className="text-xs font-bold uppercase tracking-widest hidden sm:inline">Salir</span>
              </Link>
-        </div>
-
-        <div className="absolute top-6 right-6 z-20 flex flex-col items-end">
-             <span className="text-[10px] font-bold uppercase tracking-widest text-slate-500">
-                 Progreso Nivel {currentLevel.id}
-             </span>
-             <div className="flex gap-1 mt-1">
-                 {currentLevel.exercises.map((ex, i) => (
-                     <div 
-                        key={i} 
-                        className={`size-6 rounded-md flex items-center justify-center text-[10px] font-black transition-all ${
-                            i === exerciseIndex ? 'bg-blue-500 text-white scale-110' : 
-                            i < exerciseIndex ? 'bg-green-500/20 text-green-400' : 
-                            'bg-slate-800 text-slate-600'
-                        }`}
-                     >
-                         {ex.id}
-                     </div>
-                 ))}
+             
+             <div className="flex flex-col items-end">
+                  <span className="text-[9px] font-bold uppercase tracking-widest text-slate-500">
+                      Nivel {currentLevel.id}
+                  </span>
+                  <div className="flex gap-1 mt-1">
+                      {currentLevel.exercises.map((ex, i) => (
+                          <div 
+                             key={i} 
+                             className={`size-5 rounded-md flex items-center justify-center text-[10px] font-black transition-all ${
+                                 i === exerciseIndex ? 'bg-blue-500 text-white scale-110' : 
+                                 i < exerciseIndex ? 'bg-green-500/20 text-green-400' : 
+                                 'bg-slate-800 text-slate-600'
+                             }`}
+                          >
+                              {ex.id}
+                          </div>
+                      ))}
+                  </div>
              </div>
         </div>
 
-        <div className="relative z-10 w-full max-w-2xl">
+        <div className="relative z-10 w-full mobile-container pt-4">
             
-            <div className="flex justify-between items-end mb-8 px-4">
+            <div className="flex justify-between items-end mb-6 px-2">
                 <div>
-                    <h1 className="text-3xl font-black text-transparent bg-clip-text bg-gradient-to-r from-blue-400 to-purple-400">
+                    <h1 className="text-2xl font-black text-transparent bg-clip-text bg-gradient-to-r from-blue-400 to-purple-400">
                         {currentExercise.title}
                     </h1>
-                    <p className="text-slate-400 text-sm">
-                        Nivel {currentLevel.id }<span className="text-blue-400 font-bold">.{currentExercise.id}</span> — {currentLevel.difficulty}
+                    <p className="text-slate-500 text-[10px] font-bold uppercase tracking-wider">
+                        MODULO {currentExercise.id} — {currentLevel.difficulty}
                     </p>
-                </div>
-                <div className="text-right">
-                    <span className="text-xs font-bold uppercase tracking-widest text-slate-500 block mb-1">Módulo</span>
-                    <span className="px-3 py-1 rounded-full text-xs font-black uppercase bg-slate-800 text-white border border-slate-700">
-                        {currentExercise.id}
-                    </span>
                 </div>
             </div>
 
-            <div className="bg-slate-900/50 backdrop-blur-xl border border-white/10 rounded-3xl p-8 shadow-2xl min-h-[400px] flex flex-col justify-center relative overflow-hidden">
+            <div className="bg-slate-900/50 backdrop-blur-xl border border-white/10 rounded-3xl p-6 md:p-8 shadow-2xl min-h-[350px] flex flex-col justify-center relative overflow-hidden">
                 
                 {isListening && (
                     <div className="absolute inset-0 flex items-center justify-center pointer-events-none opacity-20">
@@ -393,7 +387,7 @@ export default function ArticulationPage() {
 
                 {phase === 'countdown' && (
                     <div className="text-center animate-bounce-in">
-                         <span className="text-9xl font-black text-white drop-shadow-[0_0_30px_rgba(255,255,255,0.5)]">
+                         <span className="text-8xl md:text-9xl font-black text-white drop-shadow-[0_0_30px_rgba(255,255,255,0.5)]">
                              {statusMessage}
                          </span>
                     </div>
